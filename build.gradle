@@ -1,0 +1,37 @@
+apply plugin: 'spring-boot'
+
+allprojects {
+    version = globalVersion
+    group = 'com.github.alebabai.tg2vk'
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+    apply plugin: 'eclipse'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+jar {
+    baseName = 'tg2vk'
+    version = globalVersion
+}
+
+buildscript {
+    ext {
+        springBootVersion = '1.4.0.RELEASE'
+    }
+
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}

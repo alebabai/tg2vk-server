@@ -1,0 +1,2 @@
+rootProject.name = 'TG2VK'
+include 'dataaccess', 'services', 'bot-core', 'frontend'
