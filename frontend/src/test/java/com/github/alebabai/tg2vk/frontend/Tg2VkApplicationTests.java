@@ -1,4 +1,4 @@
-package com.github.alebabai.tg2vk;
+package com.github.alebabai.tg2vk.frontend;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
