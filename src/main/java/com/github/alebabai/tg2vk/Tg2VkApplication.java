@@ -1,4 +1,4 @@
-package com.github.alebabai.tg2vk.frontend;
+package com.github.alebabai.tg2vk;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

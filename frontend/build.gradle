@@ -1,6 +1,0 @@
-dependencies {
-    compile project(':bot-core')
-    compile ('org.springframework:spring-web:4.3.2.RELEASE')
-    compile ('org.springframework:spring-webmvc:4.3.2.RELEASE')
-    compile ('org.codehaus.groovy:groovy-templates:2.4.7')
-}
