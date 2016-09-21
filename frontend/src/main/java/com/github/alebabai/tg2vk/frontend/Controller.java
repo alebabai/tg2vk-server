@@ -20,7 +20,7 @@ public class Controller {
         return new ModelAndView("page", "title", "Template page");
     }
 
-    class Pojo {
+    public class Pojo {
         private String title;
 
         public Pojo(String title) {

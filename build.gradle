@@ -1,9 +1,4 @@
 allprojects {
-    version = globalVersion
-    group = 'com.github.alebabai.tg2vk'
-}
-
-subprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
     apply plugin: 'eclipse'
@@ -14,4 +9,38 @@ subprojects {
     repositories {
         mavenCentral()
     }
+
+    version = globalVersion
+    group = 'com.github.alebabai.tg2vk'
+}
+
+apply plugin: 'spring-boot'
+
+jar {
+    baseName = 'tg2vk-starter'
+    version = globalVersion
+}
+
+buildscript {
+    ext {
+        springBootVersion = '1.4.0.RELEASE'
+    }
+
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+dependencies {
+    compile project(':frontend')
+//	compile('org.springframework.boot:spring-boot-starter-security')
+//	compile('org.springframework.session:spring-session')
+    compile (group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.8.1')
+    compile (group: 'org.hibernate', name: 'hibernate-validator', version: '5.2.4.Final')
+    compile (group: 'org.springframework.boot', name: 'spring-boot-starter', version: '1.4.0.RELEASE')
+    compile (group: 'org.springframework.boot', name: 'spring-boot-starter-tomcat', version: '1.4.0.RELEASE')
+    testCompile('org.springframework.boot:spring-boot-starter-test')
 }
