@@ -16,7 +16,8 @@ apply plugin: 'eclipse'
 apply plugin: 'spring-boot'
 
 jar {
-	baseName = 'tg2vk'
+	baseName = 'TG2VK'
+	group = 'com.github.alebabai'
 	version = globalVersion
 }
 

@@ -1,2 +1,2 @@
-# tg2vk
-Telegram to Vkontakte linker 
+# TG2VK
+Telegram to VK linker 
