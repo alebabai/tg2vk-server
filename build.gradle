@@ -1,13 +1,13 @@
 buildscript {
-	ext {
-		springBootVersion = '1.4.1.RELEASE'
-	}
-	repositories {
-		mavenCentral()
-	}
-	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-	}
+    ext {
+        springBootVersion = '1.4.1.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+    }
 }
 
 apply plugin: 'java'
@@ -16,28 +16,46 @@ apply plugin: 'eclipse'
 apply plugin: 'spring-boot'
 
 jar {
-	baseName = 'TG2VK'
-	group = 'com.github.alebabai'
-	version = globalVersion
+    baseName = 'TG2VK'
+    group = 'com.github.alebabai'
+    version = globalVersion
 }
 
 sourceCompatibility = javaVersion
 targetCompatibility = javaVersion
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-    compile("org.springframework.boot:spring-boot-starter-web") {
-        exclude module: "spring-boot-starter-tomcat"
+/*
+ *  Spring dependencies
+ */
+    compile 'org.springframework.boot:spring-boot-starter-web', {
+        exclude module: 'spring-boot-starter-tomcat'
     }
-    compile("org.springframework.boot:spring-boot-starter-jetty")
-    compile('org.springframework.boot:spring-boot-starter-groovy-templates')
-//	compile('org.springframework.boot:spring-boot-starter-security')
-//	compile('org.springframework.session:spring-session')
-//	compile('org.springframework.boot:spring-boot-starter-cache')
-//	compile('org.springframework.boot:spring-boot-starter-data-jpa')
-//	runtime('org.postgresql:postgresql')
-	testCompile('org.springframework.boot:spring-boot-starter-test')
+    compile 'org.springframework.boot:spring-boot-starter-jetty'
+    compile 'org.springframework.boot:spring-boot-starter-log4j2'
+    compile 'org.springframework.boot:spring-boot-starter-mustache'
+//  compile 'org.springframework.session:spring-session'
+//	compile 'org.springframework.boot:spring-boot-starter-security'
+//	compile 'org.springframework.boot:spring-boot-starter-cache'
+//	compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+/*
+ *  Other dependencies
+ */
+    compile 'com.vk.api:sdk:0.3.2'
+    compile 'com.github.pengrad:java-telegram-bot-api:2.1.4'
+//	runtime 'org.postgresql:postgresql'
+
+/*
+ *  Test dependencies
+ */
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
+}
+
+configurations {
+    compile.exclude module: 'spring-boot-starter-logging'
 }

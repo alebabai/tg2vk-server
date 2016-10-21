@@ -1,27 +1,17 @@
 package com.github.alebabai.tg2vk.frontend.controller;
 
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.ModelAndView;
 
-import java.util.HashMap;
+import java.util.Date;
 import java.util.Map;
 
-/**
- * Created by Aliaksandr_Babai on 21.9.2016.
- */
-@RestController
+@Controller
 public class SomeController {
-    @RequestMapping("/")
-    public ModelAndView some(){
-        return new ModelAndView("page", "title", "Sample page");
-    }
-
-    @GetMapping("rest")
-    public Map<String, String> rest(){
-        Map<String, String> result = new HashMap<>();
-        result.put("greetings", "Hello");
-        return result;
+    @GetMapping("/")
+    public String page(Map<String, Object> model) {
+        model.put("time", new Date());
+        model.put("message", "Hello");
+        return "page";
     }
 }
