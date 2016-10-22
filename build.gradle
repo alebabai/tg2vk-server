@@ -38,6 +38,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-jetty'
     compile 'org.springframework.boot:spring-boot-starter-log4j2'
     compile 'org.springframework.boot:spring-boot-starter-mustache'
+    compile 'org.springframework.mobile:spring-mobile-device'
 //  compile 'org.springframework.session:spring-session'
 //	compile 'org.springframework.boot:spring-boot-starter-security'
 //	compile 'org.springframework.boot:spring-boot-starter-cache'

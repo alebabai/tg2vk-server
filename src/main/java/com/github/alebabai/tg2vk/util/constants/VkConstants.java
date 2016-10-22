@@ -1,9 +1,13 @@
-package com.github.alebabai.tg2vk.util;
+package com.github.alebabai.tg2vk.util.constants;
 
 
 public interface VkConstants {
-    String VK_AUTHORIZE_URL = "https://oauth.vk.com/authorize";
+    String VK_URL_OAUTH_BASE = "https://oauth.vk.com";
+    String VK_URL_AUTHORIZE = VK_URL_OAUTH_BASE + "/authorize";
+    String VK_URL_REDIRECT = VK_URL_OAUTH_BASE + "/blank.html";
+
     String VK_API_VERSION = "5.59";
+    String VK_RESPONSE_TYPE_CODE = "code";
 
     String VK_DISPLAY_TYPE_PAGE = "page";
     String VK_DISPLAY_TYPE_POPUP = "popup";
@@ -28,7 +32,5 @@ public interface VkConstants {
     String VK_SCOPE_EMAIL = "email";
     String VK_SCOPE_MARKET = "market";
     String VK_SCOPE_NOHTTPS = "nohttps";
-
-    String VK_RESPONSE_TYPE_CODE = "code";
 
 }
