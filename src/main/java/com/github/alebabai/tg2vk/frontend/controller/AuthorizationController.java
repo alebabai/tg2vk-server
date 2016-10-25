@@ -16,6 +16,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Controller
 public class AuthorizationController {
@@ -36,7 +38,7 @@ public class AuthorizationController {
     @RequestMapping(PathConstants.LOGIN_PATH)
     public String login(@RequestParam(name = "full_access", required = false, defaultValue = "false") boolean fullAccess) {
         String redirectUrl = pathResolver.getServerUrl() + PathConstants.AUTHORIZE_PATH;
-        List<String> scopes = Arrays.asList(
+        List<String> scopes = Stream.of(
                 VkConstants.VK_SCOPE_AUDIO,
                 VkConstants.VK_SCOPE_PHOTOS,
                 VkConstants.VK_SCOPE_GROUPS,
@@ -45,7 +47,7 @@ public class AuthorizationController {
                 VkConstants.VK_SCOPE_FRIENDS,
                 VkConstants.VK_SCOPE_DOCS,
                 VkConstants.VK_SCOPE_OFFLINE
-        );
+        ).collect(Collectors.toList());
         if (fullAccess) {
             redirectUrl = VkConstants.VK_URL_REDIRECT;
             scopes.add(VkConstants.VK_SCOPE_MESSAGES);
