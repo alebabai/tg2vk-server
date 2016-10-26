@@ -59,7 +59,10 @@ public class LinkerServiceImpl implements LinkerService {
                 }
                 tgService.send(sendMessage);
             }
-            return update;
+        });
+
+        vkService.fetchMessages(message -> {
+            tgService.send(new SendMessage(129475042, message.getBody()));
         });
     }
 }
