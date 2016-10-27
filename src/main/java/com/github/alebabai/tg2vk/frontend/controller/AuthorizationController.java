@@ -11,12 +11,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.view.UrlBasedViewResolver;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static com.github.alebabai.tg2vk.util.constants.VkConstants.*;
+import static com.github.alebabai.tg2vk.util.constants.VkConstants.VK_SCOPE_MESSAGES;
+import static com.github.alebabai.tg2vk.util.constants.VkConstants.VK_SCOPE_OFFLINE;
+import static com.github.alebabai.tg2vk.util.constants.VkConstants.VK_URL_REDIRECT;
 
 @Controller
 public class AuthorizationController {
@@ -31,28 +30,16 @@ public class AuthorizationController {
     public String page(Map<String, Object> model) {
         model.put("time", new Date());
         model.put("message", "Hello");
-        return "page";
+        return "page.html";
     }
 
     @RequestMapping(PathConstants.LOGIN_PATH)
-    public String login(@RequestParam(name = "full_access", required = false, defaultValue = "false") boolean fullAccess) {
-        String redirectUrl = pathResolver.getServerUrl() + PathConstants.AUTHORIZE_PATH;
-        List<String> scopes = Stream.of(
-                VK_SCOPE_AUDIO,
-                VK_SCOPE_PHOTOS,
-                VK_SCOPE_GROUPS,
-                VK_SCOPE_STATUS,
-                VK_SCOPE_NOTIFICATIONS,
-                VK_SCOPE_FRIENDS,
-                VK_SCOPE_DOCS,
+    public String login() {
+        final String[] scopes = {
+                VK_SCOPE_MESSAGES,
                 VK_SCOPE_OFFLINE
-        ).collect(Collectors.toList());
-        if (fullAccess) {
-            redirectUrl = VK_URL_REDIRECT;
-            scopes.add(VK_SCOPE_MESSAGES);
-            scopes.add(VK_SCOPE_WALL);
-        }
-        return UrlBasedViewResolver.REDIRECT_URL_PREFIX + vkService.getAuthorizeUrl(redirectUrl, scopes.toArray(new String[]{}));
+        };
+        return UrlBasedViewResolver.REDIRECT_URL_PREFIX + vkService.getAuthorizeUrl(VK_URL_REDIRECT, scopes);
     }
 
     @RequestMapping(PathConstants.AUTHORIZE_PATH)

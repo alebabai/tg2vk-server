@@ -23,7 +23,7 @@ public class TelegramServiceImpl implements TelegramService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramService.class);
 
-    private TelegramBot bot;
+    private final TelegramBot bot;
 
     @Autowired
     private TelegramServiceImpl(Environment environment) {
@@ -58,5 +58,4 @@ public class TelegramServiceImpl implements TelegramService {
             }
         };
     }
-
 }

@@ -1,10 +1,9 @@
 package com.github.alebabai.tg2vk.service;
 
-
 import com.vk.api.sdk.objects.messages.Message;
+import com.vk.api.sdk.objects.users.User;
 
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.BiConsumer;
 
 public interface VkService {
     void authorize(String code);
@@ -13,5 +12,5 @@ public interface VkService {
 
     String getAuthorizeUrl(String redirectUrl, String... scopes);
 
-    void fetchMessages(Consumer<? super Message> callback);
+    void fetchMessages(BiConsumer<? super User, ? super Message> callback);
 }
