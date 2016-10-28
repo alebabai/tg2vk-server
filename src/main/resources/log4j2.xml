@@ -6,12 +6,12 @@
     </Properties>
     <Appenders>
         <Console name="Console-Appender" target="SYSTEM_OUT">
-            <PatternLayout pattern="[%-5level] %d{dd-MM-yyyy HH:mm:ss} [%t] %c{1} - %msg%n"/>
+            <PatternLayout pattern="[%-5level] %d{dd-MM-yyyy HH:mm:ss} %c{1} - %msg%n"/>
         </Console>
         <RollingFile name="RollingFile-Appender"
                      fileName="${log-path}/application.log"
                      filePattern="${archive}/application.log.%d{yyyy-MM-dd-hh-mm}.gz">
-            <PatternLayout pattern="[%-5level] %d{dd-MM-yyyy HH:mm:ss} [%t] %c{1} - %msg%n"/>
+            <PatternLayout pattern="[%-5level] %d{dd-MM-yyyy HH:mm:ss} %c{1} - %msg%n"/>
             <Policies>
                 <SizeBasedTriggeringPolicy size="10MB"/>
             </Policies>
@@ -22,8 +22,8 @@
         <Logger name="com.github.alebabai.tg2vk"
                 level="DEBUG"
                 additivity="false">
-            <AppenderRef ref="RollingFile-Appender" level="debug"/>
-            <AppenderRef ref="Console-Appender" level="info"/>
+            <AppenderRef ref="RollingFile-Appender"/>
+            <AppenderRef ref="Console-Appender"/>
         </Logger>
 
         <Logger name="org.hibernate"
