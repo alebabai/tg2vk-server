@@ -119,9 +119,10 @@ public class VkServiceImpl implements VkService {
         final Type listType = new TypeToken<ArrayList<User>>() {}.getType();
         final List<User> profiles = gson.fromJson(response.get("profiles"), listType);
         final int newTs = messages.getCount() > 0 ? query.execute().getTs() : ts;
-        messages.getItems().forEach(
-                message -> profiles.stream()
-                        .filter(user -> !message.isOut() && user.getId().equals(message.getUserId()))
+        messages.getItems().stream()
+                .filter(message -> !message.isOut())
+                .forEach(message -> profiles.stream()
+                        .filter(user -> user.getId().equals(message.getUserId()))
                         .findAny()
                         .ifPresent(user -> callback.accept(user, message)));
         Thread.sleep(env.getProperty(PROP_VK_FETCH_DELAY, Integer.class, 1000));
