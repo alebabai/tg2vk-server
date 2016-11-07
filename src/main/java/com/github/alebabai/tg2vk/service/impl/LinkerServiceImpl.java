@@ -21,8 +21,6 @@ public class LinkerServiceImpl implements LinkerService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkerService.class);
 
-    private static final int MY_CHAT_ID = 129475042; //TODO remove hardcoded chat_id
-
     private final TelegramService tgService;
     private final VkService vkService;
     private final PathResolverService pathResolver;
@@ -61,7 +59,7 @@ public class LinkerServiceImpl implements LinkerService {
                 Map<String, Object> context = new HashMap<>();
                 context.put("user", String.format("%s %s", user.getFirstName(), user.getLastName()));
                 context.put("body", message.getBody());
-                final SendMessage sendMessage = new SendMessage(MY_CHAT_ID, templateRenderer.render("telegram/message.md", context))
+                final SendMessage sendMessage = new SendMessage(message.getUserId(), templateRenderer.render("telegram/message.md", context))
                         .parseMode(ParseMode.Markdown);
                 tgService.send(sendMessage);
             } catch (Exception e) {

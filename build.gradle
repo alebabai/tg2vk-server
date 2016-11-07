@@ -38,11 +38,11 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-jetty'
     compile 'org.springframework.boot:spring-boot-starter-log4j2'
     compile 'org.springframework.boot:spring-boot-starter-mustache'
+    compile 'org.springframework.boot:spring-boot-starter-data-jpa'
     compile 'org.springframework.mobile:spring-mobile-device'
 //  compile 'org.springframework.session:spring-session'
 //	compile 'org.springframework.boot:spring-boot-starter-security'
 //	compile 'org.springframework.boot:spring-boot-starter-cache'
-//	compile 'org.springframework.boot:spring-boot-starter-data-jpa'
 
 /*
  *  Other dependencies
@@ -50,8 +50,7 @@ dependencies {
     compile 'com.vk.api:sdk:0.3.3'
     compile 'com.github.pengrad:java-telegram-bot-api:2.1.4'
     compile 'org.apache.commons:commons-lang3:3.4'
-
-//	runtime 'org.postgresql:postgresql'
+	runtime 'org.postgresql:postgresql'
 
 /*
  *  Test dependencies
