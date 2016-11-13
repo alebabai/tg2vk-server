@@ -27,7 +27,7 @@ public class PathResolverServiceImpl implements PathResolverService {
     public String getServerUrl() {
         try {
             Map<String, String> params = new HashMap<>();
-            params.put("scheme", HttpScheme.HTTP.toString());
+            params.put("scheme", HttpScheme.HTTPS.toString());
             params.put("server_name", env.getRequiredProperty(Constants.PROP_SERVER_NAME));
             params.put("server_host_port", env.getRequiredProperty(Constants.PROP_SERVER_HOST_PORT));
 

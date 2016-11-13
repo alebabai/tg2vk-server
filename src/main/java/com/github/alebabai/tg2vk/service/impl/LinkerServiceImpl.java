@@ -1,10 +1,6 @@
 package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.service.*;
-import com.github.alebabai.tg2vk.util.constants.PathConstants;
-import com.pengrad.telegrambot.model.Message;
-import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
-import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
 import org.slf4j.Logger;
@@ -23,7 +19,6 @@ public class LinkerServiceImpl implements LinkerService {
 
     private final TelegramService tgService;
     private final VkService vkService;
-    private final PathResolverService pathResolver;
     private final TemplateRendererService templateRenderer;
 
     @Autowired
@@ -33,26 +28,13 @@ public class LinkerServiceImpl implements LinkerService {
                               TemplateRendererService templateRenderer) {
         this.vkService = vkService;
         this.tgService = tgService;
-        this.pathResolver = pathResolver;
         this.templateRenderer = templateRenderer;
     }
 
     @PostConstruct
     @Override
-    public void start() {
-        tgService.fetchUpdates(update -> {
-            final Message message = update.message();
-            if (message != null) {
-                String msgText = "Any message";
-                SendMessage sendMessage = new SendMessage(update.message().chat().id(), msgText);
-                if ("/login".equals(message.text())) {
-                    sendMessage.replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
-                            new InlineKeyboardButton("Login").url(pathResolver.getServerUrl() + PathConstants.LOGIN_PATH)
-                    }));
-                }
-                tgService.send(sendMessage);
-            }
-        });
+    public void init() {
+        tgService.fetchWebHookUpdates();
 
         vkService.fetchMessages((user, message) -> {
             try {
@@ -63,7 +45,7 @@ public class LinkerServiceImpl implements LinkerService {
                         .parseMode(ParseMode.Markdown);
                 tgService.send(sendMessage);
             } catch (Exception e) {
-                throw new RuntimeException("Error during vk message fetching", e);
+                LOGGER.error("Error during vk message fetching: ", e);
             }
         });
     }

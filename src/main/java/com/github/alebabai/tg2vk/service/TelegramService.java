@@ -7,7 +7,9 @@ import com.pengrad.telegrambot.response.BaseResponse;
 import java.util.function.Consumer;
 
 public interface TelegramService {
-    void fetchUpdates(Consumer<? super Update> callback);
+    void fetchLongPollingUpdates(Consumer<? super Update> callback);
+
+    void fetchWebHookUpdates();
 
     <T extends BaseRequest<T, R>, R extends BaseResponse> void send(T request);
 }

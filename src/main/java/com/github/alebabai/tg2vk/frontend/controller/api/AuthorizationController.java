@@ -1,4 +1,4 @@
-package com.github.alebabai.tg2vk.frontend.controller;
+package com.github.alebabai.tg2vk.frontend.controller.api;
 
 import com.github.alebabai.tg2vk.service.PathResolverService;
 import com.github.alebabai.tg2vk.service.VkService;
@@ -17,7 +17,7 @@ import static com.github.alebabai.tg2vk.util.constants.VkConstants.VK_SCOPE_MESS
 import static com.github.alebabai.tg2vk.util.constants.VkConstants.VK_SCOPE_OFFLINE;
 import static com.github.alebabai.tg2vk.util.constants.VkConstants.VK_URL_REDIRECT;
 
-@Controller
+@Controller(PathConstants.API_AUTHORIZATION)
 public class AuthorizationController {
 
     @Autowired
@@ -26,14 +26,7 @@ public class AuthorizationController {
     @Autowired
     private PathResolverService pathResolver;
 
-    @GetMapping(PathConstants.ROOT_PATH)
-    public String page(Map<String, Object> model) {
-        model.put("time", new Date());
-        model.put("message", "Hello");
-        return "page.html";
-    }
-
-    @RequestMapping(PathConstants.LOGIN_PATH)
+    @GetMapping(PathConstants.API_LOGIN)
     public String login() {
         final String[] scopes = {
                 VK_SCOPE_MESSAGES,
@@ -42,9 +35,14 @@ public class AuthorizationController {
         return UrlBasedViewResolver.REDIRECT_URL_PREFIX + vkService.getAuthorizeUrl(VK_URL_REDIRECT, scopes);
     }
 
-    @RequestMapping(PathConstants.AUTHORIZE_PATH)
+    /**
+     * An alternative method to support authorization from other clients;
+     * @param code vk authorization code
+     * @return redirect path;
+     */
+    @RequestMapping(PathConstants.API_AUTHORIZE)
     public String authorize(@RequestParam String code) {
         vkService.authorize(code);
-        return UrlBasedViewResolver.REDIRECT_URL_PREFIX + PathConstants.ROOT_PATH;
+        return UrlBasedViewResolver.REDIRECT_URL_PREFIX + PathConstants.ROOT;
     }
 }

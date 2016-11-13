@@ -1,18 +1,23 @@
 package com.github.alebabai.tg2vk.service.impl;
 
+import com.github.alebabai.tg2vk.service.PathResolverService;
 import com.github.alebabai.tg2vk.service.TelegramService;
 import com.github.alebabai.tg2vk.util.constants.Constants;
+import com.github.alebabai.tg2vk.util.constants.PathConstants;
 import com.pengrad.telegrambot.Callback;
 import com.pengrad.telegrambot.GetUpdatesListener;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.TelegramBotAdapter;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.BaseRequest;
+import com.pengrad.telegrambot.request.SetWebhook;
 import com.pengrad.telegrambot.response.BaseResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -24,18 +29,35 @@ public class TelegramServiceImpl implements TelegramService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramService.class);
 
     private final TelegramBot bot;
+    private final ResourceLoader resourceLoader;
+    private final PathResolverService pathResolver;
 
     @Autowired
-    private TelegramServiceImpl(Environment environment) {
+    private TelegramServiceImpl(Environment environment, ResourceLoader resourceLoader, PathResolverService pathResolver) {
         this.bot = TelegramBotAdapter.build(environment.getRequiredProperty(Constants.PROP_TELEGRAM_BOT_TOKEN));
+        this.resourceLoader = resourceLoader;
+        this.pathResolver = pathResolver;
     }
 
     @Override
-    public void fetchUpdates(Consumer<? super Update> callback) {
+    public void fetchLongPollingUpdates(Consumer<? super Update> callback) {
         bot.setGetUpdatetsListener(updates -> {
             updates.forEach(callback);
             return GetUpdatesListener.CONFIRMED_UPDATES_ALL;
         });
+    }
+
+    @Override
+    public void fetchWebHookUpdates() {
+        try {
+            final Resource resource = resourceLoader.getResource(ResourceLoader.CLASSPATH_URL_PREFIX + "tg2vk.pem");
+            SetWebhook request = new SetWebhook()
+                    .url(pathResolver.getServerUrl() + PathConstants.API_TELEGRAM_FETCH_UPDATES)
+                    .certificate(resource.getFile());
+            bot.execute(request, loggerCallback());
+        } catch (Exception e) {
+            LOGGER.error("Error during webhook setup: ", e);
+        }
     }
 
     @Override
@@ -47,13 +69,13 @@ public class TelegramServiceImpl implements TelegramService {
         return new Callback<T, R>() {
             @Override
             public void onResponse(T request, R response) {
-                LOGGER.trace("Request {0}", request);
-                LOGGER.trace("Response {0}", response);
+                LOGGER.trace("Successfully processed {}", request);
+                LOGGER.trace("Telegram server response {}", response);
             }
 
             @Override
             public void onFailure(T request, IOException e) {
-                LOGGER.error("Error during {0} execution!", request);
+                LOGGER.error("Error during {} execution!", request);
                 LOGGER.error(e.getMessage(), e);
             }
         };
