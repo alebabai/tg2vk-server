@@ -28,11 +28,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 
 import static com.github.alebabai.tg2vk.util.constants.Constants.PROP_VK_FETCH_DELAY;
@@ -48,8 +46,6 @@ public class VkServiceImpl implements VkService {
     private final VkApiClient api;
     private final Gson gson;
 
-    private UserActor actor;//Temp
-
     @Autowired
     private VkServiceImpl(Environment environment) {
         this.env = environment;
@@ -58,7 +54,8 @@ public class VkServiceImpl implements VkService {
     }
 
     @Override
-    public void authorize(String code) {
+    public Optional<UserActor> authorize(String code) {
+        Optional<UserActor> result = Optional.empty();
         try {
             final UserAuthResponse authResponse = api.oauth()
                     .userAuthorizationCodeFlow(
@@ -67,15 +64,11 @@ public class VkServiceImpl implements VkService {
                             VkConstants.VK_URL_REDIRECT,
                             code)
                     .execute();
-            actor = new UserActor(authResponse.getUserId(), authResponse.getAccessToken());
+            result = Optional.of(new UserActor(authResponse.getUserId(), authResponse.getAccessToken()));
         } catch (ApiException | ClientException | IllegalStateException e) {
             LOGGER.error("Error during authorization process:", e);
         }
-    }
-
-    @Override
-    public boolean isAuthorized() {
-        return actor != null;
+        return result;
     }
 
     @Override
@@ -97,35 +90,37 @@ public class VkServiceImpl implements VkService {
     }
 
     @Override
-    public void fetchMessages(BiConsumer<? super User, ? super Message> callback) {
+    public AtomicBoolean fetchMessages(Actor actor, BiConsumer<? super User, ? super Message> callback) {
+        final AtomicBoolean isDaemonActive = new AtomicBoolean(true);
         CompletableFuture.runAsync(() -> {
             try {
-                //TODO get user_id and token from DB
-                final Integer userId = env.getRequiredProperty("user_id", Integer.class);
-                final String token = env.getRequiredProperty("token");
-                final UserActor userActor = new UserActor(userId, token);
-                final MessagesGetLongPollServerQuery query = api.messages().getLongPollServer(userActor).useSsl(true).needPts(true);
-                getMessages(userActor, query, query.execute().getTs(), callback);
+                final MessagesGetLongPollServerQuery query = api.messages().getLongPollServer(actor).useSsl(true).needPts(true);
+                getMessages(actor, query, query.execute().getTs(), isDaemonActive, callback);
             } catch (ApiException | ClientException | InterruptedException e) {
                 LOGGER.error("Error during vk messages fetching :", e);
             }
         });
+        return isDaemonActive;
     }
 
-    private void getMessages(Actor actor, MessagesGetLongPollServerQuery query, int ts, BiConsumer<? super User, ? super Message> callback) throws ClientException, ApiException, InterruptedException {
+    private void getMessages(Actor actor, MessagesGetLongPollServerQuery query, int ts, AtomicBoolean isDaemonActive, BiConsumer<? super User, ? super Message> callback) throws ClientException, ApiException, InterruptedException {
+        if (!isDaemonActive.get()) {
+            return;
+        }
         final String textResponse = api.messages().getLongPollHistory(actor).ts(ts).executeAsString();
         final JsonObject response = ((JsonObject) new JsonParser().parse(textResponse)).get("response").getAsJsonObject();
         final GetResponse messages = gson.fromJson(response.get("messages"), GetResponse.class);
-        final Type listType = new TypeToken<ArrayList<User>>() {}.getType();
+        final Type listType = new TypeToken<ArrayList<User>>() {
+        }.getType();
         final List<User> profiles = gson.fromJson(response.get("profiles"), listType);
         final int newTs = messages.getCount() > 0 ? query.execute().getTs() : ts;
         messages.getItems().stream()
                 .filter(message -> !message.isOut())
                 .forEach(message -> profiles.stream()
-                        .filter(user -> user.getId().equals(message.getUserId()))
+                        .filter(profile -> profile.getId().equals(message.getUserId()))
                         .findAny()
-                        .ifPresent(user -> callback.accept(user, message)));
+                        .ifPresent(profile -> callback.accept(profile, message)));
         Thread.sleep(env.getProperty(PROP_VK_FETCH_DELAY, Integer.class, 1000));
-        getMessages(actor, query, newTs, callback);
+        getMessages(actor, query, newTs, isDaemonActive, callback);
     }
 }

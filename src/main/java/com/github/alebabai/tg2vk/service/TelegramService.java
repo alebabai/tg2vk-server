@@ -9,7 +9,9 @@ import java.util.function.Consumer;
 public interface TelegramService {
     void fetchLongPollingUpdates(Consumer<? super Update> callback);
 
-    void fetchWebHookUpdates();
+    void startWebHookUpdates();
+
+    void stopWebHookUpdates();
 
     <T extends BaseRequest<T, R>, R extends BaseResponse> void send(T request);
 }

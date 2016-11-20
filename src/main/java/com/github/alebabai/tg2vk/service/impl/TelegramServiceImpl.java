@@ -12,6 +12,7 @@ import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.BaseRequest;
 import com.pengrad.telegrambot.request.SetWebhook;
 import com.pengrad.telegrambot.response.BaseResponse;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.function.Consumer;
 
@@ -47,8 +49,9 @@ public class TelegramServiceImpl implements TelegramService {
         });
     }
 
+    @PostConstruct
     @Override
-    public void fetchWebHookUpdates() {
+    public void startWebHookUpdates() {
         try {
             final Resource resource = resourceLoader.getResource(ResourceLoader.CLASSPATH_URL_PREFIX + "tg2vk.pem");
             SetWebhook request = new SetWebhook()
@@ -57,6 +60,17 @@ public class TelegramServiceImpl implements TelegramService {
             bot.execute(request, loggerCallback());
         } catch (Exception e) {
             LOGGER.error("Error during webhook setup: ", e);
+        }
+    }
+
+    @Override
+    public void stopWebHookUpdates() {
+        try {
+            SetWebhook request = new SetWebhook()
+                    .url(StringUtils.EMPTY);
+            bot.execute(request, loggerCallback());
+        } catch (Exception e) {
+            LOGGER.error("Error during webhook disabling: ", e);
         }
     }
 

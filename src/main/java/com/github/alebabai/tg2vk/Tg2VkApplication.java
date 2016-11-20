@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @PropertySource("classpath:application.properties")
 public class Tg2VkApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(Tg2VkApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(Tg2VkApplication.class, args);
+    }
 }
