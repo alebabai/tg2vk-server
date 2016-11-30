@@ -146,4 +146,6 @@ local.properties
 ###############
 .DS_Store
 logs/
-src/*/resources/certificates/
+src/*/resources/certificates/*.jks
+src/*/resources/certificates/*.p12
+src/*/resources/certificates/*.pem
