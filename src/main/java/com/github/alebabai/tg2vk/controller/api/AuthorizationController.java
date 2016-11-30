@@ -1,4 +1,4 @@
-package com.github.alebabai.tg2vk.frontend.controller.api;
+package com.github.alebabai.tg2vk.controller.api;
 
 import com.github.alebabai.tg2vk.service.PathResolverService;
 import com.github.alebabai.tg2vk.service.VkService;
@@ -9,9 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.view.UrlBasedViewResolver;
-
-import java.util.Date;
-import java.util.Map;
 
 import static com.github.alebabai.tg2vk.util.constants.VkConstants.VK_SCOPE_MESSAGES;
 import static com.github.alebabai.tg2vk.util.constants.VkConstants.VK_SCOPE_OFFLINE;

@@ -25,11 +25,14 @@ public class ChatSettings implements Persistable<Integer> {
     @Column(name = "vk_chat_id", nullable = false)
     private Integer vkChatId;
 
-    @Column(name = "allow_answer", nullable = false)
-    private Boolean allowAnswer;
+    @Column(name = "answer_allowed", nullable = false)
+    private boolean answerAllowed;
+
+    @Column(name = "started", nullable = false)
+    private boolean started;
 
     public ChatSettings() {
-        this.allowAnswer = false;
+        super();
     }
 
     @Override
@@ -61,11 +64,20 @@ public class ChatSettings implements Persistable<Integer> {
     }
 
     public Boolean isAnswerAllowed() {
-        return allowAnswer;
+        return answerAllowed;
     }
 
-    public ChatSettings allowAnswer(Boolean allowAnswer) {
-        this.allowAnswer = allowAnswer;
+    public ChatSettings answerAllowed(boolean answerAllowed) {
+        this.answerAllowed = answerAllowed;
+        return this;
+    }
+
+    public boolean isStarted() {
+        return started;
+    }
+
+    public ChatSettings started(boolean started) {
+        this.started = started;
         return this;
     }
 
@@ -73,7 +85,6 @@ public class ChatSettings implements Persistable<Integer> {
     public boolean isNew() {
         return id == null;
     }
-
 
     @Override
     public boolean equals(Object o) {
@@ -94,7 +105,8 @@ public class ChatSettings implements Persistable<Integer> {
                 "id=" + id +
                 ", tgChatId=" + tgChatId +
                 ", vkChatId=" + vkChatId +
-                ", allowAnswer=" + allowAnswer +
+                ", answerAllowed=" + answerAllowed +
+                ", started=" + started +
                 '}';
     }
 }

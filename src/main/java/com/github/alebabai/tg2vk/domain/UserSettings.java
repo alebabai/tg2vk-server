@@ -14,6 +14,9 @@ public class UserSettings implements Persistable<Integer> {
     @Column(name = "id", unique = true, nullable = false)
     private Integer id;
 
+    @Column(name = "started", nullable = false)
+    private boolean started;
+
     @Override
     public Integer getId() {
         return id;
@@ -21,6 +24,15 @@ public class UserSettings implements Persistable<Integer> {
 
     public UserSettings setId(Integer id) {
         this.id = id;
+        return this;
+    }
+
+    public boolean isStarted() {
+        return started;
+    }
+
+    public UserSettings started(Boolean started) {
+        this.started = started;
         return this;
     }
 
@@ -40,5 +52,13 @@ public class UserSettings implements Persistable<Integer> {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "UserSettings{" +
+                "id=" + id +
+                ", started=" + started +
+                '}';
     }
 }

@@ -1,4 +1,4 @@
-package com.github.alebabai.tg2vk.frontend.controller.page;
+package com.github.alebabai.tg2vk.controller.page;
 
 import com.github.alebabai.tg2vk.util.constants.PathConstants;
 import org.springframework.stereotype.Controller;

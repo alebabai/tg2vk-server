@@ -39,6 +39,6 @@ public abstract class TestUtils {
         return new ChatSettings()
                 .setTgChatId(getRandomInteger(MAX_NUMBER))
                 .setVkChatId(getRandomInteger(MAX_NUMBER))
-                .allowAnswer(false);
+                .answerAllowed(false);
     }
 }

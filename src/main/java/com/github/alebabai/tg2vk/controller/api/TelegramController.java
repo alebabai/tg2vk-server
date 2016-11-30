@@ -1,4 +1,4 @@
-package com.github.alebabai.tg2vk.frontend.controller.api;
+package com.github.alebabai.tg2vk.controller.api;
 
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.service.LinkerService;

@@ -5,9 +5,9 @@ import com.github.alebabai.tg2vk.service.TelegramService;
 import com.github.alebabai.tg2vk.util.constants.Constants;
 import com.github.alebabai.tg2vk.util.constants.PathConstants;
 import com.pengrad.telegrambot.Callback;
-import com.pengrad.telegrambot.GetUpdatesListener;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.TelegramBotAdapter;
+import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.BaseRequest;
 import com.pengrad.telegrambot.request.SetWebhook;
@@ -22,6 +22,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.function.Consumer;
 
@@ -43,9 +44,9 @@ public class TelegramServiceImpl implements TelegramService {
 
     @Override
     public void fetchLongPollingUpdates(Consumer<? super Update> callback) {
-        bot.setGetUpdatetsListener(updates -> {
+        bot.setUpdatesListener(updates -> {
             updates.forEach(callback);
-            return GetUpdatesListener.CONFIRMED_UPDATES_ALL;
+            return UpdatesListener.CONFIRMED_UPDATES_ALL;
         });
     }
 
@@ -63,6 +64,7 @@ public class TelegramServiceImpl implements TelegramService {
         }
     }
 
+    @PreDestroy
     @Override
     public void stopWebHookUpdates() {
         try {
