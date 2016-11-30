@@ -54,7 +54,7 @@ public class TelegramServiceImpl implements TelegramService {
     @Override
     public void startWebHookUpdates() {
         try {
-            final Resource resource = resourceLoader.getResource(ResourceLoader.CLASSPATH_URL_PREFIX + "tg2vk.pem");
+            final Resource resource = resourceLoader.getResource(ResourceLoader.CLASSPATH_URL_PREFIX + "certificates/tg2vk.pem");
             SetWebhook request = new SetWebhook()
                     .url(pathResolver.getServerUrl() + PathConstants.API_TELEGRAM_FETCH_UPDATES)
                     .certificate(resource.getFile());
