@@ -9,11 +9,18 @@ import com.pengrad.telegrambot.model.*;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 
 @Service
 public class TelegramUpdateHandlerServiceImpl implements TelegramUpdateHandlerService {
@@ -22,16 +29,18 @@ public class TelegramUpdateHandlerServiceImpl implements TelegramUpdateHandlerSe
     private final PathResolverService pathResolver;
     private final LinkerService linkerService;
     private final Environment env;
-
+    private final MessageSourceAccessor messages;
 
     @Autowired
     private TelegramUpdateHandlerServiceImpl(TelegramService tgService,
                                              PathResolverService pathResolver,
                                              LinkerService linkerService,
+                                             MessageSource messageSource,
                                              Environment env) {
         this.tgService = tgService;
         this.pathResolver = pathResolver;
         this.linkerService = linkerService;
+        this.messages = new MessageSourceAccessor(messageSource);
         this.env = env;
     }
 
@@ -94,12 +103,33 @@ public class TelegramUpdateHandlerServiceImpl implements TelegramUpdateHandlerSe
     private void handleEditedChanelPost(Message post) {
     }
 
+    private void handleEditedMessage(Message message) {
+    }
+
     private void handleMessage(Message message) {
-        switch (message.text()) {
+        if (message.text().startsWith("/")) {
+            parseCommand(message.text(), (command, args) -> processCommand(message.chat().id(), command, args));
+        } else {
+            SendMessage anyMessage = new SendMessage(message.chat().id(), message.text());
+            tgService.send(anyMessage);
+        }
+    }
+
+    private void parseCommand(String text, BiConsumer<String, List<String>> callback) {
+        final List<String> tokens = Arrays.asList(text.split(StringUtils.SPACE));
+        if (tokens.size() > 1) {
+            callback.accept(tokens.get(0).substring(1), tokens.subList(1, tokens.size()));
+        } else {
+            callback.accept(tokens.get(0).substring(1), Collections.emptyList());
+        }
+    }
+
+    private void processCommand(Object chatId, String command, List<String> args) {
+        switch (command) {
             case "/login":
-                SendMessage loginMessage = new SendMessage(message.chat().id(), "Test Login")
+                SendMessage loginMessage = new SendMessage(chatId, messages.getMessage("tg.command.login.msg", StringUtils.EMPTY))
                         .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
-                                new InlineKeyboardButton("Login").url(pathResolver.getServerUrl() + PathConstants.API_LOGIN)
+                                new InlineKeyboardButton(messages.getMessage("tg.command.login.button.label", StringUtils.EMPTY)).url(pathResolver.getServerUrl() + PathConstants.API_LOGIN)
                         }));
                 tgService.send(loginMessage);
                 break;
@@ -109,22 +139,18 @@ public class TelegramUpdateHandlerServiceImpl implements TelegramUpdateHandlerSe
                         .setTgId(env.getProperty("tg_user_id", Integer.TYPE))
                         .setVkToken(env.getProperty("token"));
                 linkerService.start(user);
-                final SendMessage startMessage = new SendMessage(message.chat().id(), "VK updates fetching started");
+                final SendMessage startMessage = new SendMessage(chatId, messages.getMessage("tg.command.start.msg", StringUtils.EMPTY));
                 tgService.send(startMessage);
                 break;
             case "/stop":
                 linkerService.stop();
-                final SendMessage stopMessage = new SendMessage(message.chat().id(), "VK updates fetching stopped");
+                final SendMessage stopMessage = new SendMessage(chatId, messages.getMessage("tg.command.stop.msg", StringUtils.EMPTY));
                 tgService.send(stopMessage);
                 break;
             default:
-                SendMessage anyMessage = new SendMessage(message.chat().id(), message.text());
+                SendMessage anyMessage = new SendMessage(chatId, messages.getMessage("tg.command.unknown.msg", StringUtils.EMPTY));
                 tgService.send(anyMessage);
                 break;
         }
     }
-
-    private void handleEditedMessage(Message message) {
-    }
-
 }
