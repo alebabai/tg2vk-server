@@ -1,5 +1,6 @@
 package com.github.alebabai.tg2vk.service.impl;
 
+import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.service.LinkerService;
 import com.github.alebabai.tg2vk.service.PathResolverService;
 import com.github.alebabai.tg2vk.service.TelegramService;
@@ -16,11 +17,10 @@ import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
+
+import static com.github.alebabai.tg2vk.util.CommandUtils.*;
 
 @Service
 public class TelegramUpdateHandlerServiceImpl implements TelegramUpdateHandlerService {
@@ -30,6 +30,7 @@ public class TelegramUpdateHandlerServiceImpl implements TelegramUpdateHandlerSe
     private final LinkerService linkerService;
     private final Environment env;
     private final MessageSourceAccessor messages;
+    private final User user;//TODO remove
 
     @Autowired
     private TelegramUpdateHandlerServiceImpl(TelegramService tgService,
@@ -42,6 +43,11 @@ public class TelegramUpdateHandlerServiceImpl implements TelegramUpdateHandlerSe
         this.linkerService = linkerService;
         this.messages = new MessageSourceAccessor(messageSource);
         this.env = env;
+
+        this.user = new User()
+                .setVkId(env.getProperty("vk_user_id", Integer.TYPE))
+                .setTgId(env.getProperty("tg_user_id", Integer.TYPE))
+                .setVkToken(env.getProperty("token"));//TODO remove
     }
 
     @Override
@@ -108,47 +114,34 @@ public class TelegramUpdateHandlerServiceImpl implements TelegramUpdateHandlerSe
 
     private void handleMessage(Message message) {
         if (message.text().startsWith("/")) {
-            parseCommand(message.text(), (command, args) -> processCommand(message.chat().id(), command, args));
+            parseCommand(message.text(), (command, args) -> processCommand(command, args, message));
         } else {
             SendMessage anyMessage = new SendMessage(message.chat().id(), message.text());
             tgService.send(anyMessage);
         }
     }
 
-    private void parseCommand(String text, BiConsumer<String, List<String>> callback) {
-        final List<String> tokens = Arrays.asList(text.split(StringUtils.SPACE));
-        if (tokens.size() > 1) {
-            callback.accept(tokens.get(0).substring(1), tokens.subList(1, tokens.size()));
-        } else {
-            callback.accept(tokens.get(0).substring(1), Collections.emptyList());
-        }
-    }
-
-    private void processCommand(Object chatId, String command, List<String> args) {
+    private void processCommand(String command, List<String> args, Message context) {
         switch (command) {
-            case "/login":
-                SendMessage loginMessage = new SendMessage(chatId, messages.getMessage("tg.command.login.msg", StringUtils.EMPTY))
+            case COMMAND_LOGIN:
+                SendMessage loginMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.login.msg", StringUtils.EMPTY))
                         .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
                                 new InlineKeyboardButton(messages.getMessage("tg.command.login.button.label", StringUtils.EMPTY)).url(pathResolver.getServerUrl() + PathConstants.API_LOGIN)
                         }));
                 tgService.send(loginMessage);
                 break;
-            case "/start":
-                final com.github.alebabai.tg2vk.domain.User user = new com.github.alebabai.tg2vk.domain.User()
-                        .setVkId(env.getProperty("vk_user_id", Integer.TYPE))
-                        .setTgId(env.getProperty("tg_user_id", Integer.TYPE))
-                        .setVkToken(env.getProperty("token"));
-                linkerService.start(user);
-                final SendMessage startMessage = new SendMessage(chatId, messages.getMessage("tg.command.start.msg", StringUtils.EMPTY));
+            case COMMAND_START:
+                linkerService.start(user);//TODO get user from by tg id from repository
+                final SendMessage startMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.start.msg", StringUtils.EMPTY));
                 tgService.send(startMessage);
                 break;
-            case "/stop":
-                linkerService.stop();
-                final SendMessage stopMessage = new SendMessage(chatId, messages.getMessage("tg.command.stop.msg", StringUtils.EMPTY));
+            case COMMAND_STOP:
+                linkerService.stop(user);//TODO get user from by tg id from repository
+                final SendMessage stopMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.stop.msg", StringUtils.EMPTY));
                 tgService.send(stopMessage);
                 break;
             default:
-                SendMessage anyMessage = new SendMessage(chatId, messages.getMessage("tg.command.unknown.msg", StringUtils.EMPTY));
+                SendMessage anyMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.unknown.msg", StringUtils.EMPTY));
                 tgService.send(anyMessage);
                 break;
         }

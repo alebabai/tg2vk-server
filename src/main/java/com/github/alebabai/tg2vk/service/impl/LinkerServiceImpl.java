@@ -1,27 +1,22 @@
 package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.domain.User;
-import com.github.alebabai.tg2vk.service.LinkerService;
-import com.github.alebabai.tg2vk.service.TelegramService;
-import com.github.alebabai.tg2vk.service.TemplateRendererService;
-import com.github.alebabai.tg2vk.service.VkService;
+import com.github.alebabai.tg2vk.service.*;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.vk.api.sdk.client.actors.UserActor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.annotation.SessionScope;
 
-import javax.annotation.PreDestroy;
+import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 @Service
-@SessionScope(proxyMode = ScopedProxyMode.INTERFACES)
 public class LinkerServiceImpl implements LinkerService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkerService.class);
@@ -29,23 +24,31 @@ public class LinkerServiceImpl implements LinkerService {
     private final TelegramService tgService;
     private final VkService vkService;
     private final TemplateRendererService templateRenderer;
-
-    private AtomicBoolean isDaemonActive;
+    private final UserService userService;
+    private final Map<Integer, AtomicBoolean> daemonStates;
 
     @Autowired
     private LinkerServiceImpl(VkService vkService,
                               TelegramService tgService,
-                              TemplateRendererService templateRenderer) {
+                              TemplateRendererService templateRenderer,
+                              UserService userService) {
         this.vkService = vkService;
         this.tgService = tgService;
         this.templateRenderer = templateRenderer;
+        this.userService = userService;
+        this.daemonStates = new HashMap<>();
+    }
+
+    @PostConstruct
+    private void init() {
+        userService.findAllStarted().forEach(this::start);
     }
 
     @Override
     public void start(User user) {
         LOGGER.debug("Start messages linking for {}", user);
         final UserActor actor = new UserActor(user.getVkId(), user.getVkToken());
-        this.isDaemonActive = vkService.fetchMessages(actor, (profile, message) -> {
+        final AtomicBoolean isDaemonActive = vkService.fetchMessages(actor, (profile, message) -> {
             try {
                 Map<String, Object> context = new HashMap<>();
                 context.put("user", String.format("%s %s", profile.getFirstName(), profile.getLastName()));
@@ -57,14 +60,17 @@ public class LinkerServiceImpl implements LinkerService {
                 LOGGER.error("Error during vk message fetching: ", e);
             }
         });
+        daemonStates.put(user.getId(), isDaemonActive);
     }
 
-    @PreDestroy
     @Override
-    public void stop() {
+    public void stop(User user) {
+        final AtomicBoolean isDaemonActive = daemonStates.get(user.getId());
         if (isDaemonActive != null) {
             isDaemonActive.lazySet(false);
-            LOGGER.debug("Stop messages linking");
+            daemonStates.remove(user.getId());
+            LOGGER.debug("Messages linking messages for {} has been stopped", user);
         }
+        user.getSettings().started(false);
     }
 }

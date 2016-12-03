@@ -1,9 +1,11 @@
 package com.github.alebabai.tg2vk.repository;
 
 import com.github.alebabai.tg2vk.domain.User;
+import com.github.alebabai.tg2vk.domain.UserSettings;
+import org.junit.Assert;
+import org.junit.Test;
 
 import javax.transaction.Transactional;
-
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -25,5 +27,11 @@ public class UserRepositoryTest extends AbstractJpaRepositoryTest<User, Integer,
                 .parallel()
                 .mapToObj(it -> new User().setTgId(it).setVkId(it))
                 .collect(Collectors.toList());
+    }
+
+    @Test
+    public void findAllStarted() {
+        repository.save(generateEntity().setSettings(new UserSettings().started(true)));
+        repository.findAllStarted().forEach(user -> Assert.assertTrue(user.getSettings().isStarted()));
     }
 }

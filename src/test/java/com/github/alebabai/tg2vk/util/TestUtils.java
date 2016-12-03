@@ -28,7 +28,8 @@ public abstract class TestUtils {
     public static User generateUser() {
         return new User()
                 .setTgId(getRandomInteger(MAX_NUMBER))
-                .setVkId(getRandomInteger(MAX_NUMBER));
+                .setVkId(getRandomInteger(MAX_NUMBER))
+                .setVkToken(getRandomString(MAX_STRING_LENGTH));
     }
 
     public static UserSettings generateUserSettings() {
