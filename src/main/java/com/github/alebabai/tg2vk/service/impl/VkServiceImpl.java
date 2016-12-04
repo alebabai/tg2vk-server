@@ -47,7 +47,7 @@ public class VkServiceImpl implements VkService {
     private final Gson gson;
 
     @Autowired
-    private VkServiceImpl(Environment environment) {
+    public VkServiceImpl(Environment environment) {
         this.env = environment;
         this.api = new VkApiClient(new HttpTransportClient());
         this.gson = new GsonBuilder().create();
@@ -69,6 +69,11 @@ public class VkServiceImpl implements VkService {
             LOGGER.error("Error during authorization process:", e);
         }
         return result;
+    }
+
+    @Override
+    public Optional<UserActor> authorize(Integer userId, String token) {
+        return Optional.of(new UserActor(userId, token));
     }
 
     @Override

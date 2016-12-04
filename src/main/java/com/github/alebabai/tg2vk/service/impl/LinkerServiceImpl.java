@@ -14,7 +14,6 @@ import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 @Service
 public class LinkerServiceImpl implements LinkerService {
@@ -28,7 +27,7 @@ public class LinkerServiceImpl implements LinkerService {
     private final Map<Integer, AtomicBoolean> daemonStates;
 
     @Autowired
-    private LinkerServiceImpl(VkService vkService,
+    public LinkerServiceImpl(VkService vkService,
                               TelegramService tgService,
                               TemplateRendererService templateRenderer,
                               UserService userService) {
@@ -40,7 +39,7 @@ public class LinkerServiceImpl implements LinkerService {
     }
 
     @PostConstruct
-    private void init() {
+    protected void init() {
         userService.findAllStarted().forEach(this::start);
     }
 

@@ -21,7 +21,7 @@ public class PathResolverServiceImpl implements PathResolverService {
     private static final String SERVER_URL_FORMAT = "${scheme}://${server_name}:${server_host_port}";
 
     @Autowired
-    private Environment env;
+    public Environment env;
 
     @Override
     public String getServerUrl() {

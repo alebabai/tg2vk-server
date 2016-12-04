@@ -36,7 +36,7 @@ public class TelegramServiceImpl implements TelegramService {
     private final PathResolverService pathResolver;
 
     @Autowired
-    private TelegramServiceImpl(Environment environment, ResourceLoader resourceLoader, PathResolverService pathResolver) {
+    public TelegramServiceImpl(Environment environment, ResourceLoader resourceLoader, PathResolverService pathResolver) {
         this.bot = TelegramBotAdapter.build(environment.getRequiredProperty(Constants.PROP_TELEGRAM_BOT_TOKEN));
         this.resourceLoader = resourceLoader;
         this.pathResolver = pathResolver;

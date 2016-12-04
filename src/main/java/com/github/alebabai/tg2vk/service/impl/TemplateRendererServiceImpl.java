@@ -20,7 +20,7 @@ public class TemplateRendererServiceImpl implements TemplateRendererService {
     private final MustacheResourceTemplateLoader templateLoader;
 
     @Autowired
-    private TemplateRendererServiceImpl(MustacheResourceTemplateLoader templateLoader) {
+    public TemplateRendererServiceImpl(MustacheResourceTemplateLoader templateLoader) {
         this.templateLoader = templateLoader;
     }
 

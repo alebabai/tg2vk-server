@@ -33,21 +33,22 @@ public class TelegramUpdateHandlerServiceImpl implements TelegramUpdateHandlerSe
     private final User user;//TODO remove
 
     @Autowired
-    private TelegramUpdateHandlerServiceImpl(TelegramService tgService,
-                                             PathResolverService pathResolver,
-                                             LinkerService linkerService,
-                                             MessageSource messageSource,
-                                             Environment env) {
+    public TelegramUpdateHandlerServiceImpl(TelegramService tgService,
+                                            PathResolverService pathResolver,
+                                            LinkerService linkerService,
+                                            MessageSource messageSource,
+                                            Environment env) {
         this.tgService = tgService;
         this.pathResolver = pathResolver;
         this.linkerService = linkerService;
         this.messages = new MessageSourceAccessor(messageSource);
         this.env = env;
 
+        //TODO remove
         this.user = new User()
                 .setVkId(env.getProperty("vk_user_id", Integer.TYPE))
                 .setTgId(env.getProperty("tg_user_id", Integer.TYPE))
-                .setVkToken(env.getProperty("token"));//TODO remove
+                .setVkToken(env.getProperty("token"));
     }
 
     @Override
@@ -126,17 +127,18 @@ public class TelegramUpdateHandlerServiceImpl implements TelegramUpdateHandlerSe
             case COMMAND_LOGIN:
                 SendMessage loginMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.login.msg", StringUtils.EMPTY))
                         .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
-                                new InlineKeyboardButton(messages.getMessage("tg.command.login.button.label", StringUtils.EMPTY)).url(pathResolver.getServerUrl() + PathConstants.API_LOGIN)
+                                new InlineKeyboardButton(messages.getMessage("tg.command.login.button.label", StringUtils.EMPTY))
+                                        .url(pathResolver.getServerUrl() + PathConstants.API_AUTH_LOGIN)
                         }));
                 tgService.send(loginMessage);
                 break;
             case COMMAND_START:
-                linkerService.start(user);//TODO get user from by tg id from repository
+                linkerService.start(user);//TODO get user from from repository by tg id
                 final SendMessage startMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.start.msg", StringUtils.EMPTY));
                 tgService.send(startMessage);
                 break;
             case COMMAND_STOP:
-                linkerService.stop(user);//TODO get user from by tg id from repository
+                linkerService.stop(user);//TODO get user from from repository by tg id
                 final SendMessage stopMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.stop.msg", StringUtils.EMPTY));
                 tgService.send(stopMessage);
                 break;

@@ -22,7 +22,7 @@ public class TelegramController {
     private final TelegramUpdateHandlerService updateHandler;
 
     @Autowired
-    private TelegramController(TelegramUpdateHandlerService updateHandler) {
+    public TelegramController(TelegramUpdateHandlerService updateHandler) {
         this.updateHandler = updateHandler;
     }
 

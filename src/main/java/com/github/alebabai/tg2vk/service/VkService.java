@@ -12,6 +12,8 @@ import java.util.function.BiConsumer;
 public interface VkService {
     Optional<UserActor> authorize(String code);
 
+    Optional<UserActor> authorize(Integer userId, String token);
+
     String getAuthorizeUrl(String redirectUrl, String... scopes);
 
     AtomicBoolean fetchMessages(Actor actor, BiConsumer<? super User, ? super Message> callback);
