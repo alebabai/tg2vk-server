@@ -32,23 +32,20 @@ dependencies {
 /*
  *  Spring dependencies
  */
-    compile 'org.springframework.boot:spring-boot-starter-web', {
-        exclude module: 'spring-boot-starter-tomcat'
-    }
-    compile 'org.springframework.boot:spring-boot-starter-jetty'
+    compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.springframework.boot:spring-boot-starter-log4j2'
     compile 'org.springframework.boot:spring-boot-starter-mustache'
     compile 'org.springframework.boot:spring-boot-starter-data-jpa'
-    compile 'org.springframework.session:spring-session'
     compile 'org.springframework.boot:spring-boot-starter-security'
 //	  compile 'org.springframework.boot:spring-boot-starter-cache'
 
 /*
  *  Other dependencies
  */
-    compile 'com.vk.api:sdk:0.3.3'
+    compile 'com.vk.api:sdk:0.3.6'
     compile 'com.github.pengrad:java-telegram-bot-api:2.3.0'
     compile 'org.apache.commons:commons-lang3:3.4'
+    compile 'io.jsonwebtoken:jjwt:0.7.0'
     runtime 'org.postgresql:postgresql'
 
 /*
