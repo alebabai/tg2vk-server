@@ -1,31 +1,35 @@
 package com.github.alebabai.tg2vk.security.config;
 
-import com.github.alebabai.tg2vk.security.filter.JwtAuthenticationProcessingFilter;
 import com.github.alebabai.tg2vk.security.provider.JwtAuthenticationProvider;
 import com.github.alebabai.tg2vk.util.constants.PathConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
+
+import javax.servlet.Filter;
 
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Autowired
-    private JwtAuthenticationProvider authenticationProvider;
+    private final JwtAuthenticationProvider authenticationProvider;
+    private final JwtSettings settings;
 
     @Autowired
-    private JwtAuthenticationProcessingFilter jwtFilter;
+    public WebSecurityConfig(JwtAuthenticationProvider authenticationProvider, JwtSettings settings) throws Exception {
+        this.authenticationProvider = authenticationProvider;
+        this.settings = settings;
+    }
 
     @Bean
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
+    protected Filter jwtFilter() throws Exception {
+        final RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
+        filter.setExceptionIfHeaderMissing(false);
+        filter.setPrincipalRequestHeader(settings.getHeaderName());
+        filter.setAuthenticationManager(this.authenticationManager());
+        return filter;
     }
 
     @Override
@@ -38,15 +42,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .mvcMatchers(PathConstants.API_TELEGRAM_FETCH_UPDATES).permitAll()
-                .mvcMatchers(PathConstants.API + "/**").authenticated()
+                .mvcMatchers(PathConstants.API + "/**").fullyAuthenticated()
                 .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .addFilterBefore(jwtFilter, RequestHeaderAuthenticationFilter.class);
-    }
-
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(authenticationProvider);
+                .authenticationProvider(authenticationProvider)
+                .sessionManagement().disable()
+                .addFilterBefore(jwtFilter(), RequestHeaderAuthenticationFilter.class);
     }
 }

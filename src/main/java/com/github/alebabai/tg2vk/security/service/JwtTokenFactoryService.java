@@ -1,8 +1,8 @@
 package com.github.alebabai.tg2vk.security.service;
 
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.security.core.Authentication;
 
 public interface JwtTokenFactoryService {
 
-    String create(PreAuthenticatedAuthenticationToken token);
+    String create(Authentication authentication);
 }

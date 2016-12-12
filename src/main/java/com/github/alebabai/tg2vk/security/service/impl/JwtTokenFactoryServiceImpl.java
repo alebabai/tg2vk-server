@@ -6,8 +6,9 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -24,15 +25,13 @@ public class JwtTokenFactoryServiceImpl implements JwtTokenFactoryService {
     }
 
     @Override
-    public String create(PreAuthenticatedAuthenticationToken token) {
-        if (token == null) {
-            throw new IllegalArgumentException("Can't generate JWT for empty object");
-        }
-
+    public String create(Authentication authentication) {
+        Assert.notNull(authentication, "Can't generate JWT for empty object");
+        //TODO create token for User entity (user will have roles, etc...)
         final Claims claims = Jwts.claims();
-        claims.put("userId", token.getPrincipal());
-        claims.put("tgId", token.getCredentials());
-        claims.put("authorities", token.getAuthorities());
+        claims.put("userId", authentication.getPrincipal());
+        claims.put("tgId", authentication.getCredentials());
+        claims.put("authorities", authentication.getAuthorities());
 
         final LocalDateTime currentTime = LocalDateTime.now();
         return Jwts.builder()
