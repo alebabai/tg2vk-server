@@ -1,6 +1,6 @@
 package com.github.alebabai.tg2vk.repository;
 
-import com.github.alebabai.tg2vk.AbstractSpringTest;
+import com.github.alebabai.tg2vk.common.AbstractSpringTest;
 import com.github.alebabai.tg2vk.util.TestUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Assert;

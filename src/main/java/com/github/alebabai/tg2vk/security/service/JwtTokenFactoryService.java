@@ -1,8 +1,8 @@
 package com.github.alebabai.tg2vk.security.service;
 
-import org.springframework.security.core.Authentication;
+import com.github.alebabai.tg2vk.domain.User;
 
 public interface JwtTokenFactoryService {
 
-    String create(Authentication authentication);
+    String create(User user);
 }

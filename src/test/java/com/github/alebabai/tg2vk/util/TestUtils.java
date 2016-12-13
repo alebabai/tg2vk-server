@@ -1,6 +1,7 @@
 package com.github.alebabai.tg2vk.util;
 
 import com.github.alebabai.tg2vk.domain.ChatSettings;
+import com.github.alebabai.tg2vk.domain.Role;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.domain.UserSettings;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -41,5 +42,9 @@ public abstract class TestUtils {
                 .setTgChatId(getRandomInteger(MAX_NUMBER))
                 .setVkChatId(getRandomInteger(MAX_NUMBER))
                 .answerAllowed(false);
+    }
+
+    public static Role generateRole() {
+        return new Role().setName(getRandomString(MAX_STRING_LENGTH));
     }
 }
