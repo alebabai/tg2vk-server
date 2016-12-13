@@ -42,7 +42,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .mvcMatchers(PathConstants.API_TELEGRAM_FETCH_UPDATES).permitAll()
-                .mvcMatchers(PathConstants.API + "/**").fullyAuthenticated()
+                .mvcMatchers(PathConstants.API + "/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .and()
                 .authenticationProvider(authenticationProvider)
                 .sessionManagement().disable()
