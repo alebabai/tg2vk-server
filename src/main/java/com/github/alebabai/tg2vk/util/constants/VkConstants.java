@@ -3,7 +3,7 @@ package com.github.alebabai.tg2vk.util.constants;
 
 public final class VkConstants {
     public static final String VK_URL_OAUTH_BASE = "https://oauth.vk.com";
-    public static final String VK_URL_AUTHORIZE = VK_URL_OAUTH_BASE + "/authorize";
+    public static final String VK_URL_AUTHORIZE = VK_URL_OAUTH_BASE + "/createOrUpdate";
     public static final String VK_URL_REDIRECT = VK_URL_OAUTH_BASE + "/blank.html";
 
     public static final String VK_API_VERSION = "5.59";
