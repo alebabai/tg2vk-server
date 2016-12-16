@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 
 import javax.servlet.Filter;
@@ -45,7 +46,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .mvcMatchers(PathConstants.API + "/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .and()
                 .authenticationProvider(authenticationProvider)
-                .sessionManagement().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
                 .addFilterBefore(jwtFilter(), RequestHeaderAuthenticationFilter.class);
     }
 }

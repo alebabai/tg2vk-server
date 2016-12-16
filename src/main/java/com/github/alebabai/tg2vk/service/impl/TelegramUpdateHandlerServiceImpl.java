@@ -20,7 +20,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static com.github.alebabai.tg2vk.util.CommandUtils.*;
+import static com.github.alebabai.tg2vk.util.CommandUtils.parseCommand;
+import static com.github.alebabai.tg2vk.util.constants.CommandConstants.*;
 
 @Service
 public class TelegramUpdateHandlerServiceImpl implements TelegramUpdateHandlerService {
@@ -28,7 +29,6 @@ public class TelegramUpdateHandlerServiceImpl implements TelegramUpdateHandlerSe
     private final TelegramService tgService;
     private final PathResolverService pathResolver;
     private final LinkerService linkerService;
-    private final Environment env;
     private final MessageSourceAccessor messages;
     private final User user;//TODO remove
 
@@ -42,7 +42,6 @@ public class TelegramUpdateHandlerServiceImpl implements TelegramUpdateHandlerSe
         this.pathResolver = pathResolver;
         this.linkerService = linkerService;
         this.messages = new MessageSourceAccessor(messageSource);
-        this.env = env;
 
         //TODO remove
         this.user = new User()
