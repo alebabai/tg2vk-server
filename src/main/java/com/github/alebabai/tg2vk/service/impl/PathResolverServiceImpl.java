@@ -4,7 +4,6 @@ import com.github.alebabai.tg2vk.service.PathResolverService;
 import com.github.alebabai.tg2vk.util.constants.Constants;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
-import org.eclipse.jetty.http.HttpScheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,13 +20,13 @@ public class PathResolverServiceImpl implements PathResolverService {
     private static final String SERVER_URL_FORMAT = "${scheme}://${server_name}:${server_host_port}";
 
     @Autowired
-    private Environment env;
+    public Environment env;
 
     @Override
     public String getServerUrl() {
         try {
             Map<String, String> params = new HashMap<>();
-            params.put("scheme", HttpScheme.HTTP.toString());
+            params.put("scheme", "https://");
             params.put("server_name", env.getRequiredProperty(Constants.PROP_SERVER_NAME));
             params.put("server_host_port", env.getRequiredProperty(Constants.PROP_SERVER_HOST_PORT));
 

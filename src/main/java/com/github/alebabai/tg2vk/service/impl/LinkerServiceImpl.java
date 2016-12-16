@@ -1,12 +1,10 @@
 package com.github.alebabai.tg2vk.service.impl;
 
+import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.service.*;
-import com.github.alebabai.tg2vk.util.constants.PathConstants;
-import com.pengrad.telegrambot.model.Message;
-import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
-import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.vk.api.sdk.client.actors.UserActor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +13,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 public class LinkerServiceImpl implements LinkerService {
@@ -23,48 +22,54 @@ public class LinkerServiceImpl implements LinkerService {
 
     private final TelegramService tgService;
     private final VkService vkService;
-    private final PathResolverService pathResolver;
     private final TemplateRendererService templateRenderer;
+    private final UserService userService;
+    private final Map<Integer, AtomicBoolean> daemonStates;
 
     @Autowired
-    private LinkerServiceImpl(VkService vkService,
+    public LinkerServiceImpl(VkService vkService,
                               TelegramService tgService,
-                              PathResolverService pathResolver,
-                              TemplateRendererService templateRenderer) {
+                              TemplateRendererService templateRenderer,
+                              UserService userService) {
         this.vkService = vkService;
         this.tgService = tgService;
-        this.pathResolver = pathResolver;
         this.templateRenderer = templateRenderer;
+        this.userService = userService;
+        this.daemonStates = new HashMap<>();
     }
 
     @PostConstruct
-    @Override
-    public void start() {
-        tgService.fetchUpdates(update -> {
-            final Message message = update.message();
-            if (message != null) {
-                String msgText = "Any message";
-                SendMessage sendMessage = new SendMessage(update.message().chat().id(), msgText);
-                if ("/login".equals(message.text())) {
-                    sendMessage.replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
-                            new InlineKeyboardButton("Login").url(pathResolver.getServerUrl() + PathConstants.LOGIN_PATH)
-                    }));
-                }
-                tgService.send(sendMessage);
-            }
-        });
+    protected void init() {
+        userService.findAllStarted().forEach(this::start);
+    }
 
-        vkService.fetchMessages((user, message) -> {
+    @Override
+    public void start(User user) {
+        LOGGER.debug("Start messages linking for {}", user);
+        final UserActor actor = new UserActor(user.getVkId(), user.getVkToken());
+        final AtomicBoolean isDaemonActive = vkService.fetchMessages(actor, (profile, message) -> {
             try {
                 Map<String, Object> context = new HashMap<>();
-                context.put("user", String.format("%s %s", user.getFirstName(), user.getLastName()));
+                context.put("user", String.format("%s %s", profile.getFirstName(), profile.getLastName()));
                 context.put("body", message.getBody());
-                final SendMessage sendMessage = new SendMessage(message.getUserId(), templateRenderer.render("telegram/message.md", context))
+                final SendMessage sendMessage = new SendMessage(user.getTgId(), templateRenderer.render("telegram/message.md", context))
                         .parseMode(ParseMode.Markdown);
                 tgService.send(sendMessage);
             } catch (Exception e) {
-                throw new RuntimeException("Error during vk message fetching", e);
+                LOGGER.error("Error during vk message fetching: ", e);
             }
         });
+        daemonStates.put(user.getId(), isDaemonActive);
+    }
+
+    @Override
+    public void stop(User user) {
+        final AtomicBoolean isDaemonActive = daemonStates.get(user.getId());
+        if (isDaemonActive != null) {
+            isDaemonActive.lazySet(false);
+            daemonStates.remove(user.getId());
+            LOGGER.debug("Messages linking messages for {} has been stopped", user);
+        }
+        user.getSettings().started(false);
     }
 }

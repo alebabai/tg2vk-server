@@ -22,6 +22,9 @@ public class User implements Persistable<Integer> {
     @Column(name = "vk_id", unique = true, nullable = false)
     private Integer vkId;
 
+    @Column(name = "vk_token", unique = true, nullable = false)
+    private String vkToken;
+
     @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     @JoinColumn(name = "user_settings_id", nullable = false)
     private UserSettings settings;
@@ -37,6 +40,18 @@ public class User implements Persistable<Integer> {
             }
     )
     private Set<ChatSettings> chatsSettings;
+
+    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "user_role",
+            joinColumns = {
+                    @JoinColumn(name = "user_id", nullable = false)
+            },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "role_id", nullable = false)
+            }
+    )
+    private Set<Role> roles;
 
     public User() {
         this.settings = new UserSettings();
@@ -86,6 +101,24 @@ public class User implements Persistable<Integer> {
 
     public User setChatsSettings(Set<ChatSettings> chatsSettings) {
         this.chatsSettings = chatsSettings;
+        return this;
+    }
+
+    public String getVkToken() {
+        return vkToken;
+    }
+
+    public User setVkToken(String vkToken) {
+        this.vkToken = vkToken;
+        return this;
+    }
+
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public User setRoles(Set<Role> roles) {
+        this.roles = roles;
         return this;
     }
 
