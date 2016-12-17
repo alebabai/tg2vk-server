@@ -19,8 +19,12 @@ public class PathResolverServiceImpl implements PathResolverService {
     private static final Logger LOGGER = LoggerFactory.getLogger(PathResolverService.class);
     private static final String SERVER_URL_FORMAT = "${scheme}://${server_name}:${server_host_port}";
 
+    private final Environment env;
+
     @Autowired
-    public Environment env;
+    public PathResolverServiceImpl(Environment env) {
+        this.env = env;
+    }
 
     @Override
     public String getServerUrl() {

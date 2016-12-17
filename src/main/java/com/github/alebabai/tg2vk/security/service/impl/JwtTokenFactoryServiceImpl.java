@@ -24,7 +24,7 @@ public class JwtTokenFactoryServiceImpl implements JwtTokenFactoryService {
     }
 
     @Override
-    public String create(Integer tgId, String... roles) {
+    public String generate(Integer tgId, String... roles) {
         Assert.notNull(tgId, "Can't generate JWT for null tgId");
         Assert.noNullElements(roles, "Can't generate JWT without roles");
 
@@ -37,7 +37,7 @@ public class JwtTokenFactoryServiceImpl implements JwtTokenFactoryService {
                 .setClaims(claims)
                 .setId(UUID.randomUUID().toString())
                 .setIssuedAt(Timestamp.valueOf(currentTime))
-                .setExpiration(Timestamp.valueOf(currentTime.plusMinutes(settings.getExpirationTime())))
+                .setExpiration(Timestamp.valueOf(currentTime.plus(settings.getExpirationTime(), settings.getTimeUnit())))
                 .signWith(SignatureAlgorithm.HS512, settings.getSignKey())
                 .compact();
     }

@@ -47,8 +47,8 @@ public class VkServiceImpl implements VkService {
     private final Gson gson;
 
     @Autowired
-    public VkServiceImpl(Environment environment) {
-        this.env = environment;
+    public VkServiceImpl(Environment env) {
+        this.env = env;
         this.api = new VkApiClient(new HttpTransportClient());
         this.gson = new GsonBuilder().create();
     }

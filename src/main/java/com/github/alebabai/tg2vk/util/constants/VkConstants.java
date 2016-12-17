@@ -8,7 +8,7 @@ public final class VkConstants {
 
     public static final String VK_API_VERSION = "5.59";
     public static final String VK_RESPONSE_TYPE_CODE = "code";
-    public static final String VK_RESPONSE_TYPE_TOKEN = "token";
+    public static final String VK_RESPONSE_TYPE_TOKEN = "tg2vk.vk.token";
 
     public static final String VK_DISPLAY_TYPE_PAGE = "page";
     public static final String VK_DISPLAY_TYPE_POPUP = "popup";
