@@ -13,6 +13,7 @@ import org.springframework.util.Assert;
 
 import javax.transaction.Transactional;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 @Service
@@ -36,8 +37,27 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAllStarted();
     }
 
-    @Override
     @Transactional
+    @Override
+    public Optional<User> findOneByVkId(Integer id) {
+        return userRepository.findOneByVkId(id);
+    }
+
+    @Transactional
+    @Override
+    public Optional<User> findOneByTgId(Integer id) {
+        return userRepository.findOneByVkId(id);
+    }
+
+
+    @Transactional
+    @Override
+    public User save(User user) {
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    @Override
     public User createOrUpdate(Integer tgId, Integer newVkId, String newVkToken) throws UserCreationException {
         Assert.notNull(tgId, "tgId is required param!");
         Assert.notNull(tgId, "vkId is required param!");
@@ -51,8 +71,8 @@ public class UserServiceImpl implements UserService {
                 .orElseGet(() -> create(tgId, newVkId, newVkToken));
     }
 
-    @Override
     @Transactional
+    @Override
     public User create(Integer tgId, Integer vkId, String vkToken) throws UserCreationException {
         Assert.notNull(tgId, "tgId is required param!");
         Assert.notNull(tgId, "vkId is required param!");

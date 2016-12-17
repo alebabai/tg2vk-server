@@ -2,6 +2,7 @@ package com.github.alebabai.tg2vk.security.config;
 
 import com.github.alebabai.tg2vk.security.provider.JwtAuthenticationProvider;
 import com.github.alebabai.tg2vk.util.constants.PathConstants;
+import com.github.alebabai.tg2vk.util.constants.SecurityConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -43,7 +44,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .mvcMatchers(PathConstants.API_TELEGRAM_FETCH_UPDATES).permitAll()
-                .mvcMatchers(PathConstants.API + "/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .mvcMatchers(PathConstants.API_AUTH_LOGIN).permitAll()
+                .mvcMatchers(PathConstants.API + "/**").hasAnyAuthority(SecurityConstants.ROLE_USER, SecurityConstants.ROLE_ADMIN)
                 .and()
                 .authenticationProvider(authenticationProvider)
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
