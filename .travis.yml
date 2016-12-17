@@ -1,0 +1,5 @@
+language: java
+services:
+  - postgresql
+before_script:
+  - psql -c 'create database tg2vk_test;' -U tg2vk_test -P tg2vk_test
