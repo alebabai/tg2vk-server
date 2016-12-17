@@ -2,7 +2,7 @@ package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.service.PathResolverService;
 import com.github.alebabai.tg2vk.service.TelegramService;
-import com.github.alebabai.tg2vk.util.constants.Constants;
+import com.github.alebabai.tg2vk.util.constants.EnvConstants;
 import com.github.alebabai.tg2vk.util.constants.PathConstants;
 import com.pengrad.telegrambot.Callback;
 import com.pengrad.telegrambot.TelegramBot;
@@ -10,9 +10,9 @@ import com.pengrad.telegrambot.TelegramBotAdapter;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.BaseRequest;
+import com.pengrad.telegrambot.request.DeleteWebhook;
 import com.pengrad.telegrambot.request.SetWebhook;
 import com.pengrad.telegrambot.response.BaseResponse;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,12 +34,14 @@ public class TelegramServiceImpl implements TelegramService {
     private final TelegramBot bot;
     private final ResourceLoader resourceLoader;
     private final PathResolverService pathResolver;
+    private final Environment env;
 
     @Autowired
-    public TelegramServiceImpl(Environment environment, ResourceLoader resourceLoader, PathResolverService pathResolver) {
-        this.bot = TelegramBotAdapter.build(environment.getRequiredProperty(Constants.PROP_TELEGRAM_BOT_TOKEN));
+    public TelegramServiceImpl(Environment env, ResourceLoader resourceLoader, PathResolverService pathResolver) {
+        this.bot = TelegramBotAdapter.build(env.getRequiredProperty(EnvConstants.PROP_TELEGRAM_BOT_TOKEN));
         this.resourceLoader = resourceLoader;
         this.pathResolver = pathResolver;
+        this.env = env;
     }
 
     @Override
@@ -54,11 +56,16 @@ public class TelegramServiceImpl implements TelegramService {
     @Override
     public void startWebHookUpdates() {
         try {
-            final Resource resource = resourceLoader.getResource(ResourceLoader.CLASSPATH_URL_PREFIX + "certificates/tg2vk.pem");
-            SetWebhook request = new SetWebhook()
-                    .url(pathResolver.getServerUrl() + PathConstants.API_TELEGRAM_FETCH_UPDATES)
-                    .certificate(resource.getFile());
-            bot.execute(request, loggerCallback());
+            final Resource certificate = resourceLoader.getResource(ResourceLoader.CLASSPATH_URL_PREFIX + "certificates/tg2vk.pem");
+            if (certificate.exists() && certificate.isReadable()) {
+                SetWebhook request = new SetWebhook()
+                        .url(pathResolver.getAbsoluteUrl(PathConstants.API_TELEGRAM_FETCH_UPDATES))
+                        .maxConnections(env.getProperty(EnvConstants.PROP_TELEGRAM_BOT_MAX_CONNECTIONS, Integer.TYPE, 40))
+                        .certificate(certificate.getFile());
+                bot.execute(request, loggerCallback());
+            } else {
+                throw new IOException(String.format("Certificate file '%s' doesn't exist or unreadable!", certificate.getFilename()));
+            }
         } catch (Exception e) {
             LOGGER.error("Error during webhook setup: ", e);
         }
@@ -68,8 +75,7 @@ public class TelegramServiceImpl implements TelegramService {
     @Override
     public void stopWebHookUpdates() {
         try {
-            SetWebhook request = new SetWebhook()
-                    .url(StringUtils.EMPTY);
+            DeleteWebhook request = new DeleteWebhook();
             bot.execute(request, loggerCallback());
         } catch (Exception e) {
             LOGGER.error("Error during webhook disabling: ", e);

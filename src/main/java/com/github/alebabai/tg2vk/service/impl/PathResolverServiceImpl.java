@@ -1,7 +1,7 @@
 package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.service.PathResolverService;
-import com.github.alebabai.tg2vk.util.constants.Constants;
+import com.github.alebabai.tg2vk.util.constants.EnvConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
 import org.slf4j.Logger;
@@ -26,14 +26,19 @@ public class PathResolverServiceImpl implements PathResolverService {
     public String getServerUrl() {
         try {
             Map<String, String> params = new HashMap<>();
-            params.put("scheme", "https://");
-            params.put("server_name", env.getRequiredProperty(Constants.PROP_SERVER_NAME));
-            params.put("server_host_port", env.getRequiredProperty(Constants.PROP_SERVER_HOST_PORT));
+            params.put("scheme", "https");
+            params.put("server_name", env.getRequiredProperty(EnvConstants.PROP_SERVER_NAME));
+            params.put("server_host_port", env.getRequiredProperty(EnvConstants.PROP_SERVER_HOST_PORT));
 
             return StrSubstitutor.replace(SERVER_URL_FORMAT, params);
         } catch (IllegalStateException e) {
             LOGGER.error("Error during server url generation", e);
         }
         return StringUtils.EMPTY;
+    }
+
+    @Override
+    public String getAbsoluteUrl(String relativePath) {
+        return getServerUrl() + relativePath;
     }
 }

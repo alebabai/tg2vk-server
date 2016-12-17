@@ -1,8 +1,10 @@
 package com.github.alebabai.tg2vk.security.provider;
 
 import com.github.alebabai.tg2vk.security.config.JwtSettings;
+import com.github.alebabai.tg2vk.security.service.JwtTokenFactoryService;
 import com.github.alebabai.tg2vk.util.constants.SecurityConstants;
 import io.jsonwebtoken.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,9 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     private final JwtParser parser;
 
     @Autowired
+    private JwtTokenFactoryService service;//TODO remove
+
+    @Autowired
     public JwtAuthenticationProvider(JwtSettings settings) {
         this.parser = Jwts.parser().setSigningKey(settings.getSignKey());
     }
@@ -34,14 +39,13 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     public Authentication authenticate(Authentication authentication) {
         try {
             final String rawToken = (String) authentication.getPrincipal();
-            final Jws<Claims> jws = parser.parseClaimsJws(rawToken);//TODO check if signed or try catch
-            final Object userId = jws.getBody().get("userId");//TODO check if user exist
-            final Object tgId = jws.getBody().get("tgId");//TODO check if user has the same tgId
-            final List<String> roles = jws.getBody().get("roles", List.class);//TODO check if user has the same roles
+            final Jws<Claims> jws = parser.parseClaimsJws(rawToken);
+            final Object tgId = jws.getBody().get("tgId");
+            final List<String> roles = jws.getBody().get("roles", List.class);
             final List<SimpleGrantedAuthority> authorities = roles.stream()
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());
-            return new PreAuthenticatedAuthenticationToken(userId, tgId, authorities);//TODO throw AuthenticationException if some condition has false value
+            return new PreAuthenticatedAuthenticationToken(tgId, tgId, authorities);
         } catch (RequiredTypeException | SignatureException | UnsupportedJwtException e) {
             LOGGER.debug("Incorrect token format: {}", e.getMessage());
         } catch (ExpiredJwtException e) {
