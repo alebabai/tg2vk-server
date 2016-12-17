@@ -45,9 +45,9 @@ public class TelegramUpdateHandlerServiceImpl implements TelegramUpdateHandlerSe
 
         //TODO remove
         this.user = new User()
-                .setVkId(env.getProperty("vk_user_id", Integer.TYPE))
-                .setTgId(env.getProperty("tg_user_id", Integer.TYPE))
-                .setVkToken(env.getProperty("token"));
+                .setVkId(env.getProperty("tg2vk.vk.user-id", Integer.TYPE))
+                .setTgId(env.getProperty("tg2vk.telegram.user-id", Integer.TYPE))
+                .setVkToken(env.getProperty("tg2vk.vk.token"));
     }
 
     @Override
@@ -127,7 +127,7 @@ public class TelegramUpdateHandlerServiceImpl implements TelegramUpdateHandlerSe
                 SendMessage loginMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.login.msg", StringUtils.EMPTY))
                         .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
                                 new InlineKeyboardButton(messages.getMessage("tg.command.login.button.label", StringUtils.EMPTY))
-                                        .url(pathResolver.getServerUrl() + PathConstants.API_AUTH_LOGIN)
+                                        .url(pathResolver.getAbsoluteUrl(PathConstants.API_AUTH_LOGIN))
                         }));
                 tgService.send(loginMessage);
                 break;

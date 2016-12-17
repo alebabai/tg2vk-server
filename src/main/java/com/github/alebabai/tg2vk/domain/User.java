@@ -29,7 +29,7 @@ public class User implements Persistable<Integer> {
     @JoinColumn(name = "user_settings_id", nullable = false)
     private UserSettings settings;
 
-    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(
             name = "user_chat_settings",
             joinColumns = {
@@ -41,9 +41,15 @@ public class User implements Persistable<Integer> {
     )
     private Set<ChatSettings> chatsSettings;
 
-    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_role",
+            uniqueConstraints = {
+                    @UniqueConstraint(
+                            name = "uk_user_role",
+                            columnNames = {"user_id", "role_id"}
+                    )
+            },
             joinColumns = {
                     @JoinColumn(name = "user_id", nullable = false)
             },
@@ -56,6 +62,7 @@ public class User implements Persistable<Integer> {
     public User() {
         this.settings = new UserSettings();
         this.chatsSettings = new HashSet<>();
+        this.roles = new HashSet<>();
     }
 
     @Override

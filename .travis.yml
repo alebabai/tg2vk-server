@@ -1,0 +1,13 @@
+sudo: required
+dist: trusty
+language: java
+jdk:
+  - oraclejdk8
+addons:
+  postgresql: "9.6"
+services:
+  - postgresql
+env:
+  - TG2VK_DB_NAME=tg2vk_test TG2VK_DB_USER_LOGIN=postgres
+before_script:
+  - psql -c 'create database tg2vk_test;' -U postgres

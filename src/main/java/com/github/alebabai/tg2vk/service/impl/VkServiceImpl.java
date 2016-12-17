@@ -1,7 +1,7 @@
 package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.service.VkService;
-import com.github.alebabai.tg2vk.util.constants.Constants;
+import com.github.alebabai.tg2vk.util.constants.EnvConstants;
 import com.github.alebabai.tg2vk.util.constants.VkConstants;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -33,7 +33,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 
-import static com.github.alebabai.tg2vk.util.constants.Constants.PROP_VK_FETCH_DELAY;
+import static com.github.alebabai.tg2vk.util.constants.EnvConstants.PROP_VK_FETCH_DELAY;
 
 @Service
 public class VkServiceImpl implements VkService {
@@ -47,8 +47,8 @@ public class VkServiceImpl implements VkService {
     private final Gson gson;
 
     @Autowired
-    public VkServiceImpl(Environment environment) {
-        this.env = environment;
+    public VkServiceImpl(Environment env) {
+        this.env = env;
         this.api = new VkApiClient(new HttpTransportClient());
         this.gson = new GsonBuilder().create();
     }
@@ -59,8 +59,8 @@ public class VkServiceImpl implements VkService {
         try {
             final UserAuthResponse authResponse = api.oauth()
                     .userAuthorizationCodeFlow(
-                            env.getRequiredProperty(Constants.PROP_VK_CLIENT_ID, Integer.class),
-                            env.getRequiredProperty(Constants.PROP_VK_CLIENT_SECRET),
+                            env.getRequiredProperty(EnvConstants.PROP_VK_CLIENT_ID, Integer.class),
+                            env.getRequiredProperty(EnvConstants.PROP_VK_CLIENT_SECRET),
                             VkConstants.VK_URL_REDIRECT,
                             code)
                     .execute();
@@ -81,7 +81,7 @@ public class VkServiceImpl implements VkService {
         try {
             final Map<String, String> params = new HashMap<>();
             params.put("vk_auth_url", VkConstants.VK_URL_AUTHORIZE);
-            params.put("client_id", env.getRequiredProperty(Constants.PROP_VK_CLIENT_ID));
+            params.put("client_id", env.getRequiredProperty(EnvConstants.PROP_VK_CLIENT_ID));
             params.put("display", VkConstants.VK_DISPLAY_TYPE_POPUP);
             params.put("redirect_uri", redirectUrl);
             params.put("scope", StringUtils.join(scopes, ","));
