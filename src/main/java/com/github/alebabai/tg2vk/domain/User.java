@@ -62,6 +62,7 @@ public class User implements Persistable<Integer> {
     public User() {
         this.settings = new UserSettings();
         this.chatsSettings = new HashSet<>();
+        this.roles = new HashSet<>();
     }
 
     @Override

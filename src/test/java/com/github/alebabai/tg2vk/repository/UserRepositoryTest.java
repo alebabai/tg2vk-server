@@ -25,7 +25,7 @@ public class UserRepositoryTest extends AbstractJpaRepositoryTest<User, Integer,
         return IntStream
                 .rangeClosed(MIN_ENTITIES_COUNT, getRandomInteger(MAX_ENTITIES_COUNT))
                 .parallel()
-                .mapToObj(it -> new User().setTgId(it).setVkId(it))
+                .mapToObj(it -> new User().setTgId(it).setVkId(it).setVkToken(getRandomString(MAX_STRING_LENGTH)))
                 .collect(Collectors.toList());
     }
 
