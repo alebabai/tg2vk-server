@@ -1,5 +1,7 @@
 language: java
+jdk:
+  - oraclejdk8
 services:
   - postgresql
 before_script:
-  - psql -c 'create database tg2vk_test;' -U tg2vk_test -P tg2vk_test
+  - psql -c 'create database tg2vk_test;' -U tg2vk_test
