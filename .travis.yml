@@ -4,4 +4,4 @@ jdk:
 services:
   - postgresql
 before_script:
-  - psql -c 'create database tg2vk_test;' -U tg2vk_test
+  - psql -c 'create database tg2vk_test;' -U postgres
