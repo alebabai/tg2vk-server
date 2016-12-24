@@ -8,6 +8,6 @@ addons:
 services:
   - postgresql
 env:
-  - TG2VK_DB_NAME=tg2vk_test TG2VK_DB_USER_LOGIN=postgres
+  - TG2VK_DB_NAME=tg2vk_test TG2VK_DB_USER_LOGIN=postgres TG2VK_DB_HIBERNATE_DDL-AUTO=create TG2VK_DB_DATA_INIT=false
 before_script:
   - psql -c 'create database tg2vk_test;' -U postgres
