@@ -17,7 +17,6 @@ public final class VkConstants {
     public static final String VK_SCOPE_NOTIFY = "notify";
     public static final String VK_SCOPE_FRIENDS = "friends";
     public static final String VK_SCOPE_PHOTOS = "photos";
-    public static final String VK_SCOPE_AUDIO = "audio";
     public static final String VK_SCOPE_VIDEO = "video";
     public static final String VK_SCOPE_PAGES = "pages";
     public static final String VK_SCOPE_NOTES = "notes";
@@ -32,7 +31,6 @@ public final class VkConstants {
     public static final String VK_SCOPE_STATS = "stats";
     public static final String VK_SCOPE_EMAIL = "email";
     public static final String VK_SCOPE_MARKET = "market";
-    public static final String VK_SCOPE_NOHTTPS = "nohttps";
 
     private VkConstants() {
         super();

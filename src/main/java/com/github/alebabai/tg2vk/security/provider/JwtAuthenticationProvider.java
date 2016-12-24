@@ -1,10 +1,8 @@
 package com.github.alebabai.tg2vk.security.provider;
 
 import com.github.alebabai.tg2vk.security.config.JwtSettings;
-import com.github.alebabai.tg2vk.security.service.JwtTokenFactoryService;
 import com.github.alebabai.tg2vk.util.constants.SecurityConstants;
 import io.jsonwebtoken.*;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
