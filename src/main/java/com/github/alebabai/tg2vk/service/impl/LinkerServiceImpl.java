@@ -1,7 +1,6 @@
 package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.domain.User;
-import com.github.alebabai.tg2vk.repository.UserSettingsRepository;
 import com.github.alebabai.tg2vk.service.*;
 import com.github.alebabai.tg2vk.util.constants.EnvConstants;
 import com.pengrad.telegrambot.model.request.ParseMode;
@@ -24,27 +23,24 @@ public class LinkerServiceImpl implements LinkerService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkerService.class);
 
+    private final Environment env;
+    private final UserService userService;
     private final TelegramService tgService;
     private final VkService vkService;
     private final TemplateRendererService templateRenderer;
-    private final UserService userService;
-    private final UserSettingsRepository settingsRepository;
     private final Map<Integer, AtomicBoolean> daemonStates;
-    private final Environment env;
 
     @Autowired
     public LinkerServiceImpl(Environment env,
+                             UserService userService,
                              VkService vkService,
                              TelegramService tgService,
-                             TemplateRendererService templateRenderer,
-                             UserService userService,
-                             UserSettingsRepository settingsRepository) {
+                             TemplateRendererService templateRenderer) {
         this.env = env;
+        this.userService = userService;
         this.vkService = vkService;
         this.tgService = tgService;
         this.templateRenderer = templateRenderer;
-        this.userService = userService;
-        this.settingsRepository = settingsRepository;
         this.daemonStates = new HashMap<>();
     }
 
@@ -74,7 +70,7 @@ public class LinkerServiceImpl implements LinkerService {
         });
         daemonStates.put(user.getId(), isDaemonActive);
         user.getSettings().started(isDaemonActive.get());
-        settingsRepository.save(user.getSettings());
+        userService.updateUserSettings(user.getSettings());
     }
 
     @Transactional
@@ -86,7 +82,7 @@ public class LinkerServiceImpl implements LinkerService {
             isDaemonActive.lazySet(state);
             daemonStates.remove(user.getId());
             user.getSettings().started(state);
-            settingsRepository.save(user.getSettings());
+            userService.updateUserSettings(user.getSettings());
             LOGGER.debug("Messages linking messages for {} has been stopped", user);
         }
     }

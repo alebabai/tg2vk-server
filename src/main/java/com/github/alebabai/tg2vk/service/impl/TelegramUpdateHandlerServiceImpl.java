@@ -1,10 +1,7 @@
 package com.github.alebabai.tg2vk.service.impl;
 
-import com.github.alebabai.tg2vk.domain.User;
-import com.github.alebabai.tg2vk.service.LinkerService;
-import com.github.alebabai.tg2vk.service.PathResolverService;
-import com.github.alebabai.tg2vk.service.TelegramService;
-import com.github.alebabai.tg2vk.service.TelegramUpdateHandlerService;
+import com.github.alebabai.tg2vk.security.service.JwtTokenFactoryService;
+import com.github.alebabai.tg2vk.service.*;
 import com.github.alebabai.tg2vk.util.constants.PathConstants;
 import com.pengrad.telegrambot.model.*;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
@@ -14,7 +11,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.MessageSourceAccessor;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,31 +19,30 @@ import java.util.concurrent.CompletableFuture;
 import static com.github.alebabai.tg2vk.util.CommandUtils.parseCommand;
 import static com.github.alebabai.tg2vk.util.constants.CommandConstants.*;
 
+//TODO refactor this class (use composition)
 @Service
 public class TelegramUpdateHandlerServiceImpl implements TelegramUpdateHandlerService {
 
+    private final UserService userService;
     private final TelegramService tgService;
     private final PathResolverService pathResolver;
     private final LinkerService linkerService;
+    private final JwtTokenFactoryService tokenFactory;
     private final MessageSourceAccessor messages;
-    private final User user;//TODO remove
 
     @Autowired
-    public TelegramUpdateHandlerServiceImpl(TelegramService tgService,
-                                            PathResolverService pathResolver,
+    public TelegramUpdateHandlerServiceImpl(PathResolverService pathResolver,
+                                            UserService userService,
+                                            TelegramService tgService,
                                             LinkerService linkerService,
-                                            MessageSource messageSource,
-                                            Environment env) {
-        this.tgService = tgService;
+                                            JwtTokenFactoryService tokenFactory,
+                                            MessageSource messageSource) {
         this.pathResolver = pathResolver;
+        this.userService = userService;
+        this.tgService = tgService;
         this.linkerService = linkerService;
+        this.tokenFactory = tokenFactory;
         this.messages = new MessageSourceAccessor(messageSource);
-
-        //TODO remove
-        this.user = new User()
-                .setVkId(env.getProperty("tg2vk.vk.user-id", Integer.TYPE))
-                .setTgId(env.getProperty("tg2vk.telegram.user-id", Integer.TYPE))
-                .setVkToken(env.getProperty("tg2vk.vk.token"));
     }
 
     @Override
@@ -124,27 +119,50 @@ public class TelegramUpdateHandlerServiceImpl implements TelegramUpdateHandlerSe
     private void processCommand(String command, List<String> args, Message context) {
         switch (command) {
             case COMMAND_LOGIN:
-                SendMessage loginMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.login.msg", StringUtils.EMPTY))
-                        .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
-                                new InlineKeyboardButton(messages.getMessage("tg.command.login.button.label", StringUtils.EMPTY))
-                                        .url(pathResolver.getAbsoluteUrl(PathConstants.API_AUTH_LOGIN))
-                        }));
-                tgService.send(loginMessage);
+                processLoginCommand(context);
                 break;
             case COMMAND_START:
-                linkerService.start(user);//TODO get user from from repository by tg id
-                final SendMessage startMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.start.msg", StringUtils.EMPTY));
-                tgService.send(startMessage);
+                processStartCommand(context);
                 break;
             case COMMAND_STOP:
-                linkerService.stop(user);//TODO get user from from repository by tg id
-                final SendMessage stopMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.stop.msg", StringUtils.EMPTY));
-                tgService.send(stopMessage);
+                processStopCommand(context);
                 break;
             default:
-                SendMessage anyMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.unknown.msg", StringUtils.EMPTY));
-                tgService.send(anyMessage);
+                processUnknownCommand(context);
                 break;
         }
+    }
+
+    private void processLoginCommand(Message context) {
+        SendMessage loginMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.login.msg", StringUtils.EMPTY))
+                .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
+                        new InlineKeyboardButton(messages.getMessage("tg.command.login.button.label", StringUtils.EMPTY))
+                                .url(pathResolver.getAbsoluteUrl(PathConstants.API_AUTH_LOGIN))
+                }));//TODO implement login command according to the specifications
+        tgService.send(loginMessage);
+    }
+
+    private void processStartCommand(Message context) {
+        userService.findOneByTgId(context.from().id())
+                .ifPresent(user -> {
+                    linkerService.start(user);
+                    final SendMessage startMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.start.msg", StringUtils.EMPTY));
+                    tgService.send(startMessage);
+                });//TODO implement start command according to the specifications
+    }
+
+    private void processStopCommand(Message context) {
+        userService.findOneByTgId(context.from().id())
+                .ifPresent(user -> {
+                    linkerService.stop(user);
+                    final SendMessage stopMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.stop.msg", StringUtils.EMPTY));
+                    tgService.send(stopMessage);
+                });//TODO implement stop command according to the specifications
+    }
+
+
+    private void processUnknownCommand(Message context) {
+        SendMessage anyMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.unknown.msg", StringUtils.EMPTY));
+        tgService.send(anyMessage);
     }
 }

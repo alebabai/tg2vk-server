@@ -28,9 +28,6 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     private final JwtParser parser;
 
     @Autowired
-    private JwtTokenFactoryService service;//TODO remove
-
-    @Autowired
     public JwtAuthenticationProvider(JwtSettings settings) {
         this.parser = Jwts.parser().setSigningKey(settings.getSignKey());
     }

@@ -1,10 +1,12 @@
 package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.domain.User;
+import com.github.alebabai.tg2vk.domain.UserSettings;
 import com.github.alebabai.tg2vk.exception.UserCreationException;
 import com.github.alebabai.tg2vk.repository.ChatSettingsRepository;
 import com.github.alebabai.tg2vk.repository.RoleRepository;
 import com.github.alebabai.tg2vk.repository.UserRepository;
+import com.github.alebabai.tg2vk.repository.UserSettingsRepository;
 import com.github.alebabai.tg2vk.service.UserService;
 import com.github.alebabai.tg2vk.util.constants.SecurityConstants;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,14 +22,17 @@ import java.util.stream.Stream;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final UserSettingsRepository settingsRepository;
     private final ChatSettingsRepository chatSettingsRepository;
     private final RoleRepository roleRepository;
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository,
+                           UserSettingsRepository settingsRepository,
                            ChatSettingsRepository chatSettingsRepository,
                            RoleRepository roleRepository) {
         this.userRepository = userRepository;
+        this.settingsRepository = settingsRepository;
         this.chatSettingsRepository = chatSettingsRepository;
         this.roleRepository = roleRepository;
     }
@@ -37,13 +42,11 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAllStarted();
     }
 
-    @Transactional
     @Override
     public Optional<User> findOneByVkId(Integer id) {
         return userRepository.findOneByVkId(id);
     }
 
-    @Transactional
     @Override
     public Optional<User> findOneByTgId(Integer id) {
         return userRepository.findOneByVkId(id);
@@ -54,6 +57,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public User save(User user) {
         return userRepository.save(user);
+    }
+
+    @Transactional
+    @Override
+    public UserSettings updateUserSettings(UserSettings settings) {
+        Assert.isTrue(!settings.isNew(), "Can't update unlinked user settings!");
+        return settingsRepository.save(settings);
     }
 
     @Transactional
