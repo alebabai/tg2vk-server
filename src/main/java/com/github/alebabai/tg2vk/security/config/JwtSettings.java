@@ -11,16 +11,16 @@ import java.util.Arrays;
 @Component
 public class JwtSettings {
 
-    @Value("${tg2vk.security.jwt.header-name}")
+    @Value("${tg2vk.security.jwt.header_name}")
     private String headerName;
 
-    @Value("${tg2vk.security.jwt.sign-key}")
+    @Value("${tg2vk.security.jwt.sign_key}")
     private String signKey;
 
-    @Value("${tg2vk.security.jwt.expiration-time}")
+    @Value("${tg2vk.security.jwt.expiration_time}")
     private long expirationTime;
 
-    @Value("${tg2vk.security.jwt.expiration-time-unit}")
+    @Value("${tg2vk.security.jwt.expiration_time_unit}")
     private String timeUnitName;
 
     private TemporalUnit timeUnit;
