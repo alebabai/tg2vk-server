@@ -15,7 +15,7 @@ import java.io.Reader;
 @Service
 public class TemplateRendererServiceImpl implements TemplateRendererService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TelegramService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TemplateRendererServiceImpl.class);
 
     private final MustacheResourceTemplateLoader templateLoader;
 

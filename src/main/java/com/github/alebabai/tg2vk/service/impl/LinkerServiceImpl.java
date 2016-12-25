@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Service
 public class LinkerServiceImpl implements LinkerService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(LinkerService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(LinkerServiceImpl.class);
 
     private final Environment env;
     private final UserService userService;

@@ -29,7 +29,7 @@ import java.util.function.Consumer;
 @Service
 public class TelegramServiceImpl implements TelegramService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TelegramService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TelegramServiceImpl.class);
 
     private final TelegramBot bot;
     private final ResourceLoader resourceLoader;

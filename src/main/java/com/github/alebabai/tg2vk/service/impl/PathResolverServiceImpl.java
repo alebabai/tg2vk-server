@@ -16,7 +16,7 @@ import java.util.Map;
 @Service
 public class PathResolverServiceImpl implements PathResolverService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PathResolverService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PathResolverServiceImpl.class);
     private static final String SERVER_URL_FORMAT = "${scheme}://${server_name}:${server_host_port}";
 
     private final Environment env;

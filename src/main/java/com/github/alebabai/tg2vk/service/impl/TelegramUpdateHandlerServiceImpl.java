@@ -1,27 +1,35 @@
 package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.security.service.JwtTokenFactoryService;
-import com.github.alebabai.tg2vk.service.*;
+import com.github.alebabai.tg2vk.service.LinkerService;
+import com.github.alebabai.tg2vk.service.PathResolverService;
+import com.github.alebabai.tg2vk.service.TelegramService;
+import com.github.alebabai.tg2vk.service.UserService;
 import com.github.alebabai.tg2vk.util.constants.PathConstants;
-import com.pengrad.telegrambot.model.*;
+import com.pengrad.telegrambot.model.CallbackQuery;
+import com.pengrad.telegrambot.model.ChosenInlineResult;
+import com.pengrad.telegrambot.model.InlineQuery;
+import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import static com.github.alebabai.tg2vk.util.CommandUtils.parseCommand;
 import static com.github.alebabai.tg2vk.util.constants.CommandConstants.*;
 
-//TODO refactor this class (use composition)
 @Service
-public class TelegramUpdateHandlerServiceImpl implements TelegramUpdateHandlerService {
+public class TelegramUpdateHandlerServiceImpl extends AbstractTelegramUpdateHandlerService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TelegramUpdateHandlerServiceImpl.class);
 
     private final UserService userService;
     private final TelegramService tgService;
@@ -46,68 +54,43 @@ public class TelegramUpdateHandlerServiceImpl implements TelegramUpdateHandlerSe
     }
 
     @Override
-    public void handle(Update update) {
-        mainHandler(update);
+    protected void onInlineQueryReceived(InlineQuery query) {
+        LOGGER.debug("Inline query received: {}", query);
     }
 
     @Override
-    public void handleAsync(Update update) {
-        CompletableFuture.runAsync(() -> mainHandler(update));
+    protected void onChosenInlineResultReceived(ChosenInlineResult queryResult) {
+        LOGGER.debug("Chosen inline result received: {}", queryResult);
+
     }
 
-    private void mainHandler(Update update) {
-        if (update == null) {
-            return;
-        }
+    @Override
+    protected void onCallbackQueryReceived(CallbackQuery callbackQuery) {
+        LOGGER.debug("Callback query received: {}", callbackQuery);
 
-        if (update.inlineQuery() != null) {
-            TelegramUpdateHandlerServiceImpl.this.handleInlineQuery(update.inlineQuery());
-        }
-
-        if (update.chosenInlineResult() != null) {
-            TelegramUpdateHandlerServiceImpl.this.handleChosenInlineResult(update.chosenInlineResult());
-        }
-
-        if (update.callbackQuery() != null) {
-            TelegramUpdateHandlerServiceImpl.this.handleCallbackQuery(update.callbackQuery());
-        }
-
-        if (update.channelPost() != null) {
-            TelegramUpdateHandlerServiceImpl.this.handleChanelPost(update.channelPost());
-        }
-
-        if (update.editedChannelPost() != null) {
-            TelegramUpdateHandlerServiceImpl.this.handleEditedChanelPost(update.editedChannelPost());
-        }
-
-        if (update.message() != null) {
-            TelegramUpdateHandlerServiceImpl.this.handleMessage(update.message());
-        }
-
-        if (update.editedMessage() != null) {
-            TelegramUpdateHandlerServiceImpl.this.handleEditedMessage(update.editedMessage());
-        }
     }
 
-    private void handleInlineQuery(InlineQuery query) {
+    @Override
+    protected void onChanelPostReceived(Message post) {
+        LOGGER.debug("Chanel post received: {}", post);
+
     }
 
-    private void handleChosenInlineResult(ChosenInlineResult queryResult) {
+    @Override
+    protected void onEditedChanelPostReceived(Message post) {
+        LOGGER.debug("Edited chanel post received: {}", post);
+
     }
 
-    private void handleCallbackQuery(CallbackQuery callbackQuery) {
+    @Override
+    protected void onEditedMessageReceived(Message message) {
+        LOGGER.debug("Edited message received: {}", message);
+
     }
 
-    private void handleChanelPost(Message post) {
-    }
-
-    private void handleEditedChanelPost(Message post) {
-    }
-
-    private void handleEditedMessage(Message message) {
-    }
-
-    private void handleMessage(Message message) {
+    @Override
+    protected void onMessageReceived(Message message) {
+        LOGGER.debug("Message received: {}", message);
         if (message.text().startsWith("/")) {
             parseCommand(message.text(), (command, args) -> processCommand(command, args, message));
         } else {

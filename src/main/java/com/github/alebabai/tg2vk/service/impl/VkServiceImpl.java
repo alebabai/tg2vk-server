@@ -38,7 +38,7 @@ import static com.github.alebabai.tg2vk.util.constants.EnvConstants.PROP_VK_FETC
 @Service
 public class VkServiceImpl implements VkService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(VkService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(VkServiceImpl.class);
 
     private static final String VK_AUTHORIZE_URL_FORMAT = "${vk_auth_url}?client_id=${client_id}&display=${display}&redirect_uri=${redirect_uri}&scope=${scope}&response_type=${response_type}&v=${vk_api_version}";
 
