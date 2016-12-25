@@ -13,6 +13,7 @@ import com.pengrad.telegrambot.model.InlineQuery;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
+import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -119,10 +120,15 @@ public class TelegramUpdateHandlerServiceImpl extends AbstractTelegramUpdateHand
 
     private void processLoginCommand(Message context) {
         final String loginText = userService.findOneByTgId(context.from().id())
-                .map(user -> messages.getMessage("tg.command.login.msg.existent", StringUtils.EMPTY))
-                .orElse(messages.getMessage("tg.command.login.msg.anonymous", StringUtils.EMPTY));
+                .map(user -> String.join(
+                        "\n\n",
+                        messages.getMessage("tg.command.login.msg.warning", StringUtils.EMPTY),
+                        messages.getMessage("tg.command.login.msg.instructions", StringUtils.EMPTY)
+                ))
+                .orElse(messages.getMessage("tg.command.login.msg.instructions", StringUtils.EMPTY));
 
         final SendMessage loginMessage = new SendMessage(context.chat().id(), loginText)
+                .parseMode(ParseMode.Markdown)
                 .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
                         new InlineKeyboardButton(messages.getMessage("tg.command.login.button.get_token.label", StringUtils.EMPTY))
                                 .url(pathResolver.getAbsoluteUrl(PathConstants.API_AUTH_LOGIN)),
