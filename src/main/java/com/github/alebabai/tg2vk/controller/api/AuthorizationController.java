@@ -1,6 +1,7 @@
 package com.github.alebabai.tg2vk.controller.api;
 
 import com.github.alebabai.tg2vk.domain.User;
+import com.github.alebabai.tg2vk.security.service.JwtTokenFactoryService;
 import com.github.alebabai.tg2vk.service.UserService;
 import com.github.alebabai.tg2vk.service.VkService;
 import com.github.alebabai.tg2vk.util.constants.PathConstants;
@@ -13,7 +14,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.view.UrlBasedViewResolver;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 import static com.github.alebabai.tg2vk.util.constants.VkConstants.*;
 
@@ -28,21 +31,24 @@ public class AuthorizationController {
 
     private final VkService vkService;
     private final UserService userService;
+    private final JwtTokenFactoryService tokenFactory;
 
     @Autowired
     public AuthorizationController(VkService vkService,
-                                   UserService userService) {
+                                   UserService userService,
+                                   JwtTokenFactoryService tokenFactory) {
         this.vkService = vkService;
         this.userService = userService;
+        this.tokenFactory = tokenFactory;
     }
 
     @GetMapping(PathConstants.API_AUTH_LOGIN)
-    public String login() {
+    public void login(HttpServletResponse response) throws IOException {
         final String[] scopes = {
                 VK_SCOPE_MESSAGES,
                 VK_SCOPE_OFFLINE
         };
-        return UrlBasedViewResolver.REDIRECT_URL_PREFIX + vkService.getAuthorizeUrl(VK_URL_REDIRECT, scopes);
+        response.sendRedirect(vkService.getAuthorizeUrl(VK_URL_REDIRECT, scopes));
     }
 
     @PostMapping(PathConstants.API_AUTH_AUTHORIZE_CODE)

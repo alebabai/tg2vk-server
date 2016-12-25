@@ -27,12 +27,17 @@ public class PathResolverServiceImpl implements PathResolverService {
     }
 
     @Override
+    public String getClientUrl() {
+        return env.getRequiredProperty(EnvConstants.PROP_CLIENT_URL);
+    }
+
+    @Override
     public String getServerUrl() {
         try {
             Map<String, String> params = new HashMap<>();
-            params.put("scheme", "https");
+            params.put("scheme", env.getRequiredProperty(EnvConstants.PROP_SERVER_SCHEME));
             params.put("server_name", env.getRequiredProperty(EnvConstants.PROP_SERVER_NAME));
-            params.put("server_host_port", env.getRequiredProperty(EnvConstants.PROP_SERVER_HOST_PORT));
+            params.put("server_host_port", env.getRequiredProperty(EnvConstants.PROP_SERVER_PORT));
 
             return StrSubstitutor.replace(SERVER_URL_FORMAT, params);
         } catch (IllegalStateException e) {

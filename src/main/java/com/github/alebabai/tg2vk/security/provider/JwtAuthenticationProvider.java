@@ -14,6 +14,7 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,12 +41,14 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
             final List<SimpleGrantedAuthority> authorities = roles.stream()
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());
+            Assert.notNull(tgId, "tgId is null");
+            Assert.notEmpty(authorities, "empty authorities list");
             return new PreAuthenticatedAuthenticationToken(tgId, tgId, authorities);
         } catch (RequiredTypeException | SignatureException | UnsupportedJwtException e) {
             LOGGER.debug("Incorrect token format: {}", e.getMessage());
         } catch (ExpiredJwtException e) {
             LOGGER.debug("Attempt to use expired token: {}", e.getMessage());
-        } catch (AuthenticationException e) {
+        } catch (AuthenticationException | IllegalArgumentException e) {
             LOGGER.debug("Authentication failed: {}", e.getMessage());
         } catch (Exception e) {
             LOGGER.error("Something wrong in authentication process: ", e);

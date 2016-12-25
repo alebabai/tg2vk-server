@@ -6,6 +6,7 @@ import com.github.alebabai.tg2vk.service.PathResolverService;
 import com.github.alebabai.tg2vk.service.TelegramService;
 import com.github.alebabai.tg2vk.service.UserService;
 import com.github.alebabai.tg2vk.util.constants.PathConstants;
+import com.github.alebabai.tg2vk.util.constants.SecurityConstants;
 import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.ChosenInlineResult;
 import com.pengrad.telegrambot.model.InlineQuery;
@@ -117,11 +118,17 @@ public class TelegramUpdateHandlerServiceImpl extends AbstractTelegramUpdateHand
     }
 
     private void processLoginCommand(Message context) {
-        SendMessage loginMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.login.msg", StringUtils.EMPTY))
+        final String loginText = userService.findOneByTgId(context.from().id())
+                .map(user -> messages.getMessage("tg.command.login.msg.existent", StringUtils.EMPTY))
+                .orElse(messages.getMessage("tg.command.login.msg.anonymous", StringUtils.EMPTY));
+
+        final SendMessage loginMessage = new SendMessage(context.chat().id(), loginText)
                 .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
-                        new InlineKeyboardButton(messages.getMessage("tg.command.login.button.label", StringUtils.EMPTY))
-                                .url(pathResolver.getAbsoluteUrl(PathConstants.API_AUTH_LOGIN))
-                }));//TODO implement login command according to the specifications
+                        new InlineKeyboardButton(messages.getMessage("tg.command.login.button.get_token.label", StringUtils.EMPTY))
+                                .url(pathResolver.getAbsoluteUrl(PathConstants.API_AUTH_LOGIN)),
+                        new InlineKeyboardButton(messages.getMessage("tg.command.login.button.send_token.label", StringUtils.EMPTY))
+                                .url(String.join("#", pathResolver.getClientUrl(), tokenFactory.generate(context.from().id(), SecurityConstants.ROLE_USER))),
+                }));
         tgService.send(loginMessage);
     }
 
