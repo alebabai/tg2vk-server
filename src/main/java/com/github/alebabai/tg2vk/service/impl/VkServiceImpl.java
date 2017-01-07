@@ -115,16 +115,14 @@ public class VkServiceImpl implements VkService {
         final String textResponse = api.messages().getLongPollHistory(actor).ts(ts).executeAsString();
         final JsonObject response = ((JsonObject) new JsonParser().parse(textResponse)).get("response").getAsJsonObject();
         final GetResponse messages = gson.fromJson(response.get("messages"), GetResponse.class);
-        final Type listType = new TypeToken<ArrayList<User>>() {
-        }.getType();
+        final Type listType = new TypeToken<ArrayList<User>>() {}.getType();
         final List<User> profiles = gson.fromJson(response.get("profiles"), listType);
         final int newTs = messages.getCount() > 0 ? query.execute().getTs() : ts;
         messages.getItems().stream()
                 .filter(message -> !message.isOut())
                 .forEach(message -> profiles.stream()
                         .filter(profile -> profile.getId().equals(message.getUserId()))
-                        .findAny()
-                        .ifPresent(profile -> callback.accept(profile, message)));
+                        .forEach(profile -> callback.accept(profile, message)));
         Thread.sleep(env.getProperty(PROP_VK_FETCH_DELAY, Integer.class, 1000));
         getMessages(actor, query, newTs, isDaemonActive, callback);
     }

@@ -6,6 +6,8 @@ import com.github.alebabai.tg2vk.util.constants.EnvConstants;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.vk.api.sdk.client.actors.UserActor;
+import com.vk.api.sdk.objects.messages.Message;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,12 +18,16 @@ import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiConsumer;
 
 @Service
 public class LinkerServiceImpl implements LinkerService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkerServiceImpl.class);
+    private static final String PRIVATE_MESSAGE_TEMPLATE = "telegram/private_message.md";
+    private static final String GROUP_MESSAGE_TEMPLATE = "telegram/group_message.md";
 
     private final Environment env;
     private final UserService userService;
@@ -56,18 +62,7 @@ public class LinkerServiceImpl implements LinkerService {
     public void start(User user) {
         LOGGER.debug("Start messages linking for {}", user);
         final UserActor actor = new UserActor(user.getVkId(), user.getVkToken());
-        final AtomicBoolean isDaemonActive = vkService.fetchMessages(actor, (profile, message) -> {
-            try {
-                Map<String, Object> context = new HashMap<>();
-                context.put("user", String.format("%s %s", profile.getFirstName(), profile.getLastName()));
-                context.put("body", message.getBody());
-                final SendMessage sendMessage = new SendMessage(user.getTgId(), templateRenderer.render("telegram/message.md", context))
-                        .parseMode(ParseMode.Markdown);
-                tgService.send(sendMessage);
-            } catch (Exception e) {
-                LOGGER.error("Error during vk message fetching: ", e);
-            }
-        });
+        final AtomicBoolean isDaemonActive = vkService.fetchMessages(actor, getVkMessageHandler(user));
         daemonStates.put(user.getId(), isDaemonActive);
         user.getSettings().started(isDaemonActive.get());
         userService.updateUserSettings(user.getSettings());
@@ -85,5 +80,43 @@ public class LinkerServiceImpl implements LinkerService {
             userService.updateUserSettings(user.getSettings());
             LOGGER.debug("Messages linking messages for {} has been stopped", user);
         }
+    }
+
+    private BiConsumer<? super com.vk.api.sdk.objects.users.User, ? super Message> getVkMessageHandler(User user) {
+        return (profile, message) -> {
+            try {
+                if (Objects.isNull(message.getChatId())) {
+                    handleMessage(user, PRIVATE_MESSAGE_TEMPLATE, createPrivateMessageContext(profile, message));
+                } else {
+                    handleMessage(user, GROUP_MESSAGE_TEMPLATE, createGroupMessageContext(profile, message));
+                }
+            } catch (Exception e) {
+                LOGGER.error("Error during vk message handling: ", e);
+            }
+        };
+    }
+
+    private void handleMessage(User user, String templateName, Map<String, Object> context) {
+        final SendMessage sendMessage = new SendMessage(user.getTgId(), templateRenderer.render(templateName, context))
+                .parseMode(ParseMode.Markdown);
+        tgService.send(sendMessage);
+    }
+
+    private Map<String, Object> createPrivateMessageContext(com.vk.api.sdk.objects.users.User profile, Message message) {
+        final Map<String, Object> context = new HashMap<>();
+        context.put("user", String.join(StringUtils.SPACE, profile.getFirstName(), profile.getLastName()));
+        context.put("status", Integer.valueOf(1).equals(profile.getOnline()) ? "online" : "offline");
+        context.put("body", message.getBody());
+        return context;
+    }
+
+    private Map<String, Object> createGroupMessageContext(com.vk.api.sdk.objects.users.User profile, Message message) {
+        final Map<String, Object> context = new HashMap<>();
+        context.put("chat", message.getTitle());
+        context.put("user", String.join(StringUtils.SPACE, profile.getFirstName(), profile.getLastName()));
+        context.put("status", Integer.valueOf(1).equals(profile.getOnline()) ? "online" : "offline");
+        context.put("online_count", message.getChatActive().size());
+        context.put("body", message.getBody());
+        return context;
     }
 }

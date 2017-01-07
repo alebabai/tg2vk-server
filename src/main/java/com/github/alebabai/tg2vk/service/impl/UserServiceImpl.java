@@ -49,7 +49,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Optional<User> findOneByTgId(Integer id) {
-        return userRepository.findOneByVkId(id);
+        return userRepository.findOneByTgId(id);
     }
 
 
