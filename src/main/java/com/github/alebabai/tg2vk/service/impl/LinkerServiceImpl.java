@@ -104,7 +104,7 @@ public class LinkerServiceImpl implements LinkerService {
         tgService.send(sendMessage);
     }
 
-    private Map<String, Object> createPrivateMessageContext(com.vk.api.sdk.objects.users.User profile, Message message) {
+    private static Map<String, Object> createPrivateMessageContext(com.vk.api.sdk.objects.users.User profile, Message message) {
         final Map<String, Object> context = new HashMap<>();
         context.put("user", String.join(StringUtils.SPACE, profile.getFirstName(), profile.getLastName()));
         context.put("status", Integer.valueOf(1).equals(profile.getOnline()) ? "online" : "offline");
@@ -112,10 +112,14 @@ public class LinkerServiceImpl implements LinkerService {
         return context;
     }
 
-    private Map<String, Object> createGroupMessageContext(com.vk.api.sdk.objects.users.User profile, Message message) {
+    private static Map<String, Object> createGroupMessageContext(com.vk.api.sdk.objects.users.User profile, Message message) {
         final Map<String, Object> context = createPrivateMessageContext(profile, message);
-        context.put("chat", StringUtils.replace(message.getTitle(), StringUtils.SPACE, BASE_NAME_SEPARATOR));
+        context.put("chat", createValidHashTag(message.getTitle()));
         context.put("online_count", message.getChatActive().size());
         return context;
+    }
+
+    private static String createValidHashTag(String title) {
+        return StringUtils.replacePattern(title, "[^\\p{L}\\d]", BASE_NAME_SEPARATOR);
     }
 }
