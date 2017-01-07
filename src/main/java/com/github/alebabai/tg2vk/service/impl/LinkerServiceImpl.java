@@ -111,12 +111,9 @@ public class LinkerServiceImpl implements LinkerService {
     }
 
     private Map<String, Object> createGroupMessageContext(com.vk.api.sdk.objects.users.User profile, Message message) {
-        final Map<String, Object> context = new HashMap<>();
+        final Map<String, Object> context = createPrivateMessageContext(profile, message);
         context.put("chat", message.getTitle());
-        context.put("user", String.join(StringUtils.SPACE, profile.getFirstName(), profile.getLastName()));
-        context.put("status", Integer.valueOf(1).equals(profile.getOnline()) ? "online" : "offline");
         context.put("online_count", message.getChatActive().size());
-        context.put("body", message.getBody());
         return context;
     }
 }
