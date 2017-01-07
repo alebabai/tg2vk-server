@@ -22,12 +22,14 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 
+import static org.springframework.beans.propertyeditors.ResourceBundleEditor.BASE_NAME_SEPARATOR;
+
 @Service
 public class LinkerServiceImpl implements LinkerService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkerServiceImpl.class);
-    private static final String PRIVATE_MESSAGE_TEMPLATE = "telegram/private_message.md";
-    private static final String GROUP_MESSAGE_TEMPLATE = "telegram/group_message.md";
+    private static final String PRIVATE_MESSAGE_TEMPLATE = "telegram/private_message.html";
+    private static final String GROUP_MESSAGE_TEMPLATE = "telegram/group_message.html";
 
     private final Environment env;
     private final UserService userService;
@@ -98,7 +100,7 @@ public class LinkerServiceImpl implements LinkerService {
 
     private void handleMessage(User user, String templateName, Map<String, Object> context) {
         final SendMessage sendMessage = new SendMessage(user.getTgId(), templateRenderer.render(templateName, context))
-                .parseMode(ParseMode.Markdown);
+                .parseMode(ParseMode.HTML);
         tgService.send(sendMessage);
     }
 
@@ -112,7 +114,7 @@ public class LinkerServiceImpl implements LinkerService {
 
     private Map<String, Object> createGroupMessageContext(com.vk.api.sdk.objects.users.User profile, Message message) {
         final Map<String, Object> context = createPrivateMessageContext(profile, message);
-        context.put("chat", message.getTitle());
+        context.put("chat", StringUtils.replace(message.getTitle(), StringUtils.SPACE, BASE_NAME_SEPARATOR));
         context.put("online_count", message.getChatActive().size());
         return context;
     }
