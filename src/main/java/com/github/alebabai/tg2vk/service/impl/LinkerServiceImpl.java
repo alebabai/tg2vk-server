@@ -107,7 +107,7 @@ public class LinkerServiceImpl implements LinkerService {
     private static Map<String, Object> createPrivateMessageContext(com.vk.api.sdk.objects.users.User profile, Message message) {
         final Map<String, Object> context = new HashMap<>();
         context.put("user", String.join(StringUtils.SPACE, profile.getFirstName(), profile.getLastName()));
-        context.put("status", Integer.valueOf(1).equals(profile.getOnline()) ? "online" : "offline");
+        context.put("status", profile.isOnline() ? "online" : "offline");
         context.put("body", message.getBody());
         return context;
     }
@@ -120,6 +120,6 @@ public class LinkerServiceImpl implements LinkerService {
     }
 
     private static String createValidHashTag(String title) {
-        return StringUtils.replacePattern(title, "[^\\p{L}\\d]", BASE_NAME_SEPARATOR);
+        return StringUtils.replacePattern(title, "[^\\p{L}\\d]+", BASE_NAME_SEPARATOR);
     }
 }

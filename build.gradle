@@ -42,7 +42,7 @@ dependencies {
 /*
  *  Other dependencies
  */
-    compile 'com.vk.api:sdk:0.3.9'
+    compile 'com.vk.api:sdk:0.4.1'
     compile 'com.github.pengrad:java-telegram-bot-api:2.3.1'
     compile 'org.apache.commons:commons-lang3:3.4'
     compile 'io.jsonwebtoken:jjwt:0.7.0'

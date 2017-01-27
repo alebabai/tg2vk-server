@@ -5,9 +5,6 @@ import com.github.alebabai.tg2vk.util.constants.EnvConstants;
 import com.github.alebabai.tg2vk.util.constants.VkConstants;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.reflect.TypeToken;
 import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.client.actors.Actor;
 import com.vk.api.sdk.client.actors.UserActor;
@@ -15,8 +12,9 @@ import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
 import com.vk.api.sdk.objects.UserAuthResponse;
+import com.vk.api.sdk.objects.messages.LongpollMessages;
 import com.vk.api.sdk.objects.messages.Message;
-import com.vk.api.sdk.objects.messages.responses.GetResponse;
+import com.vk.api.sdk.objects.messages.responses.GetLongPollHistoryResponse;
 import com.vk.api.sdk.objects.users.User;
 import com.vk.api.sdk.queries.messages.MessagesGetLongPollServerQuery;
 import org.apache.commons.lang3.StringUtils;
@@ -27,8 +25,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Type;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
@@ -112,13 +112,11 @@ public class VkServiceImpl implements VkService {
         if (!isDaemonActive.get()) {
             return;
         }
-        final String textResponse = api.messages().getLongPollHistory(actor).ts(ts).executeAsString();
-        final JsonObject response = ((JsonObject) new JsonParser().parse(textResponse)).get("response").getAsJsonObject();
-        final GetResponse messages = gson.fromJson(response.get("messages"), GetResponse.class);
-        final Type listType = new TypeToken<ArrayList<User>>() {}.getType();
-        final List<User> profiles = gson.fromJson(response.get("profiles"), listType);
+        final GetLongPollHistoryResponse response = api.messages().getLongPollHistory(actor).ts(ts).execute();
+        final LongpollMessages messages = response.getMessages();
+        final List<User> profiles = response.getProfiles();
         final int newTs = messages.getCount() > 0 ? query.execute().getTs() : ts;
-        messages.getItems().stream()
+        messages.getMessages().stream()
                 .filter(message -> !message.isOut())
                 .forEach(message -> profiles.stream()
                         .filter(profile -> profile.getId().equals(message.getUserId()))
