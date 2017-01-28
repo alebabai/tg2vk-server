@@ -1,5 +1,6 @@
 package com.github.alebabai.tg2vk.service.impl;
 
+import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.service.*;
 import com.github.alebabai.tg2vk.util.constants.EnvConstants;
@@ -19,8 +20,10 @@ import javax.transaction.Transactional;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static org.springframework.beans.propertyeditors.ResourceBundleEditor.BASE_NAME_SEPARATOR;
 
@@ -87,19 +90,38 @@ public class LinkerServiceImpl implements LinkerService {
     private BiConsumer<? super com.vk.api.sdk.objects.users.User, ? super Message> getVkMessageHandler(User user) {
         return (profile, message) -> {
             try {
-                if (Objects.isNull(message.getChatId())) {
-                    handleMessage(user, PRIVATE_MESSAGE_TEMPLATE, createPrivateMessageContext(profile, message));
-                } else {
-                    handleMessage(user, GROUP_MESSAGE_TEMPLATE, createGroupMessageContext(profile, message));
-                }
+                final Integer vkChatId = getVkChatId(message);
+                Optional.of(userService
+                        .findChatSettings(user, vkChatId)
+                        .orElse(new ChatSettings()
+                                .setTgChatId(user.getTgId())
+                                .setVkChatId(vkChatId)
+                                .started(true)))
+                        .filter(ChatSettings::isStarted)
+                        .map(ChatSettings::getTgChatId)
+                        .ifPresent(getChatTypeHandler(message, profile));
             } catch (Exception e) {
                 LOGGER.error("Error during vk message handling: ", e);
             }
         };
     }
 
-    private void handleMessage(User user, String templateName, Map<String, Object> context) {
-        final SendMessage sendMessage = new SendMessage(user.getTgId(), templateRenderer.render(templateName, context))
+    private Integer getVkChatId(Message message) {
+        return Optional.ofNullable(message.getChatId()).orElse(message.getUserId());
+    }
+
+    private Consumer<Integer> getChatTypeHandler(Message message, com.vk.api.sdk.objects.users.User profile) {
+        return tgChatId -> {
+            if (Objects.isNull(message.getChatId())) {
+                handleMessage(tgChatId, PRIVATE_MESSAGE_TEMPLATE, createPrivateMessageContext(profile, message));
+            } else {
+                handleMessage(tgChatId, GROUP_MESSAGE_TEMPLATE, createGroupMessageContext(profile, message));
+            }
+        };
+    }
+
+    private void handleMessage(Object tgChatId, String templateName, Map<String, Object> context) {
+        final SendMessage sendMessage = new SendMessage(tgChatId, templateRenderer.render(templateName, context))
                 .parseMode(ParseMode.HTML);
         tgService.send(sendMessage);
     }

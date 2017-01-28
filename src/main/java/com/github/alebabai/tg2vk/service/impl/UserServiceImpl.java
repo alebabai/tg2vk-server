@@ -1,5 +1,6 @@
 package com.github.alebabai.tg2vk.service.impl;
 
+import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.domain.UserSettings;
 import com.github.alebabai.tg2vk.exception.UserCreationException;
@@ -15,6 +16,7 @@ import org.springframework.util.Assert;
 
 import javax.transaction.Transactional;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -94,5 +96,12 @@ public class UserServiceImpl implements UserService {
                         .setVkToken(vkToken)
                         .setRoles(Collections.singleton(role))))
                 .orElseThrow(() -> new UserCreationException("Required role not found in the database"));
+    }
+
+    @Override
+    public Optional<ChatSettings> findChatSettings(User user, Integer vkChatId) {
+        return user.getChatsSettings().stream()
+                .filter(chatSettings -> Objects.equals(vkChatId, chatSettings.getVkChatId()))
+                .findFirst();
     }
 }
