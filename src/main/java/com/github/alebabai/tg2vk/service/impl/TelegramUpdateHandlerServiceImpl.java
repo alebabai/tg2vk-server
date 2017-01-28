@@ -1,5 +1,6 @@
 package com.github.alebabai.tg2vk.service.impl;
 
+import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.security.service.JwtTokenFactoryService;
 import com.github.alebabai.tg2vk.service.LinkerService;
 import com.github.alebabai.tg2vk.service.PathResolverService;
@@ -24,6 +25,9 @@ import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static com.github.alebabai.tg2vk.util.CommandUtils.parseCommand;
 import static com.github.alebabai.tg2vk.util.constants.CommandConstants.*;
@@ -139,21 +143,34 @@ public class TelegramUpdateHandlerServiceImpl extends AbstractTelegramUpdateHand
     }
 
     private void processStartCommand(Message context) {
-        userService.findOneByTgId(context.from().id())
-                .ifPresent(user -> {
-                    linkerService.start(user);
-                    final SendMessage startMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.start.msg", StringUtils.EMPTY));
-                    tgService.send(startMessage);
-                });//TODO implement start command according to the specifications
+        final Function<Optional<User>, String> messageCodeHandler = getMessageCodeHandler(
+                "tg.command.start.user.already_started.msg",
+                "tg.command.start.user.success.msg",
+                "tg.command.start.anonymous.msg");
+        processUserInitCommand(context, linkerService::start, messageCodeHandler);
     }
 
     private void processStopCommand(Message context) {
-        userService.findOneByTgId(context.from().id())
-                .ifPresent(user -> {
-                    linkerService.stop(user);
-                    final SendMessage stopMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.stop.msg", StringUtils.EMPTY));
-                    tgService.send(stopMessage);
-                });//TODO implement stop command according to the specifications
+        final Function<Optional<User>, String> messageCodeHandler = getMessageCodeHandler(
+                "tg.command.stop.user.success.msg",
+                "tg.command.stop.user.already_stopped.msg",
+                "tg.command.stop.anonymous.msg");
+        processUserInitCommand(context, linkerService::stop, messageCodeHandler);
+    }
+
+    private Function<Optional<User>, String> getMessageCodeHandler(String startedCode, String stoppedCode, String anonymousCode) {
+        return userOptional -> userOptional
+                .map(user -> user.getSettings().isStarted() ? startedCode : stoppedCode)
+                .orElse(anonymousCode);
+    }
+
+    private void processUserInitCommand(Message context, Consumer<User> userSpecificAction, Function<Optional<User>, String> getMessageCodeAction) {
+        final Optional<User> userOptional = userService.findOneByTgId(context.from().id());
+        final String messageCode = getMessageCodeAction.apply(userOptional);
+        userOptional.ifPresent(userSpecificAction);
+        final SendMessage message = new SendMessage(context.chat().id(), messages.getMessage(messageCode, StringUtils.EMPTY))
+                .parseMode(ParseMode.Markdown);
+        tgService.send(message);
     }
 
 
