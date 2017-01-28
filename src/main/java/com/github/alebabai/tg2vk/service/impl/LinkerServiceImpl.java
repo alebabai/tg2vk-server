@@ -65,26 +65,31 @@ public class LinkerServiceImpl implements LinkerService {
     @Transactional
     @Override
     public void start(User user) {
-        LOGGER.debug("Start messages linking for {}", user);
-        final UserActor actor = new UserActor(user.getVkId(), user.getVkToken());
-        final AtomicBoolean isDaemonActive = vkService.fetchMessages(actor, getVkMessageHandler(user));
-        daemonStates.put(user.getId(), isDaemonActive);
-        user.getSettings().started(isDaemonActive.get());
-        userService.updateUserSettings(user.getSettings());
+        final boolean isStarted = daemonStates.keySet()
+                .stream()
+                .anyMatch(id -> Objects.equals(id, user.getId()));
+        if (!isStarted) {
+            LOGGER.debug("Start messages linking for {}", user);
+            final UserActor actor = new UserActor(user.getVkId(), user.getVkToken());
+            final AtomicBoolean isDaemonActive = vkService.fetchMessages(actor, getVkMessageHandler(user));
+            daemonStates.put(user.getId(), isDaemonActive);
+            user.getSettings().started(isDaemonActive.get());
+            userService.updateUserSettings(user.getSettings());
+        }
     }
 
     @Transactional
     @Override
     public void stop(User user) {
-        final AtomicBoolean isDaemonActive = daemonStates.get(user.getId());
-        if (isDaemonActive != null) {
-            final boolean state = false;
-            isDaemonActive.lazySet(state);
-            daemonStates.remove(user.getId());
-            user.getSettings().started(state);
-            userService.updateUserSettings(user.getSettings());
-            LOGGER.debug("Messages linking messages for {} has been stopped", user);
-        }
+        Optional.ofNullable(daemonStates.get(user.getId()))
+                .ifPresent(daemonState -> {
+                    final boolean state = false;
+                    daemonState.lazySet(state);
+                    daemonStates.remove(user.getId());
+                    user.getSettings().started(state);
+                    userService.updateUserSettings(user.getSettings());
+                    LOGGER.debug("Messages linking messages for {} has been stopped", user);
+                });
     }
 
     private BiConsumer<? super com.vk.api.sdk.objects.users.User, ? super Message> getVkMessageHandler(User user) {
