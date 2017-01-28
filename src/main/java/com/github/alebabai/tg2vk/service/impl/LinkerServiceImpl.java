@@ -88,7 +88,7 @@ public class LinkerServiceImpl implements LinkerService {
                     daemonStates.remove(user.getId());
                     user.getSettings().started(state);
                     userService.updateUserSettings(user.getSettings());
-                    LOGGER.debug("Messages linking messages for {} has been stopped", user);
+                    LOGGER.debug("Stop messages linking for {}", user);
                 });
     }
 
