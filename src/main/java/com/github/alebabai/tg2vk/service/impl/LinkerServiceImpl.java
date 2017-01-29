@@ -13,17 +13,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.data.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 @Service
 public class LinkerServiceImpl implements LinkerService {
@@ -111,7 +110,12 @@ public class LinkerServiceImpl implements LinkerService {
     }
 
     private Consumer<Integer> getMainHandler(Message message, com.vk.api.sdk.objects.users.User profile) {
-        return tgChatId -> tgService.send(convertMessage(tgChatId, message, profile));
+        return tgChatId -> Optional.ofNullable(message.getFwdMessages())
+                .map(Collection::stream)
+                .map(fwdMessages -> fwdMessages
+                        .map(fwdMessage -> mapFwdMessage(message, fwdMessage)))
+                .orElse(Stream.of(message))
+                .forEach(msg -> tgService.send(convertMessage(tgChatId, msg, profile)));
     }
 
     private SendMessage convertMessage(Integer tgChatId, Message message, com.vk.api.sdk.objects.users.User profile) {
@@ -125,4 +129,14 @@ public class LinkerServiceImpl implements LinkerService {
                 .parseMode(ParseMode.HTML);
     }
 
+    private Message mapFwdMessage(Message origin, Message target) {
+        try {
+            ReflectionUtils.setField(Message.class.getDeclaredField("chatId"), target, origin.getChatId());
+            ReflectionUtils.setField(Message.class.getDeclaredField("title"), target, origin.getTitle());
+            ReflectionUtils.setField(Message.class.getDeclaredField("chatActive"), target, origin.getChatActive());
+        } catch (NoSuchFieldException e) {
+            LOGGER.error("Can't patch forwarded message object: ", e);
+        }
+        return target;
+    }
 }
