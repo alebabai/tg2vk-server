@@ -3,12 +3,12 @@ package com.github.alebabai.tg2vk.service.impl;
 import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.service.*;
+import com.github.alebabai.tg2vk.util.Tg2vkMapperUtils;
 import com.github.alebabai.tg2vk.util.constants.EnvConstants;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.vk.api.sdk.client.actors.UserActor;
 import com.vk.api.sdk.objects.messages.Message;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +24,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-
-import static org.springframework.beans.propertyeditors.ResourceBundleEditor.BASE_NAME_SEPARATOR;
 
 @Service
 public class LinkerServiceImpl implements LinkerService {
@@ -57,7 +55,8 @@ public class LinkerServiceImpl implements LinkerService {
 
     @PostConstruct
     protected void init() {
-        if (env.getProperty(EnvConstants.PROP_VK_AUTO_INIT_POOL, Boolean.TYPE, true)) {
+        final boolean autoInit = env.getProperty(EnvConstants.PROP_VK_AUTO_INIT_POOL, Boolean.TYPE, true);
+        if (autoInit) {
             userService.findAllStarted().forEach(this::start);
         }
     }
@@ -95,7 +94,7 @@ public class LinkerServiceImpl implements LinkerService {
     private BiConsumer<? super com.vk.api.sdk.objects.users.User, ? super Message> getVkMessageHandler(User user) {
         return (profile, message) -> {
             try {
-                final Integer vkChatId = getVkChatId(message);
+                final Integer vkChatId = Tg2vkMapperUtils.getVkChatId(message);
                 Optional.of(userService
                         .findChatSettings(user, vkChatId)
                         .orElse(new ChatSettings()
@@ -104,49 +103,26 @@ public class LinkerServiceImpl implements LinkerService {
                                 .started(true)))
                         .filter(ChatSettings::isStarted)
                         .map(ChatSettings::getTgChatId)
-                        .ifPresent(getChatTypeHandler(message, profile));
+                        .ifPresent(getMainHandler(message, profile));
             } catch (Exception e) {
                 LOGGER.error("Error during vk message handling: ", e);
             }
         };
     }
 
-    private Integer getVkChatId(Message message) {
-        return Optional.ofNullable(message.getChatId()).orElse(message.getUserId());
+    private Consumer<Integer> getMainHandler(Message message, com.vk.api.sdk.objects.users.User profile) {
+        return tgChatId -> tgService.send(convertMessage(tgChatId, message, profile));
     }
 
-    private Consumer<Integer> getChatTypeHandler(Message message, com.vk.api.sdk.objects.users.User profile) {
-        return tgChatId -> {
-            if (Objects.isNull(message.getChatId())) {
-                handleMessage(tgChatId, PRIVATE_MESSAGE_TEMPLATE, createPrivateMessageContext(profile, message));
-            } else {
-                handleMessage(tgChatId, GROUP_MESSAGE_TEMPLATE, createGroupMessageContext(profile, message));
-            }
-        };
+    private SendMessage convertMessage(Integer tgChatId, Message message, com.vk.api.sdk.objects.users.User profile) {
+        return Optional.ofNullable(message.getChatId())
+                .map(it -> createTelegramMessage(tgChatId, GROUP_MESSAGE_TEMPLATE, Tg2vkMapperUtils.createGroupMessageContext(profile, message)))
+                .orElse(createTelegramMessage(tgChatId, PRIVATE_MESSAGE_TEMPLATE, Tg2vkMapperUtils.createPrivateMessageContext(profile, message)));
     }
 
-    private void handleMessage(Object tgChatId, String templateName, Map<String, Object> context) {
-        final SendMessage sendMessage = new SendMessage(tgChatId, templateRenderer.render(templateName, context))
+    private SendMessage createTelegramMessage(Object tgChatId, String templateName, Map<String, Object> context) {
+        return new SendMessage(tgChatId, templateRenderer.render(templateName, context))
                 .parseMode(ParseMode.HTML);
-        tgService.send(sendMessage);
     }
 
-    private static Map<String, Object> createPrivateMessageContext(com.vk.api.sdk.objects.users.User profile, Message message) {
-        final Map<String, Object> context = new HashMap<>();
-        context.put("user", String.join(StringUtils.SPACE, profile.getFirstName(), profile.getLastName()));
-        context.put("status", profile.isOnline() ? "online" : "offline");
-        context.put("body", message.getBody());
-        return context;
-    }
-
-    private static Map<String, Object> createGroupMessageContext(com.vk.api.sdk.objects.users.User profile, Message message) {
-        final Map<String, Object> context = createPrivateMessageContext(profile, message);
-        context.put("chat", createValidHashTag(message.getTitle()));
-        context.put("online_count", message.getChatActive().size());
-        return context;
-    }
-
-    private static String createValidHashTag(String title) {
-        return StringUtils.replacePattern(title, "[^\\p{L}\\d]+", BASE_NAME_SEPARATOR);
-    }
 }
