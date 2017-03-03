@@ -98,9 +98,9 @@ public class VkServiceImpl implements VkService {
                 final MessagesGetLongPollServerQuery query = api.messages().getLongPollServer(actor).useSsl(true).needPts(true);
                 getMessages(actor, query, isDaemonActive, callback);
             } catch (ApiException | ClientException | InterruptedException e) {
-                LOGGER.error("Error during vk messages fetching :", e);
+                throw new IllegalStateException(e);
             }
-        });
+        }).whenCompleteAsync((result, error) -> LOGGER.error("Error during vk messages fetching :", error));
         return isDaemonActive;
     }
 
