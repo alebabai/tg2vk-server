@@ -3,8 +3,6 @@ package com.github.alebabai.tg2vk.service.impl;
 import com.github.alebabai.tg2vk.service.VkService;
 import com.github.alebabai.tg2vk.util.constants.EnvConstants;
 import com.github.alebabai.tg2vk.util.constants.VkConstants;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.client.actors.Actor;
 import com.vk.api.sdk.client.actors.UserActor;
@@ -44,13 +42,11 @@ public class VkServiceImpl implements VkService {
 
     private final Environment env;
     private final VkApiClient api;
-    private final Gson gson;
 
     @Autowired
     public VkServiceImpl(Environment env) {
         this.env = env;
         this.api = new VkApiClient(new HttpTransportClient());
-        this.gson = new GsonBuilder().create();
     }
 
     @Override
@@ -100,7 +96,7 @@ public class VkServiceImpl implements VkService {
         CompletableFuture.runAsync(() -> {
             try {
                 final MessagesGetLongPollServerQuery query = api.messages().getLongPollServer(actor).useSsl(true).needPts(true);
-                getMessages(actor, query, query.execute().getTs(), isDaemonActive, callback);
+                getMessages(actor, query, isDaemonActive, callback);
             } catch (ApiException | ClientException | InterruptedException e) {
                 LOGGER.error("Error during vk messages fetching :", e);
             }
@@ -108,20 +104,19 @@ public class VkServiceImpl implements VkService {
         return isDaemonActive;
     }
 
-    private void getMessages(Actor actor, MessagesGetLongPollServerQuery query, int ts, AtomicBoolean isDaemonActive, BiConsumer<? super User, ? super Message> callback) throws ClientException, ApiException, InterruptedException {
-        if (!isDaemonActive.get()) {
-            return;
+    private void getMessages(Actor actor, MessagesGetLongPollServerQuery query, AtomicBoolean isDaemonActive, BiConsumer<? super User, ? super Message> callback) throws ClientException, ApiException, InterruptedException {
+        int newTs = query.execute().getTs();
+        while (isDaemonActive.get()) {
+            final GetLongPollHistoryResponse response = api.messages().getLongPollHistory(actor).ts(newTs).execute();
+            final LongpollMessages messages = response.getMessages();
+            final List<User> profiles = response.getProfiles();
+            newTs = messages.getCount() > 0 ? query.execute().getTs() : newTs;
+            messages.getMessages().stream()
+                    .filter(message -> !message.isOut())
+                    .forEach(message -> profiles.stream()
+                            .filter(profile -> profile.getId().equals(message.getUserId()))
+                            .forEach(profile -> callback.accept(profile, message)));
+            Thread.sleep(env.getProperty(PROP_VK_FETCH_DELAY, Integer.class, 1000));
         }
-        final GetLongPollHistoryResponse response = api.messages().getLongPollHistory(actor).ts(ts).execute();
-        final LongpollMessages messages = response.getMessages();
-        final List<User> profiles = response.getProfiles();
-        final int newTs = messages.getCount() > 0 ? query.execute().getTs() : ts;
-        messages.getMessages().stream()
-                .filter(message -> !message.isOut())
-                .forEach(message -> profiles.stream()
-                        .filter(profile -> profile.getId().equals(message.getUserId()))
-                        .forEach(profile -> callback.accept(profile, message)));
-        Thread.sleep(env.getProperty(PROP_VK_FETCH_DELAY, Integer.class, 1000));
-        getMessages(actor, query, newTs, isDaemonActive, callback);
     }
 }
