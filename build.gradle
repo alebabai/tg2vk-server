@@ -12,17 +12,22 @@ buildscript {
 
 apply plugin: 'java'
 apply plugin: 'idea'
-apply plugin: 'eclipse'
 apply plugin: 'spring-boot'
 
+group = 'com.github.alebabai'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
 jar {
-    baseName = 'TG2VK'
-    group = 'com.github.alebabai'
-    version = globalVersion
+    baseName = this.name
+    group = this.group
+    version =  this.version
 }
 
-sourceCompatibility = javaVersion
-targetCompatibility = javaVersion
+bootRun {
+    addResources = true
+}
 
 repositories {
     mavenCentral()
