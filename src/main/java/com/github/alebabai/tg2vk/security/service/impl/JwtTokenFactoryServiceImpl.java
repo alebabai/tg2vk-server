@@ -1,5 +1,6 @@
 package com.github.alebabai.tg2vk.security.service.impl;
 
+import com.github.alebabai.tg2vk.domain.Role;
 import com.github.alebabai.tg2vk.security.config.JwtSettings;
 import com.github.alebabai.tg2vk.security.service.JwtTokenFactoryService;
 import io.jsonwebtoken.Claims;
@@ -24,7 +25,7 @@ public class JwtTokenFactoryServiceImpl implements JwtTokenFactoryService {
     }
 
     @Override
-    public String generate(Integer tgId, String... roles) {
+    public String generate(Integer tgId, Role... roles) {
         Assert.notNull(tgId, "Can't generate JWT for null tgId");
         Assert.noNullElements(roles, "Can't generate JWT without roles");
 

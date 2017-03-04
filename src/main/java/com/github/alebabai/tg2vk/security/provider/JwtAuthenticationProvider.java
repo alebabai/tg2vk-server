@@ -1,7 +1,7 @@
 package com.github.alebabai.tg2vk.security.provider;
 
+import com.github.alebabai.tg2vk.domain.Role;
 import com.github.alebabai.tg2vk.security.config.JwtSettings;
-import com.github.alebabai.tg2vk.util.constants.SecurityConstants;
 import io.jsonwebtoken.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +37,9 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
             final String rawToken = (String) authentication.getPrincipal();
             final Jws<Claims> jws = parser.parseClaimsJws(rawToken);
             final Object tgId = jws.getBody().get("tgId");
-            final List<String> roles = jws.getBody().get("roles", List.class);
+            final List<Role> roles = jws.getBody().get("roles", List.class);
             final List<SimpleGrantedAuthority> authorities = roles.stream()
+                    .map(Role::getName)
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());
             Assert.notNull(tgId, "tgId is null");
@@ -53,7 +54,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         } catch (Exception e) {
             LOGGER.error("Something wrong in authentication process: ", e);
         }
-        return new AnonymousAuthenticationToken((String) authentication.getPrincipal(), "anonymous", AuthorityUtils.createAuthorityList(SecurityConstants.ROLE_ANONYMOUS));
+        return new AnonymousAuthenticationToken((String) authentication.getPrincipal(), "anonymous", AuthorityUtils.createAuthorityList(Role.ANONYMOUS.getName()));
     }
 
     @Override

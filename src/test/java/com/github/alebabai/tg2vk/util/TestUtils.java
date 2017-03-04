@@ -7,6 +7,8 @@ import com.github.alebabai.tg2vk.domain.UserSettings;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 
+import java.util.stream.Stream;
+
 public abstract class TestUtils {
 
     public static final int MIN_ENTITIES_COUNT = 1;
@@ -45,6 +47,6 @@ public abstract class TestUtils {
     }
 
     public static Role generateRole() {
-        return new Role().setName(getRandomString(MAX_STRING_LENGTH));
+        return Stream.of(Role.values()).findAny().orElse(Role.ANONYMOUS);
     }
 }

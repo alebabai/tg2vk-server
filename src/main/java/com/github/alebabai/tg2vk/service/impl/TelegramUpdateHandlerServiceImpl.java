@@ -1,5 +1,6 @@
 package com.github.alebabai.tg2vk.service.impl;
 
+import com.github.alebabai.tg2vk.domain.Role;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.security.service.JwtTokenFactoryService;
 import com.github.alebabai.tg2vk.service.LinkerService;
@@ -7,7 +8,6 @@ import com.github.alebabai.tg2vk.service.PathResolverService;
 import com.github.alebabai.tg2vk.service.TelegramService;
 import com.github.alebabai.tg2vk.service.UserService;
 import com.github.alebabai.tg2vk.util.constants.PathConstants;
-import com.github.alebabai.tg2vk.util.constants.SecurityConstants;
 import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.ChosenInlineResult;
 import com.pengrad.telegrambot.model.InlineQuery;
@@ -137,7 +137,7 @@ public class TelegramUpdateHandlerServiceImpl extends AbstractTelegramUpdateHand
                         new InlineKeyboardButton(messages.getMessage("tg.command.login.button.get_token.label", StringUtils.EMPTY))
                                 .url(pathResolver.getAbsoluteUrl(PathConstants.API_AUTH_LOGIN)),
                         new InlineKeyboardButton(messages.getMessage("tg.command.login.button.send_token.label", StringUtils.EMPTY))
-                                .url(String.join("#", pathResolver.getClientUrl(), tokenFactory.generate(context.from().id(), SecurityConstants.ROLE_USER))),
+                                .url(String.join("#", pathResolver.getClientUrl(), tokenFactory.generate(context.from().id(), Role.USER))),
                 }));
         tgService.send(loginMessage);
     }
