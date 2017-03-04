@@ -7,15 +7,16 @@ import java.util.Objects;
 
 @Entity
 @Table(
-        name = "chat_settings",
+        name = "tg2vk_chat_settings",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_user_tg_vk_id", columnNames = {"tg_chat_id", "vk_chat_id"}),
+                @UniqueConstraint(name = "uk_tg2vk_chat_settings_tg_vk_chat_id", columnNames = {"tg_chat_id", "vk_chat_id"}),
         }
 )
 public class ChatSettings implements Persistable<Integer> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tg2vk_chat_settings_id_seq")
+    @SequenceGenerator(name = "tg2vk_chat_settings_id_seq", sequenceName = "tg2vk_chat_settings_id_seq")
     @Column(name = "id", unique = true, nullable = false)
     private Integer id;
 

@@ -6,15 +6,16 @@ import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "user_settings")
+@Table(name = "tg2vk_user_settings")
 public class UserSettings implements Persistable<Integer> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tg2vk_user_settings_id_seq")
+    @SequenceGenerator(name = "tg2vk_user_settings_id_seq", sequenceName = "tg2vk_user_settings_id_seq")
     @Column(name = "id", unique = true, nullable = false)
     private Integer id;
 
-    @Column(name = "started", nullable = false)
+    @Column(name = "started")
     private boolean started;
 
     @Override

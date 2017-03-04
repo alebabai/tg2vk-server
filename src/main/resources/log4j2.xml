@@ -41,6 +41,13 @@
             <AppenderRef ref="Console-Appender"/>
         </Logger>
 
+        <Logger name="org.flywaydb"
+                level="INFO"
+                additivity="false">
+            <AppenderRef ref="RollingFile-Appender"/>
+            <AppenderRef ref="Console-Appender"/>
+        </Logger>
+
         <Root level="ERROR">
             <AppenderRef ref="Console-Appender"/>
             <AppenderRef ref="RollingFile-Appender"/>

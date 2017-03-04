@@ -1,15 +1,14 @@
 package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.domain.ChatSettings;
+import com.github.alebabai.tg2vk.domain.Role;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.domain.UserSettings;
 import com.github.alebabai.tg2vk.exception.UserCreationException;
 import com.github.alebabai.tg2vk.repository.ChatSettingsRepository;
-import com.github.alebabai.tg2vk.repository.RoleRepository;
 import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.repository.UserSettingsRepository;
 import com.github.alebabai.tg2vk.service.UserService;
-import com.github.alebabai.tg2vk.util.constants.SecurityConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -26,17 +25,14 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserSettingsRepository settingsRepository;
     private final ChatSettingsRepository chatSettingsRepository;
-    private final RoleRepository roleRepository;
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository,
                            UserSettingsRepository settingsRepository,
-                           ChatSettingsRepository chatSettingsRepository,
-                           RoleRepository roleRepository) {
+                           ChatSettingsRepository chatSettingsRepository) {
         this.userRepository = userRepository;
         this.settingsRepository = settingsRepository;
         this.chatSettingsRepository = chatSettingsRepository;
-        this.roleRepository = roleRepository;
     }
 
     @Override
@@ -89,13 +85,11 @@ public class UserServiceImpl implements UserService {
         Assert.notNull(tgId, "tgId is required param!");
         Assert.notNull(tgId, "vkId is required param!");
         Assert.notNull(tgId, "vkToken is required param!");
-        return roleRepository.findOneByName(SecurityConstants.ROLE_USER)
-                .map(role -> userRepository.save(new User()
-                        .setVkId(vkId)
-                        .setTgId(tgId)
-                        .setVkToken(vkToken)
-                        .setRoles(Collections.singleton(role))))
-                .orElseThrow(() -> new UserCreationException("Required role not found in the database"));
+        return userRepository.save(new User()
+                .setVkId(vkId)
+                .setTgId(tgId)
+                .setVkToken(vkToken)
+                .setRoles(Collections.singleton(Role.USER)));
     }
 
     @Override

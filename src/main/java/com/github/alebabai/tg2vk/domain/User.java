@@ -12,7 +12,8 @@ import java.util.Set;
 public class User implements Persistable<Integer> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tg2vk_user_id_seq")
+    @SequenceGenerator(name = "tg2vk_user_id_seq", sequenceName = "tg2vk_user_id_seq")
     @Column(name = "id", unique = true, nullable = false)
     private Integer id;
 
@@ -31,7 +32,7 @@ public class User implements Persistable<Integer> {
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(
-            name = "user_chat_settings",
+            name = "tg2vk_user_chat_settings",
             joinColumns = {
                     @JoinColumn(name = "user_id", nullable = false)
             },
@@ -41,22 +42,15 @@ public class User implements Persistable<Integer> {
     )
     private Set<ChatSettings> chatsSettings;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "user_role",
-            uniqueConstraints = {
-                    @UniqueConstraint(
-                            name = "uk_user_role",
-                            columnNames = {"user_id", "role_id"}
-                    )
-            },
+    @ElementCollection(targetClass = Role.class, fetch = FetchType.LAZY)
+    @CollectionTable(
+            name = "tg2vk_user_role",
             joinColumns = {
                     @JoinColumn(name = "user_id", nullable = false)
-            },
-            inverseJoinColumns = {
-                    @JoinColumn(name = "role_id", nullable = false)
             }
     )
+    @Column(name = "role_id")
+    @Enumerated(EnumType.ORDINAL)
     private Set<Role> roles;
 
     public User() {
