@@ -9,6 +9,7 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.TelegramBotAdapter;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.request.AbstractSendRequest;
 import com.pengrad.telegrambot.request.BaseRequest;
 import com.pengrad.telegrambot.request.DeleteWebhook;
 import com.pengrad.telegrambot.request.SetWebhook;
@@ -83,7 +84,7 @@ public class TelegramServiceImpl implements TelegramService {
     }
 
     @Override
-    public <T extends BaseRequest<T, R>, R extends BaseResponse> void send(T request) {
+    public <T extends AbstractSendRequest<T>> void send(T request) {
         bot.execute(request, loggerCallback());
     }
 

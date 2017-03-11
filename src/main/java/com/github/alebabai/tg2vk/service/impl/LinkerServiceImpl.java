@@ -5,19 +5,32 @@ import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.service.*;
 import com.github.alebabai.tg2vk.util.Tg2vkMapperUtils;
 import com.github.alebabai.tg2vk.util.constants.EnvConstants;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.pengrad.telegrambot.model.request.ParseMode;
-import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.request.*;
 import com.vk.api.sdk.client.actors.UserActor;
+import com.vk.api.sdk.objects.audio.AudioFull;
+import com.vk.api.sdk.objects.docs.Doc;
 import com.vk.api.sdk.objects.messages.Message;
+import com.vk.api.sdk.objects.messages.MessageAttachment;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.core.env.Environment;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
@@ -36,19 +49,26 @@ public class LinkerServiceImpl implements LinkerService {
     private final TelegramService tgService;
     private final VkService vkService;
     private final TemplateRendererService templateRenderer;
+    private final MessageSourceAccessor messages;
     private final Map<Integer, AtomicBoolean> daemonStates;
+    private final OkHttpClient httpClient;
+    private final Gson gson;
 
     @Autowired
     public LinkerServiceImpl(Environment env,
                              UserService userService,
                              VkService vkService,
                              TelegramService tgService,
-                             TemplateRendererService templateRenderer) {
+                             TemplateRendererService templateRenderer,
+                             MessageSource messageSource) {
         this.env = env;
         this.userService = userService;
         this.vkService = vkService;
         this.tgService = tgService;
         this.templateRenderer = templateRenderer;
+        this.messages = new MessageSourceAccessor(messageSource);
+        this.httpClient = new OkHttpClient.Builder().build();
+        this.gson = new GsonBuilder().create();
         this.daemonStates = new HashMap<>();
     }
 
@@ -118,17 +138,6 @@ public class LinkerServiceImpl implements LinkerService {
                 .forEach(msg -> tgService.send(convertMessage(tgChatId, msg, profile)));
     }
 
-    private SendMessage convertMessage(Integer tgChatId, Message message, com.vk.api.sdk.objects.users.User profile) {
-        return Optional.ofNullable(message.getChatId())
-                .map(it -> createTelegramMessage(tgChatId, GROUP_MESSAGE_TEMPLATE, Tg2vkMapperUtils.createGroupMessageContext(profile, message)))
-                .orElse(createTelegramMessage(tgChatId, PRIVATE_MESSAGE_TEMPLATE, Tg2vkMapperUtils.createPrivateMessageContext(profile, message)));
-    }
-
-    private SendMessage createTelegramMessage(Object tgChatId, String templateName, Map<String, Object> context) {
-        return new SendMessage(tgChatId, templateRenderer.render(templateName, context))
-                .parseMode(ParseMode.HTML);
-    }
-
     private Message mapFwdMessage(Message origin, Message target) {
         try {
             ReflectionUtils.setField(Message.class.getDeclaredField("chatId"), target, origin.getChatId());
@@ -138,5 +147,105 @@ public class LinkerServiceImpl implements LinkerService {
             LOGGER.error("Can't patch forwarded message object: ", e);
         }
         return target;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T extends AbstractSendRequest> T convertMessage(Integer tgChatId, Message message, com.vk.api.sdk.objects.users.User profile) {
+        return (T) Optional.ofNullable(message.getAttachments())
+                .map(attachments -> attachments.get(0))
+                .map(attachment -> convertMessageAttachment(tgChatId, message, attachment, profile))
+                .orElse(Optional.ofNullable(message.getGeo())
+                        .map(geo -> {
+                            final String[] coordinates = StringUtils.split(geo.getCoordinates(), StringUtils.SPACE);
+                            float latitude = NumberUtils.toFloat(coordinates[0]);
+                            float longitude = NumberUtils.toFloat(coordinates[1]);
+                            return (T) new SendLocation(tgChatId, latitude, longitude);
+                        })
+                        .orElse((T) convertTextMessage(tgChatId, message, profile))
+                );
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T extends AbstractSendRequest> T convertMessageAttachment(Integer tgChatId, Message message, MessageAttachment attachment, com.vk.api.sdk.objects.users.User profile) {
+        T result;
+        switch (attachment.getType()) {
+            case PHOTO:
+                final Message photoMessage = createFakeVkMessage(message, attachment.getPhoto().getPhoto604());
+                result = (T) convertTextMessage(tgChatId, photoMessage, profile);
+                break;
+            case AUDIO:
+                final AudioFull audio = attachment.getAudio();
+                result = (T) new SendAudio(tgChatId, fetchAttachment(attachment.getAudio().getUrl()))
+                        .caption(message.getBody())
+                        .duration(audio.getDuration())
+                        .performer(audio.getArtist())
+                        .title(audio.getTitle());
+                break;
+            case VIDEO:
+                final String videoText = messages.getMessage("vk.messages.attachment.video", StringUtils.EMPTY) + attachment.getVideo().getPhoto320();
+                final Message videoMessage = createFakeVkMessage(message, videoText);
+                result = (T) convertTextMessage(tgChatId, videoMessage, profile);
+                break;
+            case DOC:
+                final Doc doc = attachment.getDoc();
+                result = (T) new SendDocument(tgChatId, fetchAttachment(doc.getUrl()))
+                        .caption(message.getBody())
+                        .fileName(doc.getTitle());
+                break;
+            case LINK:
+                final Message linkMessage = createFakeVkMessage(message, attachment.getLink().getUrl());
+                result = (T) convertTextMessage(tgChatId, linkMessage, profile);
+                break;
+            case GIFT:
+                final String giftText = messages.getMessage("vk.messages.attachment.gift", StringUtils.EMPTY) + attachment.getGift().getThumb256();
+                final Message giftMessage = createFakeVkMessage(message, giftText);
+                result = (T) convertTextMessage(tgChatId, giftMessage, profile);
+                break;
+            case STICKER:
+                final String stickerText = messages.getMessage("vk.messages.attachment.sticker", StringUtils.EMPTY) + attachment.getSticker().getPhoto256();
+                final Message stickerMessage = createFakeVkMessage(message, stickerText);
+                result = (T) convertTextMessage(tgChatId, stickerMessage, profile);
+                break;
+            case WALL:
+                final String wallText = messages.getMessage("vk.messages.attachment.wall", StringUtils.EMPTY) + attachment.getWall().getText();
+                final Message wallMessage = createFakeVkMessage(message, wallText);
+                result = (T) convertTextMessage(tgChatId, wallMessage, profile);
+                break;
+            case WALL_REPLY:
+                final String wallReplyText = messages.getMessage("vk.messages.attachment.wall_reply", StringUtils.EMPTY) + attachment.getWallReply().getText();
+                final Message wallReplyMessage = createFakeVkMessage(message, wallReplyText);
+                result = (T) convertTextMessage(tgChatId, wallReplyMessage, profile);
+                break;
+            default:
+                result = (T) convertTextMessage(tgChatId, message, profile);
+                break;
+        }
+        return result;
+    }
+
+    private Message createFakeVkMessage(Message origin, String body) {
+        final JsonObject jsonObject = gson.toJsonTree(origin).getAsJsonObject();
+        jsonObject.addProperty("body", body);
+        return gson.fromJson(jsonObject, Message.class);
+    }
+
+    private byte[] fetchAttachment(String url) {
+        try {
+            return httpClient.newCall(new Request.Builder().url(url).build()).execute().body().bytes();
+        } catch (IOException e) {
+            LOGGER.debug("Can't fetch message attachment from url {}: {}", url, e);
+        }
+        return new byte[0];
+    }
+
+    private SendMessage convertTextMessage(Integer tgChatId, Message message, com.vk.api.sdk.objects.users.User profile) {
+        return Optional.ofNullable(message.getChatId())
+                .map(it -> createTelegramMessage(tgChatId, GROUP_MESSAGE_TEMPLATE, Tg2vkMapperUtils.createGroupMessageContext(profile, message)))
+                .orElse(createTelegramMessage(tgChatId, PRIVATE_MESSAGE_TEMPLATE, Tg2vkMapperUtils.createPrivateMessageContext(profile, message)));
+    }
+
+    private SendMessage createTelegramMessage(Object tgChatId, String templateName, Map<String, Object> context) {
+        return new SendMessage(tgChatId, templateRenderer.render(templateName, context))
+                .parseMode(ParseMode.HTML);
     }
 }
