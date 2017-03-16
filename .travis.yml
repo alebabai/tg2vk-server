@@ -3,8 +3,6 @@ dist: trusty
 language: java
 jdk:
   - oraclejdk8
-addons:
-  postgresql: "9.6"
 services:
   - postgresql
 env:

@@ -116,12 +116,13 @@ abstract public class AbstractJpaRepositoryTest<T extends Persistable<ID>, ID ex
 
     @Test
     public void deleteAllEntitiesInBatchTest() {
-        repository.save(entity);
+        repository.save(entities);
         repository.deleteAllInBatch();
         Assert.assertTrue(repository.count() == 0);
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void deleteSequenceOfEntitiesInBatchTest() {
         final List<? extends T> saved = repository.save(entities);
         final List<ID> ids = saved.stream()
