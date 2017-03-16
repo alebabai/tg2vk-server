@@ -5,14 +5,12 @@ import com.github.alebabai.tg2vk.domain.UserSettings;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.github.alebabai.tg2vk.util.TestUtils.*;
 
-@Transactional
 public class UserRepositoryTest extends AbstractJpaRepositoryTest<User, Integer, UserRepository> {
 
     @Override

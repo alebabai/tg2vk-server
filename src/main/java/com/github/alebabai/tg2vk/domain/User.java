@@ -3,9 +3,7 @@ package com.github.alebabai.tg2vk.domain;
 import org.springframework.data.domain.Persistable;
 
 import javax.persistence.*;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name = "tg2vk_user")
@@ -26,11 +24,11 @@ public class User implements Persistable<Integer> {
     @Column(name = "vk_token", unique = true, nullable = false)
     private String vkToken;
 
-    @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true, cascade = CascadeType.ALL)
     @JoinColumn(name = "user_settings_id", nullable = false)
     private UserSettings settings;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(
             name = "tg2vk_user_chat_settings",
             joinColumns = {
@@ -40,7 +38,7 @@ public class User implements Persistable<Integer> {
                     @JoinColumn(name = "chat_settings_id", nullable = false)
             }
     )
-    private Set<ChatSettings> chatsSettings;
+    private List<ChatSettings> chatsSettings;
 
     @ElementCollection(targetClass = Role.class, fetch = FetchType.LAZY)
     @CollectionTable(
@@ -51,12 +49,12 @@ public class User implements Persistable<Integer> {
     )
     @Column(name = "role_id")
     @Enumerated(EnumType.ORDINAL)
-    private Set<Role> roles;
+    private List<Role> roles;
 
     public User() {
         this.settings = new UserSettings();
-        this.chatsSettings = new HashSet<>();
-        this.roles = new HashSet<>();
+        this.chatsSettings = new ArrayList<>();
+        this.roles = new ArrayList<>();
     }
 
     @Override
@@ -96,11 +94,11 @@ public class User implements Persistable<Integer> {
         return this;
     }
 
-    public Set<ChatSettings> getChatsSettings() {
+    public List<ChatSettings> getChatsSettings() {
         return chatsSettings;
     }
 
-    public User setChatsSettings(Set<ChatSettings> chatsSettings) {
+    public User setChatsSettings(List<ChatSettings> chatsSettings) {
         this.chatsSettings = chatsSettings;
         return this;
     }
@@ -114,11 +112,11 @@ public class User implements Persistable<Integer> {
         return this;
     }
 
-    public Set<Role> getRoles() {
+    public List<Role> getRoles() {
         return roles;
     }
 
-    public User setRoles(Set<Role> roles) {
+    public User setRoles(List<Role> roles) {
         this.roles = roles;
         return this;
     }

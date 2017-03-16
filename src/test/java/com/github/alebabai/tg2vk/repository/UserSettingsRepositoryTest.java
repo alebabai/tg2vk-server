@@ -6,7 +6,6 @@ import javax.transaction.Transactional;
 
 import static com.github.alebabai.tg2vk.util.TestUtils.generateUserSettings;
 
-@Transactional
 public class UserSettingsRepositoryTest extends AbstractJpaRepositoryTest<UserSettings, Integer, UserSettingsRepository> {
 
     @Override

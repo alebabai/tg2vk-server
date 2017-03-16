@@ -4,7 +4,6 @@ import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.domain.Role;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.domain.UserSettings;
-import com.github.alebabai.tg2vk.exception.UserCreationException;
 import com.github.alebabai.tg2vk.repository.ChatSettingsRepository;
 import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.repository.UserSettingsRepository;
@@ -66,7 +65,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public User createOrUpdate(Integer tgId, Integer newVkId, String newVkToken) throws UserCreationException {
+    public User createOrUpdate(Integer tgId, Integer newVkId, String newVkToken) {
         Assert.notNull(tgId, "tgId is required param!");
         Assert.notNull(tgId, "vkId is required param!");
         Assert.notNull(tgId, "vkToken is required param!");
@@ -81,7 +80,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public User create(Integer tgId, Integer vkId, String vkToken) throws UserCreationException {
+    public User create(Integer tgId, Integer vkId, String vkToken) {
         Assert.notNull(tgId, "tgId is required param!");
         Assert.notNull(tgId, "vkId is required param!");
         Assert.notNull(tgId, "vkToken is required param!");
@@ -89,7 +88,7 @@ public class UserServiceImpl implements UserService {
                 .setVkId(vkId)
                 .setTgId(tgId)
                 .setVkToken(vkToken)
-                .setRoles(Collections.singleton(Role.USER)));
+                .setRoles(Collections.singletonList(Role.USER)));
     }
 
     @Override

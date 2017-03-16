@@ -10,7 +10,6 @@ import java.util.stream.IntStream;
 
 import static com.github.alebabai.tg2vk.util.TestUtils.*;
 
-@Transactional
 public class ChatSettingsRepositoryTest extends AbstractJpaRepositoryTest<ChatSettings, Integer, ChatSettingsRepository> {
 
     @Override
