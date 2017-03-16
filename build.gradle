@@ -52,6 +52,7 @@ dependencies {
     compile 'org.apache.commons:commons-lang3:3.4'
     compile 'io.jsonwebtoken:jjwt:0.7.0'
     compile 'org.flywaydb:flyway-core:4.1.1'
+    compileOnly 'org.projectlombok:lombok:1.16.14'
     runtime 'org.postgresql:postgresql'
 
 /*

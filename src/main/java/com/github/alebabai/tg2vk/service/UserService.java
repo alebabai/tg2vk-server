@@ -3,9 +3,7 @@ package com.github.alebabai.tg2vk.service;
 import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.domain.UserSettings;
-import com.github.alebabai.tg2vk.exception.UserCreationException;
 
-import javax.transaction.Transactional;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -20,9 +18,9 @@ public interface UserService {
 
     UserSettings updateUserSettings(UserSettings settings);
 
-    User createOrUpdate(Integer tgId, Integer newVkId, String newVkToken) throws UserCreationException;
+    User createOrUpdate(Integer tgId, Integer newVkId, String newVkToken);
 
-    User create(Integer tgId, Integer vkId, String vkToken) throws UserCreationException;
+    User create(Integer tgId, Integer vkId, String vkToken);
 
     Optional<ChatSettings> findChatSettings(User user, Integer vkChatId);
 }

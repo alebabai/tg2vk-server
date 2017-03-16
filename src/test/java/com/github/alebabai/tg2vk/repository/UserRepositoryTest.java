@@ -29,7 +29,7 @@ public class UserRepositoryTest extends AbstractJpaRepositoryTest<User, Integer,
 
     @Test
     public void findAllStarted() {
-        repository.save(generateEntity().setSettings(new UserSettings().started(true)));
+        repository.save(generateEntity().setSettings(new UserSettings().setStarted(true)));
         repository.findAllStarted().forEach(user -> Assert.assertTrue(user.getSettings().isStarted()));
     }
 }

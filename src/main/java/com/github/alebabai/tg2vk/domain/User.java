@@ -1,10 +1,20 @@
 package com.github.alebabai.tg2vk.domain;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import lombok.experimental.Accessors;
 import org.springframework.data.domain.Persistable;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
+@Data
+@Accessors(chain = true)
+@EqualsAndHashCode(of = {"id"})
+@ToString(exclude = {"settings", "roles"})
 @Entity
 @Table(name = "tg2vk_user")
 public class User implements Persistable<Integer> {
@@ -62,90 +72,9 @@ public class User implements Persistable<Integer> {
         return id;
     }
 
-    public User setId(Integer id) {
-        this.id = id;
-        return this;
-    }
-
-    public Integer getTgId() {
-        return tgId;
-    }
-
-    public User setTgId(Integer tgId) {
-        this.tgId = tgId;
-        return this;
-    }
-
-    public Integer getVkId() {
-        return vkId;
-    }
-
-    public User setVkId(Integer vkId) {
-        this.vkId = vkId;
-        return this;
-    }
-
-    public UserSettings getSettings() {
-        return settings;
-    }
-
-    public User setSettings(UserSettings settings) {
-        this.settings = settings;
-        return this;
-    }
-
-    public List<ChatSettings> getChatsSettings() {
-        return chatsSettings;
-    }
-
-    public User setChatsSettings(List<ChatSettings> chatsSettings) {
-        this.chatsSettings = chatsSettings;
-        return this;
-    }
-
-    public String getVkToken() {
-        return vkToken;
-    }
-
-    public User setVkToken(String vkToken) {
-        this.vkToken = vkToken;
-        return this;
-    }
-
-    public List<Role> getRoles() {
-        return roles;
-    }
-
-    public User setRoles(List<Role> roles) {
-        this.roles = roles;
-        return this;
-    }
-
     @Override
     public boolean isNew() {
         return id == null;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof User)) return false;
-        User user = (User) o;
-        return Objects.equals(id, user.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", tgId=" + tgId +
-                ", vkId=" + vkId +
-                ", settings=" + settings +
-                '}';
-    }
 }

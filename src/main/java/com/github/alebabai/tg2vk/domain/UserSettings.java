@@ -1,10 +1,15 @@
 package com.github.alebabai.tg2vk.domain;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 import org.springframework.data.domain.Persistable;
 
 import javax.persistence.*;
-import java.util.Objects;
 
+@Data
+@Accessors(chain = true)
+@EqualsAndHashCode(of = {"id"})
 @Entity
 @Table(name = "tg2vk_user_settings")
 public class UserSettings implements Persistable<Integer> {
@@ -23,43 +28,9 @@ public class UserSettings implements Persistable<Integer> {
         return id;
     }
 
-    public UserSettings setId(Integer id) {
-        this.id = id;
-        return this;
-    }
-
-    public boolean isStarted() {
-        return started;
-    }
-
-    public UserSettings started(Boolean started) {
-        this.started = started;
-        return this;
-    }
-
     @Override
     public boolean isNew() {
         return id == null;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof UserSettings)) return false;
-        UserSettings that = (UserSettings) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return "UserSettings{" +
-                "id=" + id +
-                ", started=" + started +
-                '}';
-    }
 }

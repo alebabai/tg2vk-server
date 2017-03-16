@@ -1,10 +1,18 @@
 package com.github.alebabai.tg2vk.domain;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.experimental.Accessors;
 import org.springframework.data.domain.Persistable;
 
 import javax.persistence.*;
 import java.util.Objects;
 
+
+@Data
+@Accessors(chain = true)
+@EqualsAndHashCode(of = {"id"})
 @Entity
 @Table(
         name = "tg2vk_chat_settings",
@@ -41,73 +49,9 @@ public class ChatSettings implements Persistable<Integer> {
         return id;
     }
 
-    public ChatSettings setId(Integer id) {
-        this.id = id;
-        return this;
-    }
-
-    public Integer getTgChatId() {
-        return tgChatId;
-    }
-
-    public ChatSettings setTgChatId(Integer tgChatId) {
-        this.tgChatId = tgChatId;
-        return this;
-    }
-
-    public Integer getVkChatId() {
-        return vkChatId;
-    }
-
-    public ChatSettings setVkChatId(Integer vkChatId) {
-        this.vkChatId = vkChatId;
-        return this;
-    }
-
-    public Boolean isAnswerAllowed() {
-        return answerAllowed;
-    }
-
-    public ChatSettings answerAllowed(boolean answerAllowed) {
-        this.answerAllowed = answerAllowed;
-        return this;
-    }
-
-    public boolean isStarted() {
-        return started;
-    }
-
-    public ChatSettings started(boolean started) {
-        this.started = started;
-        return this;
-    }
-
     @Override
     public boolean isNew() {
         return id == null;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ChatSettings)) return false;
-        ChatSettings that = (ChatSettings) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return "ChatSettings{" +
-                "id=" + id +
-                ", tgChatId=" + tgChatId +
-                ", vkChatId=" + vkChatId +
-                ", answerAllowed=" + answerAllowed +
-                ", started=" + started +
-                '}';
-    }
 }

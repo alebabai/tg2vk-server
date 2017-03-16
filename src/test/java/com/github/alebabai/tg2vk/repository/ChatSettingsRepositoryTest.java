@@ -2,8 +2,6 @@ package com.github.alebabai.tg2vk.repository;
 
 import com.github.alebabai.tg2vk.domain.ChatSettings;
 
-import javax.transaction.Transactional;
-
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -14,7 +12,7 @@ public class ChatSettingsRepositoryTest extends AbstractJpaRepositoryTest<ChatSe
 
     @Override
     protected ChatSettings generateEntity() {
-        return generateChatSettings();
+        return generateChatSettings().setAnswerAllowed(getRandomBoolean());
     }
 
     @Override

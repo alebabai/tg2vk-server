@@ -91,7 +91,7 @@ public class LinkerServiceImpl implements LinkerService {
             final UserActor actor = new UserActor(user.getVkId(), user.getVkToken());
             final AtomicBoolean isDaemonActive = vkService.fetchMessages(actor, getVkMessageHandler(user));
             daemonStates.put(user.getId(), isDaemonActive);
-            user.getSettings().started(isDaemonActive.get());
+            user.getSettings().setStarted(isDaemonActive.get());
             userService.updateUserSettings(user.getSettings());
         }
     }
@@ -104,7 +104,7 @@ public class LinkerServiceImpl implements LinkerService {
                     final boolean state = false;
                     daemonState.lazySet(state);
                     daemonStates.remove(user.getId());
-                    user.getSettings().started(state);
+                    user.getSettings().setStarted(state);
                     userService.updateUserSettings(user.getSettings());
                     LOGGER.debug("Stop messages linking for {}", user);
                 });
@@ -119,7 +119,7 @@ public class LinkerServiceImpl implements LinkerService {
                         .orElse(new ChatSettings()
                                 .setTgChatId(user.getTgId())
                                 .setVkChatId(vkChatId)
-                                .started(true)))
+                                .setStarted(true)))
                         .filter(ChatSettings::isStarted)
                         .map(ChatSettings::getTgChatId)
                         .ifPresent(getMainHandler(message, profile));

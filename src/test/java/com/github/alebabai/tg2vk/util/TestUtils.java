@@ -44,19 +44,21 @@ public abstract class TestUtils {
                 .setTgId(getRandomInteger(Integer.MAX_VALUE))
                 .setVkId(getRandomInteger(Integer.MAX_VALUE))
                 .setVkToken(getRandomString(MAX_STRING_LENGTH))
+                .setRoles(Collections.singletonList(Role.USER))
                 .setSettings(generateUserSettings())
                 .setChatsSettings(Arrays.asList(generateChatSettings(), generateChatSettings(), generateChatSettings()));
     }
 
     public static UserSettings generateUserSettings() {
-        return new UserSettings();
+        return new UserSettings().setStarted(getRandomBoolean());
     }
 
     public static ChatSettings generateChatSettings() {
         return new ChatSettings()
                 .setTgChatId(getRandomInteger(Integer.MAX_VALUE))
                 .setVkChatId(getRandomInteger(Integer.MAX_VALUE))
-                .answerAllowed(getRandomBoolean());
+                .setAnswerAllowed(getRandomBoolean())
+                .setStarted(getRandomBoolean());
     }
 
     public static Role generateRole() {
