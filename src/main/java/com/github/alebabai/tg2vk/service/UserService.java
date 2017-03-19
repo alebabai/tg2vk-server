@@ -18,9 +18,7 @@ public interface UserService {
 
     UserSettings updateUserSettings(UserSettings settings);
 
-    User createOrUpdate(Integer tgId, Integer newVkId, String newVkToken);
-
-    User create(Integer tgId, Integer vkId, String vkToken);
+    User createOrUpdate(Integer tgId, Integer vkId, String vkToken);
 
     Optional<ChatSettings> findChatSettings(User user, Integer vkChatId);
 }

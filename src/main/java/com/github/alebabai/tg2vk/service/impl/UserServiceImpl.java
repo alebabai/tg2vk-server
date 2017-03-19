@@ -50,14 +50,11 @@ public class UserServiceImpl implements UserService {
         return userRepository.findOneByTgId(id);
     }
 
-
-    @Transactional
     @Override
     public User save(User user) {
         return userRepository.save(user);
     }
 
-    @Transactional
     @Override
     public UserSettings updateUserSettings(UserSettings settings) {
         Assert.isTrue(!settings.isNew(), "Can't update unlinked user settings!");
@@ -66,30 +63,21 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public User createOrUpdate(Integer tgId, Integer newVkId, String newVkToken) {
+    public User createOrUpdate(Integer tgId, Integer vkId, String vkToken) {
         Assert.notNull(tgId, "tgId is required param!");
         Assert.notNull(tgId, "vkId is required param!");
         Assert.notNull(tgId, "vkToken is required param!");
         return userRepository.findOneByTgId(tgId)
                 .map(user -> {
                     chatSettingsRepository.delete(user.getChatsSettings());
-                    user.setVkId(newVkId).setVkToken(newVkToken);
+                    user.setVkId(vkId).setVkToken(vkToken);
                     return userRepository.save(user);
                 })
-                .orElseGet(() -> create(tgId, newVkId, newVkToken));
-    }
-
-    @Transactional
-    @Override
-    public User create(Integer tgId, Integer vkId, String vkToken) {
-        Assert.notNull(tgId, "tgId is required param!");
-        Assert.notNull(tgId, "vkId is required param!");
-        Assert.notNull(tgId, "vkToken is required param!");
-        return userRepository.save(new User()
-                .setVkId(vkId)
-                .setTgId(tgId)
-                .setVkToken(vkToken)
-                .setRoles(Collections.singletonList(Role.USER)));
+                .orElseGet(() -> userRepository.save(new User()
+                        .setVkId(vkId)
+                        .setTgId(tgId)
+                        .setVkToken(vkToken)
+                        .setRoles(Collections.singletonList(Role.USER))));
     }
 
     @Override
