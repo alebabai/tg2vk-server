@@ -14,9 +14,10 @@ import org.springframework.util.Assert;
 
 import javax.transaction.Transactional;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -35,7 +36,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Stream<User> findAllStarted() {
+    public List<User> findAllStarted() {
         return userRepository.findAllStarted();
     }
 

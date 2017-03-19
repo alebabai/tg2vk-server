@@ -80,7 +80,6 @@ public class LinkerServiceImpl implements LinkerService {
         }
     }
 
-    @Transactional
     @Override
     public void start(User user) {
         final boolean isStarted = daemonStates.keySet()
@@ -96,7 +95,6 @@ public class LinkerServiceImpl implements LinkerService {
         }
     }
 
-    @Transactional
     @Override
     public void stop(User user) {
         Optional.ofNullable(daemonStates.get(user.getId()))

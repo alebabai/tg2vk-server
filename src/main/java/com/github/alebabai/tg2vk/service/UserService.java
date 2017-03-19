@@ -4,11 +4,11 @@ import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.domain.UserSettings;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public interface UserService {
-    Stream<User> findAllStarted();
+    List<User> findAllStarted();
 
     Optional<User> findOneByVkId(Integer id);
 
