@@ -44,9 +44,9 @@ public abstract class TestUtils {
                 .setTgId(getRandomInteger(Integer.MAX_VALUE))
                 .setVkId(getRandomInteger(Integer.MAX_VALUE))
                 .setVkToken(getRandomString(MAX_STRING_LENGTH))
-                .setRoles(Collections.singletonList(Role.USER))
+                .setRoles(Collections.singleton(Role.USER))
                 .setSettings(generateUserSettings())
-                .setChatsSettings(Arrays.asList(generateChatSettings(), generateChatSettings(), generateChatSettings()));
+                .setChatsSettings(Collections.singleton(generateChatSettings()));
     }
 
     public static UserSettings generateUserSettings() {
