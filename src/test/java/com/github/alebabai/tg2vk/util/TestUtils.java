@@ -7,13 +7,7 @@ import com.github.alebabai.tg2vk.domain.UserSettings;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
-import org.assertj.core.util.Sets;
-import org.junit.Assert;
-import org.mockito.Matchers;
-import org.mockito.Mockito;
-import org.springframework.dao.support.DataAccessUtils;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.stream.Stream;
 
@@ -44,7 +38,7 @@ public abstract class TestUtils {
                 .setTgId(getRandomInteger(Integer.MAX_VALUE))
                 .setVkId(getRandomInteger(Integer.MAX_VALUE))
                 .setVkToken(getRandomString(MAX_STRING_LENGTH))
-                .setRoles(Collections.singleton(Role.USER))
+                .setRoles(Collections.singleton(generateRole()))
                 .setSettings(generateUserSettings())
                 .setChatsSettings(Collections.singleton(generateChatSettings()));
     }

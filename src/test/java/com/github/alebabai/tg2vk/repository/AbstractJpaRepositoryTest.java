@@ -3,26 +3,23 @@ package com.github.alebabai.tg2vk.repository;
 import com.github.alebabai.tg2vk.common.AbstractSpringTest;
 import com.github.alebabai.tg2vk.util.TestUtils;
 import org.apache.commons.lang3.RandomUtils;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Persistable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import javax.transaction.Transactional;
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static com.github.alebabai.tg2vk.util.TestUtils.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 @Transactional
 abstract public class AbstractJpaRepositoryTest<T extends Persistable<ID>, ID extends Serializable, REPO extends JpaRepository<T, ID>> extends AbstractSpringTest {
@@ -78,15 +75,17 @@ abstract public class AbstractJpaRepositoryTest<T extends Persistable<ID>, ID ex
     public void countEntitiesTest() {
         final long before = repository.count();
         repository.save(entity);
-        final long after = repository.count();
-        Assert.assertEquals(before + 1, after);
+        final long actual = repository.count();
+
+        assertThat(actual, is(before + 1));
     }
 
     @Test
     public void deleteEntityByIdTest() {
         final ID savedId = repository.save(entity).getId();
         repository.delete(savedId);
-        Assert.assertFalse(repository.exists(savedId));
+
+        assertFalse(repository.exists(savedId));
     }
 
     @Test
@@ -95,30 +94,33 @@ abstract public class AbstractJpaRepositoryTest<T extends Persistable<ID>, ID ex
         final List<ID> ids = saved.stream()
                 .map(Persistable::getId)
                 .collect(Collectors.toList());
-
         repository.delete(saved);
-        Assert.assertEquals(Collections.EMPTY_LIST, repository.findAll(ids));
+
+        assertThat(repository.findAll(ids), emptyIterable());
     }
 
     @Test
     public void deleteEntityTest() {
         final T saved = repository.save(entity);
         repository.delete(saved);
-        Assert.assertFalse(repository.exists(saved.getId()));
+
+        assertFalse(repository.exists(saved.getId()));
     }
 
     @Test
     public void deleteAllEntitiesTest() {
         repository.save(entity);
         repository.deleteAll();
-        Assert.assertTrue(repository.count() == 0);
+
+        assertTrue(repository.count() == 0);
     }
 
     @Test
     public void deleteAllEntitiesInBatchTest() {
         repository.save(entities);
         repository.deleteAllInBatch();
-        Assert.assertTrue(repository.count() == 0);
+
+        assertTrue(repository.count() == 0);
     }
 
     @Test
@@ -130,13 +132,15 @@ abstract public class AbstractJpaRepositoryTest<T extends Persistable<ID>, ID ex
                 .collect(Collectors.toList());
 
         repository.deleteInBatch((Iterable<T>) saved);
-        Assert.assertEquals(Collections.EMPTY_LIST, repository.findAll(ids));
+
+        assertThat(repository.findAll(ids), emptyIterable());
     }
 
     @Test
     public void entityExistenceByIdTest() {
         final T saved = repository.save(entity);
-        Assert.assertTrue(repository.exists(saved.getId()));
+
+        assertTrue(repository.exists(saved.getId()));
     }
 
     @Test
@@ -144,7 +148,8 @@ abstract public class AbstractJpaRepositoryTest<T extends Persistable<ID>, ID ex
         repository.deleteAll();
         final List<? extends T> saved = repository.save(entities);
         final List<? extends T> found = repository.findAll();
-        Assert.assertEquals(saved, found);
+
+        assertThat(found, is(saved));
     }
 
     @Test
@@ -153,30 +158,33 @@ abstract public class AbstractJpaRepositoryTest<T extends Persistable<ID>, ID ex
         final List<ID> ids = saved.stream()
                 .map(Persistable::getId)
                 .collect(Collectors.toList());
-
         final List<? extends T> found = repository.findAll(ids);
-        Assert.assertEquals(saved, found);
+
+        assertThat(found, is(saved));
     }
 
     @Test
     public void findAllEntitiesByPageableTest() {
-        final List<? extends T> found = repository.findAll(sort);
-        repository.delete(found);
-        Assert.assertEquals(Collections.EMPTY_LIST, repository.findAll(sort));
+        repository.save(entities);
+        final Page<T> found = repository.findAll(pageable);
+
+        assertThat(found.getTotalElements(), is(entities.size()));
     }
 
     @Test
     public void findAllEntitiesBySortTest() {
+        repository.save(entities);
         final List<? extends T> found = repository.findAll(sort);
-        repository.delete(found);
-        Assert.assertEquals(Collections.EMPTY_LIST, repository.findAll(sort));
+
+        assertThat(found, containsInAnyOrder(entities));
     }
 
     @Test
     public void findOneEntityByIdTest() {
-        repository.save(entity);
+        final T saved = repository.save(entity);
         final T found = repository.findOne(entity.getId());
-        Assert.assertEquals(found == null, !repository.exists(entity.getId()));
+
+        assertThat(saved, is(found));
     }
 
     @Test
@@ -191,18 +199,21 @@ abstract public class AbstractJpaRepositoryTest<T extends Persistable<ID>, ID ex
         final List<ID> ids = saved.stream()
                 .map(Persistable::getId)
                 .collect(Collectors.toList());
-        Assert.assertEquals(saved, repository.findAll(ids));
+
+        assertThat(repository.findAll(ids), is(saved));
     }
 
     @Test
     public void saveOneEntityTest() {
         final T saved = repository.save(entity);
-        Assert.assertEquals(entity, repository.findOne(saved.getId()));
+
+        assertThat(repository.findOne(saved.getId()), is(saved));
     }
 
     @Test
     public void saveOneEntityAndFlushTest() {
         final T saved = repository.save(entity);
-        Assert.assertEquals(entity, repository.findOne(saved.getId()));
+
+        assertThat(repository.findOne(saved.getId()), is(saved));
     }
 }
