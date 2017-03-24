@@ -17,7 +17,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -77,7 +76,7 @@ public class UserServiceImpl implements UserService {
                         .setVkId(vkId)
                         .setTgId(tgId)
                         .setVkToken(vkToken)
-                        .setRoles(Collections.singletonList(Role.USER))));
+                        .setRoles(Collections.singleton(Role.USER))));
     }
 
     @Override

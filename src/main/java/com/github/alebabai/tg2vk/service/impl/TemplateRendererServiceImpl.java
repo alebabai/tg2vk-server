@@ -1,7 +1,6 @@
 package com.github.alebabai.tg2vk.service.impl;
 
-import com.github.alebabai.tg2vk.service.TelegramService;
-import com.github.alebabai.tg2vk.service.TemplateRendererService;
+import com.github.alebabai.tg2vk.service.TemplateRenderer;
 import com.samskivert.mustache.Mustache;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -13,7 +12,7 @@ import org.springframework.stereotype.Service;
 import java.io.Reader;
 
 @Service
-public class TemplateRendererServiceImpl implements TemplateRendererService {
+public class TemplateRendererServiceImpl implements TemplateRenderer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TemplateRendererServiceImpl.class);
 

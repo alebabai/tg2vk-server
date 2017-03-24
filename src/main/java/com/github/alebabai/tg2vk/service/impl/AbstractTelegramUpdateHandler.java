@@ -1,16 +1,16 @@
 package com.github.alebabai.tg2vk.service.impl;
 
 
-import com.github.alebabai.tg2vk.service.TelegramUpdateHandlerService;
+import com.github.alebabai.tg2vk.service.TelegramUpdateHandler;
 import com.pengrad.telegrambot.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
-public abstract class AbstractTelegramUpdateHandlerService implements TelegramUpdateHandlerService {
+public abstract class AbstractTelegramUpdateHandler implements TelegramUpdateHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractTelegramUpdateHandlerService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractTelegramUpdateHandler.class);
 
     @Override
     public void handle(Update update) {

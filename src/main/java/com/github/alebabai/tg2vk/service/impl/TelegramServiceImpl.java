@@ -1,6 +1,6 @@
 package com.github.alebabai.tg2vk.service.impl;
 
-import com.github.alebabai.tg2vk.service.PathResolverService;
+import com.github.alebabai.tg2vk.service.PathResolver;
 import com.github.alebabai.tg2vk.service.TelegramService;
 import com.github.alebabai.tg2vk.util.constants.EnvConstants;
 import com.github.alebabai.tg2vk.util.constants.PathConstants;
@@ -34,11 +34,11 @@ public class TelegramServiceImpl implements TelegramService {
 
     private final TelegramBot bot;
     private final ResourceLoader resourceLoader;
-    private final PathResolverService pathResolver;
+    private final PathResolver pathResolver;
     private final Environment env;
 
     @Autowired
-    public TelegramServiceImpl(Environment env, ResourceLoader resourceLoader, PathResolverService pathResolver) {
+    public TelegramServiceImpl(Environment env, ResourceLoader resourceLoader, PathResolver pathResolver) {
         this.bot = TelegramBotAdapter.build(env.getRequiredProperty(EnvConstants.PROP_TELEGRAM_BOT_TOKEN));
         this.resourceLoader = resourceLoader;
         this.pathResolver = pathResolver;

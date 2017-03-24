@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 
 import static com.github.alebabai.tg2vk.util.constants.EnvConstants.PROP_VK_FETCH_DELAY;
@@ -91,22 +90,27 @@ public class VkServiceImpl implements VkService {
     }
 
     @Override
-    public AtomicBoolean fetchMessages(Actor actor, BiConsumer<? super User, ? super Message> callback) {
-        final AtomicBoolean isDaemonActive = new AtomicBoolean(true);
-        CompletableFuture.runAsync(() -> {
-            try {
-                final MessagesGetLongPollServerQuery query = api.messages().getLongPollServer(actor).useSsl(true).needPts(true);
-                getMessages(actor, query, isDaemonActive, callback);
-            } catch (ApiException | ClientException | InterruptedException e) {
-                throw new IllegalStateException(e);
-            }
-        }).whenCompleteAsync((result, error) -> LOGGER.error("Error during vk messages fetching :", error));
-        return isDaemonActive;
+    public CompletableFuture<Integer> fetchMessages(Actor actor, BiConsumer<User, Message> consumer) {
+        return CompletableFuture
+                .supplyAsync(() -> triggerMessagesFetching(actor, consumer))
+                .whenCompleteAsync((result, error) -> LOGGER.error("Error during vk messages fetching :", error));
     }
 
-    private void getMessages(Actor actor, MessagesGetLongPollServerQuery query, AtomicBoolean isDaemonActive, BiConsumer<? super User, ? super Message> callback) throws ClientException, ApiException, InterruptedException {
+    private int triggerMessagesFetching(Actor actor, BiConsumer<User, Message> consumer) {
+        try {
+            final MessagesGetLongPollServerQuery query = api.messages().getLongPollServer(actor).useSsl(true).needPts(true);
+            return getMessages(actor, query, consumer);
+        } catch (ApiException e) {
+            throw new IllegalStateException("VK API error happened during messages fetching", e);
+        } catch (Exception e) {
+            throw new IllegalStateException("Unexpected error happened during VK messages fetching", e);
+        }
+
+    }
+
+    private int getMessages(Actor actor, MessagesGetLongPollServerQuery query, BiConsumer<User, Message> consumer) throws ClientException, ApiException, InterruptedException {
         int newTs = query.execute().getTs();
-        while (isDaemonActive.get()) {
+        while (!Thread.interrupted()) {
             final GetLongPollHistoryResponse response = api.messages().getLongPollHistory(actor).ts(newTs).execute();
             final LongpollMessages messages = response.getMessages();
             final List<User> profiles = response.getProfiles();
@@ -115,8 +119,9 @@ public class VkServiceImpl implements VkService {
                     .filter(message -> !message.isOut())
                     .forEach(message -> profiles.stream()
                             .filter(profile -> profile.getId().equals(message.getUserId()))
-                            .forEach(profile -> callback.accept(profile, message)));
+                            .forEach(profile -> consumer.accept(profile, message)));
             Thread.sleep(env.getProperty(PROP_VK_FETCH_DELAY, Integer.class, 1000));
         }
+        return newTs;
     }
 }

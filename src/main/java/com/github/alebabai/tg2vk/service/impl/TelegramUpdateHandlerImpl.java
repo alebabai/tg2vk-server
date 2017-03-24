@@ -3,10 +3,10 @@ package com.github.alebabai.tg2vk.service.impl;
 import com.github.alebabai.tg2vk.domain.Role;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.security.service.JwtTokenFactoryService;
-import com.github.alebabai.tg2vk.service.LinkerService;
-import com.github.alebabai.tg2vk.service.PathResolverService;
+import com.github.alebabai.tg2vk.service.PathResolver;
 import com.github.alebabai.tg2vk.service.TelegramService;
 import com.github.alebabai.tg2vk.service.UserService;
+import com.github.alebabai.tg2vk.service.VkMessagesProcessor;
 import com.github.alebabai.tg2vk.util.constants.PathConstants;
 import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.ChosenInlineResult;
@@ -33,28 +33,28 @@ import static com.github.alebabai.tg2vk.util.CommandUtils.parseCommand;
 import static com.github.alebabai.tg2vk.util.constants.CommandConstants.*;
 
 @Service
-public class TelegramUpdateHandlerServiceImpl extends AbstractTelegramUpdateHandlerService {
+public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TelegramUpdateHandlerServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TelegramUpdateHandlerImpl.class);
 
     private final UserService userService;
     private final TelegramService tgService;
-    private final PathResolverService pathResolver;
-    private final LinkerService linkerService;
+    private final VkMessagesProcessor vkMessageProcessor;
+    private final PathResolver pathResolver;
     private final JwtTokenFactoryService tokenFactory;
     private final MessageSourceAccessor messages;
 
     @Autowired
-    public TelegramUpdateHandlerServiceImpl(PathResolverService pathResolver,
-                                            UserService userService,
-                                            TelegramService tgService,
-                                            LinkerService linkerService,
-                                            JwtTokenFactoryService tokenFactory,
-                                            MessageSource messageSource) {
+    public TelegramUpdateHandlerImpl(PathResolver pathResolver,
+                                     UserService userService,
+                                     TelegramService tgService,
+                                     VkMessagesProcessor vkMessageProcessor,
+                                     JwtTokenFactoryService tokenFactory,
+                                     MessageSource messageSource) {
         this.pathResolver = pathResolver;
         this.userService = userService;
         this.tgService = tgService;
-        this.linkerService = linkerService;
+        this.vkMessageProcessor = vkMessageProcessor;
         this.tokenFactory = tokenFactory;
         this.messages = new MessageSourceAccessor(messageSource);
     }
@@ -147,7 +147,7 @@ public class TelegramUpdateHandlerServiceImpl extends AbstractTelegramUpdateHand
                 "tg.command.start.user.already_started.msg",
                 "tg.command.start.user.success.msg",
                 "tg.command.start.anonymous.msg");
-        processUserInitCommand(context, linkerService::start, messageCodeHandler);
+        processUserInitCommand(context, vkMessageProcessor::start, messageCodeHandler);
     }
 
     private void processStopCommand(Message context) {
@@ -155,7 +155,7 @@ public class TelegramUpdateHandlerServiceImpl extends AbstractTelegramUpdateHand
                 "tg.command.stop.user.success.msg",
                 "tg.command.stop.user.already_stopped.msg",
                 "tg.command.stop.anonymous.msg");
-        processUserInitCommand(context, linkerService::stop, messageCodeHandler);
+        processUserInitCommand(context, vkMessageProcessor::stop, messageCodeHandler);
     }
 
     private Function<Optional<User>, String> getMessageCodeHandler(String startedCode, String stoppedCode, String anonymousCode) {

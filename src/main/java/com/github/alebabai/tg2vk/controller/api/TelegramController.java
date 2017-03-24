@@ -1,6 +1,6 @@
 package com.github.alebabai.tg2vk.controller.api;
 
-import com.github.alebabai.tg2vk.service.TelegramUpdateHandlerService;
+import com.github.alebabai.tg2vk.service.TelegramUpdateHandler;
 import com.github.alebabai.tg2vk.util.constants.PathConstants;
 import com.pengrad.telegrambot.BotUtils;
 import com.pengrad.telegrambot.model.Update;
@@ -19,10 +19,10 @@ public class TelegramController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramController.class);
 
-    private final TelegramUpdateHandlerService updateHandler;
+    private final TelegramUpdateHandler updateHandler;
 
     @Autowired
-    public TelegramController(TelegramUpdateHandlerService updateHandler) {
+    public TelegramController(TelegramUpdateHandler updateHandler) {
         this.updateHandler = updateHandler;
     }
 

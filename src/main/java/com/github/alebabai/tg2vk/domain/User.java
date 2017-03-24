@@ -2,19 +2,20 @@ package com.github.alebabai.tg2vk.domain;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.springframework.data.domain.Persistable;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(of = {"id"})
-@ToString(exclude = {"settings", "roles"})
+@ToString(of = {"id", "roles"})
 @Entity
 @Table(name = "tg2vk_user")
 public class User implements Persistable<Integer> {
@@ -38,7 +39,7 @@ public class User implements Persistable<Integer> {
     @JoinColumn(name = "user_settings_id", nullable = false)
     private UserSettings settings;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(
             name = "tg2vk_user_chat_settings",
             joinColumns = {
@@ -48,9 +49,9 @@ public class User implements Persistable<Integer> {
                     @JoinColumn(name = "chat_settings_id", nullable = false)
             }
     )
-    private List<ChatSettings> chatsSettings;
+    private Set<ChatSettings> chatsSettings;
 
-    @ElementCollection(targetClass = Role.class, fetch = FetchType.LAZY)
+    @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
     @CollectionTable(
             name = "tg2vk_user_role",
             joinColumns = {
@@ -59,12 +60,12 @@ public class User implements Persistable<Integer> {
     )
     @Column(name = "role_id")
     @Enumerated(EnumType.ORDINAL)
-    private List<Role> roles;
+    private Set<Role> roles;
 
     public User() {
         this.settings = new UserSettings();
-        this.chatsSettings = new ArrayList<>();
-        this.roles = new ArrayList<>();
+        this.chatsSettings = new LinkedHashSet<>();
+        this.roles = new LinkedHashSet<>();
     }
 
     @Override

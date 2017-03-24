@@ -2,15 +2,16 @@ package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.domain.User;
-import com.github.alebabai.tg2vk.service.*;
+import com.github.alebabai.tg2vk.service.LinkerService;
+import com.github.alebabai.tg2vk.service.TelegramService;
+import com.github.alebabai.tg2vk.service.TemplateRenderer;
+import com.github.alebabai.tg2vk.service.UserService;
 import com.github.alebabai.tg2vk.util.Tg2vkMapperUtils;
-import com.github.alebabai.tg2vk.util.constants.EnvConstants;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.*;
-import com.vk.api.sdk.client.actors.UserActor;
 import com.vk.api.sdk.objects.audio.AudioFull;
 import com.vk.api.sdk.objects.docs.Doc;
 import com.vk.api.sdk.objects.messages.Message;
@@ -24,15 +25,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.MessageSourceAccessor;
-import org.springframework.core.env.Environment;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import javax.transaction.Transactional;
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -44,71 +43,28 @@ public class LinkerServiceImpl implements LinkerService {
     private static final String PRIVATE_MESSAGE_TEMPLATE = "telegram/private_message.html";
     private static final String GROUP_MESSAGE_TEMPLATE = "telegram/group_message.html";
 
-    private final Environment env;
     private final UserService userService;
     private final TelegramService tgService;
-    private final VkService vkService;
-    private final TemplateRendererService templateRenderer;
+    private final TemplateRenderer templateRenderer;
     private final MessageSourceAccessor messages;
-    private final Map<Integer, AtomicBoolean> daemonStates;
     private final OkHttpClient httpClient;
     private final Gson gson;
 
     @Autowired
-    public LinkerServiceImpl(Environment env,
-                             UserService userService,
-                             VkService vkService,
+    public LinkerServiceImpl(UserService userService,
                              TelegramService tgService,
-                             TemplateRendererService templateRenderer,
+                             TemplateRenderer templateRenderer,
                              MessageSource messageSource) {
-        this.env = env;
         this.userService = userService;
-        this.vkService = vkService;
         this.tgService = tgService;
         this.templateRenderer = templateRenderer;
         this.messages = new MessageSourceAccessor(messageSource);
         this.httpClient = new OkHttpClient.Builder().build();
         this.gson = new GsonBuilder().create();
-        this.daemonStates = new HashMap<>();
-    }
-
-    @PostConstruct
-    protected void init() {
-        final boolean autoInit = env.getProperty(EnvConstants.PROP_VK_AUTO_INIT_POOL, Boolean.TYPE, true);
-        if (autoInit) {
-            userService.findAllStarted().forEach(this::start);
-        }
     }
 
     @Override
-    public void start(User user) {
-        final boolean isStarted = daemonStates.keySet()
-                .stream()
-                .anyMatch(id -> Objects.equals(id, user.getId()));
-        if (!isStarted) {
-            LOGGER.debug("Start messages linking for {}", user);
-            final UserActor actor = new UserActor(user.getVkId(), user.getVkToken());
-            final AtomicBoolean isDaemonActive = vkService.fetchMessages(actor, getVkMessageHandler(user));
-            daemonStates.put(user.getId(), isDaemonActive);
-            user.getSettings().setStarted(isDaemonActive.get());
-            userService.updateUserSettings(user.getSettings());
-        }
-    }
-
-    @Override
-    public void stop(User user) {
-        Optional.ofNullable(daemonStates.get(user.getId()))
-                .ifPresent(daemonState -> {
-                    final boolean state = false;
-                    daemonState.lazySet(state);
-                    daemonStates.remove(user.getId());
-                    user.getSettings().setStarted(state);
-                    userService.updateUserSettings(user.getSettings());
-                    LOGGER.debug("Stop messages linking for {}", user);
-                });
-    }
-
-    private BiConsumer<? super com.vk.api.sdk.objects.users.User, ? super Message> getVkMessageHandler(User user) {
+    public BiConsumer<com.vk.api.sdk.objects.users.User, Message> getVkMessageHandler(User user) {
         return (profile, message) -> {
             try {
                 final Integer vkChatId = Tg2vkMapperUtils.getVkChatId(message);

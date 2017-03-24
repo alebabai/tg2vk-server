@@ -6,7 +6,7 @@ import com.vk.api.sdk.objects.messages.Message;
 import com.vk.api.sdk.objects.users.User;
 
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
 public interface VkService {
@@ -16,5 +16,5 @@ public interface VkService {
 
     String getAuthorizeUrl(String redirectUrl, String... scopes);
 
-    AtomicBoolean fetchMessages(Actor actor, BiConsumer<? super User, ? super Message> callback);
+    CompletableFuture<Integer> fetchMessages(Actor actor, BiConsumer<User, Message> consumer);
 }
