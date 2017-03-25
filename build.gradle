@@ -39,17 +39,28 @@ repositories {
     mavenCentral()
 }
 
+ext {
+    springFoxVersion = '2.6.1'
+}
+
 dependencies {
-/*
+/**
  *  Spring dependencies
  */
-    compile 'org.springframework.boot:spring-boot-starter-web'
+    compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+    compile 'org.springframework.boot:spring-boot-starter-data-rest'
+    compile 'org.springframework.boot:spring-boot-starter-security'
     compile 'org.springframework.boot:spring-boot-starter-log4j2'
     compile 'org.springframework.boot:spring-boot-starter-mustache'
-    compile 'org.springframework.boot:spring-boot-starter-data-jpa'
-    compile 'org.springframework.boot:spring-boot-starter-security'
 
-/*
+/**
+ *  SpringFox dependencies
+ */
+    compile "io.springfox:springfox-swagger2:${springFoxVersion}"
+    compile "io.springfox:springfox-data-rest:${springFoxVersion}"
+    compile "io.springfox:springfox-swagger-ui:${springFoxVersion}"
+
+/**
  *  Other dependencies
  */
     compile 'com.vk.api:sdk:0.4.3'
@@ -60,7 +71,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.16.14'
     runtime 'org.postgresql:postgresql'
 
-/*
+/**
  *  Test dependencies
  */
     testCompile 'org.springframework.boot:spring-boot-starter-test'

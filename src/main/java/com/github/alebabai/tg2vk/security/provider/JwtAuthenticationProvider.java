@@ -16,6 +16,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,9 +38,8 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
             final String rawToken = (String) authentication.getPrincipal();
             final Jws<Claims> jws = parser.parseClaimsJws(rawToken);
             final Object tgId = jws.getBody().get("tgId");
-            final List<Role> roles = jws.getBody().get("roles", List.class);
+            final List<String> roles = jws.getBody().get("roles", List.class);
             final List<SimpleGrantedAuthority> authorities = roles.stream()
-                    .map(Role::getName)
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());
             Assert.notNull(tgId, "tgId is null");

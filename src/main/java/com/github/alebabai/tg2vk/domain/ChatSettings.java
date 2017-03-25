@@ -1,13 +1,12 @@
 package com.github.alebabai.tg2vk.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.springframework.data.domain.Persistable;
 
 import javax.persistence.*;
-import java.util.Objects;
 
 
 @Data
@@ -24,7 +23,7 @@ public class ChatSettings implements Persistable<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tg2vk_chat_settings_id_seq")
-    @SequenceGenerator(name = "tg2vk_chat_settings_id_seq", sequenceName = "tg2vk_chat_settings_id_seq")
+    @SequenceGenerator(name = "tg2vk_chat_settings_id_seq", sequenceName = "tg2vk_chat_settings_id_seq", allocationSize = 1)
     @Column(name = "id", unique = true, nullable = false)
     private Integer id;
 
@@ -40,15 +39,13 @@ public class ChatSettings implements Persistable<Integer> {
     @Column(name = "started", nullable = false)
     private boolean started;
 
-    public ChatSettings() {
-        super();
-    }
-
+    @JsonIgnore
     @Override
     public Integer getId() {
         return id;
     }
 
+    @JsonIgnore
     @Override
     public boolean isNew() {
         return id == null;

@@ -1,5 +1,6 @@
 package com.github.alebabai.tg2vk.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -7,9 +8,6 @@ import lombok.experimental.Accessors;
 import org.springframework.data.domain.Persistable;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 @Data
@@ -22,7 +20,7 @@ public class User implements Persistable<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tg2vk_user_id_seq")
-    @SequenceGenerator(name = "tg2vk_user_id_seq", sequenceName = "tg2vk_user_id_seq")
+    @SequenceGenerator(name = "tg2vk_user_id_seq", sequenceName = "tg2vk_user_id_seq", allocationSize = 1)
     @Column(name = "id", unique = true, nullable = false)
     private Integer id;
 
@@ -51,6 +49,7 @@ public class User implements Persistable<Integer> {
     )
     private Set<ChatSettings> chatsSettings;
 
+    @JsonIgnore
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
     @CollectionTable(
             name = "tg2vk_user_role",
@@ -58,21 +57,17 @@ public class User implements Persistable<Integer> {
                     @JoinColumn(name = "user_id", nullable = false)
             }
     )
-    @Column(name = "role_id")
+    @Column(name = "role_id", nullable = false)
     @Enumerated(EnumType.ORDINAL)
     private Set<Role> roles;
 
-    public User() {
-        this.settings = new UserSettings();
-        this.chatsSettings = new LinkedHashSet<>();
-        this.roles = new LinkedHashSet<>();
-    }
-
+    @JsonIgnore
     @Override
     public Integer getId() {
         return id;
     }
 
+    @JsonIgnore
     @Override
     public boolean isNew() {
         return id == null;

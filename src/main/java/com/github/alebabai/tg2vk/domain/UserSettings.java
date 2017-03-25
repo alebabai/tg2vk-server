@@ -1,5 +1,6 @@
 package com.github.alebabai.tg2vk.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -16,18 +17,20 @@ public class UserSettings implements Persistable<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tg2vk_user_settings_id_seq")
-    @SequenceGenerator(name = "tg2vk_user_settings_id_seq", sequenceName = "tg2vk_user_settings_id_seq")
+    @SequenceGenerator(name = "tg2vk_user_settings_id_seq", sequenceName = "tg2vk_user_settings_id_seq", allocationSize = 1)
     @Column(name = "id", unique = true, nullable = false)
     private Integer id;
 
     @Column(name = "started")
     private boolean started;
 
+    @JsonIgnore
     @Override
     public Integer getId() {
         return id;
     }
 
+    @JsonIgnore
     @Override
     public boolean isNew() {
         return id == null;
