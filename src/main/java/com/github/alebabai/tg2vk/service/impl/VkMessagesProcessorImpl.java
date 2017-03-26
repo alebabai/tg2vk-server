@@ -1,7 +1,8 @@
 package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.domain.User;
-import com.github.alebabai.tg2vk.service.UserService;
+import com.github.alebabai.tg2vk.repository.UserRepository;
+import com.github.alebabai.tg2vk.repository.UserSettingsRepository;
 import com.github.alebabai.tg2vk.service.VkMessagesProcessor;
 import com.github.alebabai.tg2vk.service.VkService;
 import com.github.alebabai.tg2vk.util.constants.EnvConstants;
@@ -28,18 +29,21 @@ public class VkMessagesProcessorImpl implements VkMessagesProcessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VkMessagesProcessorImpl.class);
 
-    private final UserService userService;
+    private final UserRepository userRepository;
+    private final UserSettingsRepository settingsRepository;
     private final VkService vkService;
     private final LinkerServiceImpl linkerService;
     private final Environment env;
     private Map<Integer, CompletableFuture<Integer>> taskPool;
 
     @Autowired
-    public VkMessagesProcessorImpl(UserService userService,
+    public VkMessagesProcessorImpl(UserRepository userRepository,
+                                   UserSettingsRepository settingsRepository,
                                    VkService vkService,
                                    LinkerServiceImpl linkerService,
                                    Environment env) {
-        this.userService = userService;
+        this.userRepository = userRepository;
+        this.settingsRepository = settingsRepository;
         this.vkService = vkService;
         this.linkerService = linkerService;
         this.env = env;
@@ -51,7 +55,7 @@ public class VkMessagesProcessorImpl implements VkMessagesProcessor {
     protected void init() {
         final boolean autoInit = env.getProperty(EnvConstants.PROP_VK_AUTO_INIT_POOL, Boolean.TYPE, true);
         if (autoInit) {
-            userService.findAllStarted().forEach(this::start);
+            userRepository.findAllStarted().forEach(this::start);
         }
     }
 
@@ -67,7 +71,7 @@ public class VkMessagesProcessorImpl implements VkMessagesProcessor {
             final CompletableFuture<Integer> task = vkService.fetchMessages(actor, messageHandler);
             taskPool.put(user.getId(), task);
             user.getSettings().setStarted(true);
-            userService.updateUserSettings(user.getSettings());
+            settingsRepository.save(user.getSettings());
             LOGGER.debug("Start vk messages processing for {}", user);
         }
     }
@@ -79,7 +83,7 @@ public class VkMessagesProcessorImpl implements VkMessagesProcessor {
                 .ifPresent(task -> {
                     task.cancel(true);
                     user.getSettings().setStarted(false);
-                    userService.updateUserSettings(user.getSettings());
+                    settingsRepository.save(user.getSettings());
                     taskPool.remove(user.getId());
                     LOGGER.debug("Stop messages processing for {}", user);
                 });

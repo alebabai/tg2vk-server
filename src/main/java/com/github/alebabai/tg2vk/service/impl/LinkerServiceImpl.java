@@ -2,10 +2,10 @@ package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.domain.User;
+import com.github.alebabai.tg2vk.repository.ChatSettingsRepository;
 import com.github.alebabai.tg2vk.service.LinkerService;
 import com.github.alebabai.tg2vk.service.TelegramService;
 import com.github.alebabai.tg2vk.service.TemplateRenderer;
-import com.github.alebabai.tg2vk.service.UserService;
 import com.github.alebabai.tg2vk.util.Tg2vkMapperUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -43,7 +43,7 @@ public class LinkerServiceImpl implements LinkerService {
     private static final String PRIVATE_MESSAGE_TEMPLATE = "telegram/private_message.html";
     private static final String GROUP_MESSAGE_TEMPLATE = "telegram/group_message.html";
 
-    private final UserService userService;
+    private final ChatSettingsRepository chatSettingsRepository;
     private final TelegramService tgService;
     private final TemplateRenderer templateRenderer;
     private final MessageSourceAccessor messages;
@@ -51,11 +51,11 @@ public class LinkerServiceImpl implements LinkerService {
     private final Gson gson;
 
     @Autowired
-    public LinkerServiceImpl(UserService userService,
+    public LinkerServiceImpl(ChatSettingsRepository chatSettingsRepository,
                              TelegramService tgService,
                              TemplateRenderer templateRenderer,
                              MessageSource messageSource) {
-        this.userService = userService;
+        this.chatSettingsRepository = chatSettingsRepository;
         this.tgService = tgService;
         this.templateRenderer = templateRenderer;
         this.messages = new MessageSourceAccessor(messageSource);
@@ -68,12 +68,12 @@ public class LinkerServiceImpl implements LinkerService {
         return (profile, message) -> {
             try {
                 final Integer vkChatId = Tg2vkMapperUtils.getVkChatId(message);
-                Optional.of(userService
-                        .findChatSettings(user, vkChatId)
-                        .orElse(new ChatSettings()
-                                .setTgChatId(user.getTgId())
-                                .setVkChatId(vkChatId)
-                                .setStarted(true)))
+                Optional.of(
+                        chatSettingsRepository.findOneByUserAndVkChatId(user, vkChatId)
+                                .orElse(new ChatSettings()
+                                        .setTgChatId(user.getTgId())
+                                        .setVkChatId(vkChatId)
+                                        .setStarted(true)))
                         .filter(ChatSettings::isStarted)
                         .map(ChatSettings::getTgChatId)
                         .ifPresent(getMainHandler(message, profile));

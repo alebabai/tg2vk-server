@@ -39,8 +39,7 @@ public abstract class TestUtils {
                 .setVkId(getRandomInteger(Integer.MAX_VALUE))
                 .setVkToken(getRandomString(MAX_STRING_LENGTH))
                 .setRoles(Collections.singleton(generateRole()))
-                .setSettings(generateUserSettings())
-                .setChatsSettings(Collections.singleton(generateChatSettings()));
+                .setSettings(generateUserSettings());
     }
 
     public static UserSettings generateUserSettings() {

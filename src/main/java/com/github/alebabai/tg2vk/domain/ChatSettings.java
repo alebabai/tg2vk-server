@@ -3,13 +3,17 @@ package com.github.alebabai.tg2vk.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.springframework.data.domain.Persistable;
+import org.springframework.data.rest.core.annotation.RestResource;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 
 
 @Data
+@NoArgsConstructor
 @Accessors(chain = true)
 @EqualsAndHashCode(of = {"id"})
 @Entity
@@ -27,9 +31,11 @@ public class ChatSettings implements Persistable<Integer> {
     @Column(name = "id", unique = true, nullable = false)
     private Integer id;
 
+    @NotNull(message = "tgChatId is required!")
     @Column(name = "tg_chat_id", nullable = false)
     private Integer tgChatId;
 
+    @NotNull(message = "vkChatId is required!")
     @Column(name = "vk_chat_id", nullable = false)
     private Integer vkChatId;
 
@@ -38,6 +44,18 @@ public class ChatSettings implements Persistable<Integer> {
 
     @Column(name = "started", nullable = false)
     private boolean started;
+
+    @NotNull(message = "ChatSettings can't be saved without specified reference to the User!")
+    @RestResource(rel = "user", path = "user")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    public ChatSettings(Integer tgChatId, Integer vkChatId, User user) {
+        this.tgChatId = tgChatId;
+        this.vkChatId = vkChatId;
+        this.user = user;
+    }
 
     @JsonIgnore
     @Override

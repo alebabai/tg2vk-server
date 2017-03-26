@@ -2,10 +2,10 @@ package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.domain.Role;
 import com.github.alebabai.tg2vk.domain.User;
+import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.security.service.JwtTokenFactoryService;
 import com.github.alebabai.tg2vk.service.PathResolver;
 import com.github.alebabai.tg2vk.service.TelegramService;
-import com.github.alebabai.tg2vk.service.UserService;
 import com.github.alebabai.tg2vk.service.VkMessagesProcessor;
 import com.github.alebabai.tg2vk.util.constants.PathConstants;
 import com.pengrad.telegrambot.model.CallbackQuery;
@@ -37,7 +37,7 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramUpdateHandlerImpl.class);
 
-    private final UserService userService;
+    private final UserRepository userRepository;
     private final TelegramService tgService;
     private final VkMessagesProcessor vkMessageProcessor;
     private final PathResolver pathResolver;
@@ -45,14 +45,14 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
     private final MessageSourceAccessor messages;
 
     @Autowired
-    public TelegramUpdateHandlerImpl(PathResolver pathResolver,
-                                     UserService userService,
+    public TelegramUpdateHandlerImpl(UserRepository userRepository,
+                                     PathResolver pathResolver,
                                      TelegramService tgService,
                                      VkMessagesProcessor vkMessageProcessor,
                                      JwtTokenFactoryService tokenFactory,
                                      MessageSource messageSource) {
+        this.userRepository = userRepository;
         this.pathResolver = pathResolver;
-        this.userService = userService;
         this.tgService = tgService;
         this.vkMessageProcessor = vkMessageProcessor;
         this.tokenFactory = tokenFactory;
@@ -123,7 +123,7 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
     }
 
     private void processLoginCommand(Message context) {
-        final String loginText = userService.findOneByTgId(context.from().id())
+        final String loginText = userRepository.findOneByTgId(context.from().id())
                 .map(user -> String.join(
                         "\n\n",
                         messages.getMessage("tg.command.login.msg.warning", StringUtils.EMPTY),
@@ -165,7 +165,7 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
     }
 
     private void processUserInitCommand(Message context, Consumer<User> userSpecificAction, Function<Optional<User>, String> getMessageCodeAction) {
-        final Optional<User> userOptional = userService.findOneByTgId(context.from().id());
+        final Optional<User> userOptional = userRepository.findOneByTgId(context.from().id());
         final String messageCode = getMessageCodeAction.apply(userOptional);
         userOptional.ifPresent(userSpecificAction);
         final SendMessage message = new SendMessage(context.chat().id(), messages.getMessage(messageCode, StringUtils.EMPTY))

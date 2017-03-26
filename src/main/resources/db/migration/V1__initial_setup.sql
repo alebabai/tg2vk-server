@@ -4,22 +4,6 @@ CREATE TABLE tg2vk_user_settings (
     CONSTRAINT pk_tg2vk_user_settings_id PRIMARY KEY (id)
 );
 
-CREATE TABLE tg2vk_chat_settings (
-    id SERIAL,
-    tg_chat_id INTEGER NOT NULL,
-    vk_chat_id INTEGER NOT NULL,
-    answer_allowed BOOLEAN DEFAULT FALSE,
-    started BOOLEAN DEFAULT FALSE,
-    CONSTRAINT pk_tg2vk_chat_settings_id PRIMARY KEY (id),
-    CONSTRAINT uk_tg2vk_chat_settings_tg_vk_chat_id UNIQUE (tg_chat_id, vk_chat_id)
-);
-
-CREATE TABLE tg2vk_role (
-    id SERIAL,
-    name VARCHAR(100) NOT NULL,
-    CONSTRAINT pk_tg2vk_role_id PRIMARY KEY (id)
-);
-
 CREATE TABLE tg2vk_user (
     id SERIAL,
     tg_id INTEGER NOT NULL,
@@ -33,12 +17,22 @@ CREATE TABLE tg2vk_user (
     CONSTRAINT fk_tg2vk_user_user_settings_id FOREIGN KEY (user_settings_id) REFERENCES tg2vk_user_settings (id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE tg2vk_user_chat_settings (
+CREATE TABLE tg2vk_chat_settings (
+    id SERIAL,
+    tg_chat_id INTEGER NOT NULL,
+    vk_chat_id INTEGER NOT NULL,
+    answer_allowed BOOLEAN DEFAULT FALSE,
+    started BOOLEAN DEFAULT FALSE,
     user_id INTEGER NOT NULL,
-    chat_settings_id INTEGER NOT NULL,
-    CONSTRAINT pk_tg2vk_user_chat_settings PRIMARY KEY (user_id, chat_settings_id),
-    CONSTRAINT fk_tg2vk_user_chat_settings_user_id FOREIGN KEY (user_id) REFERENCES tg2vk_user (id) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_tg2vk_user_chat_settings_chat_settings_id FOREIGN KEY (chat_settings_id) REFERENCES tg2vk_chat_settings (id) ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT pk_tg2vk_chat_settings_id PRIMARY KEY (id),
+    CONSTRAINT uk_tg2vk_chat_settings_tg_vk_chat_id UNIQUE (tg_chat_id, vk_chat_id),
+    CONSTRAINT fk_tg2vk_chat_settings_user_id FOREIGN KEY (user_id) REFERENCES tg2vk_user (id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE tg2vk_role (
+    id SERIAL,
+    name VARCHAR(100) NOT NULL,
+    CONSTRAINT pk_tg2vk_role_id PRIMARY KEY (id)
 );
 
 CREATE TABLE tg2vk_user_role (
