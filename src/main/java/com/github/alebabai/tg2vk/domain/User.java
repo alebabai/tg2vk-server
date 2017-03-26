@@ -1,6 +1,7 @@
 package com.github.alebabai.tg2vk.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -47,7 +48,8 @@ public class User implements Persistable<Integer> {
     @JoinColumn(name = "user_settings_id", nullable = false)
     private UserSettings settings;
 
-    @RestResource(rel = "chatSettings", path = "chat-settings")
+    @RestResource(rel = "chatsSettings", path = "chat-settings")
+    @JsonIgnoreProperties(value = "user")
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<ChatSettings> chatsSettings = new HashSet<>();
 

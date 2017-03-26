@@ -1,6 +1,7 @@
 package com.github.alebabai.tg2vk.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -47,6 +48,7 @@ public class ChatSettings implements Persistable<Integer> {
 
     @NotNull(message = "ChatSettings can't be saved without specified reference to the User!")
     @RestResource(rel = "user", path = "user")
+    @JsonIgnoreProperties(value = "chatsSettings")
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
