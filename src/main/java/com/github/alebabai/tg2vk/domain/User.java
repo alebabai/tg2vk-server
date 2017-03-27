@@ -21,7 +21,10 @@ import java.util.Set;
 @EqualsAndHashCode(of = {"id"})
 @ToString(of = {"id", "roles"})
 @Entity
-@Table(name = "tg2vk_user")
+@Table(
+        name = "tg2vk_user",
+        uniqueConstraints = @UniqueConstraint(name = "uk_tg2vk_user_user_settings_id", columnNames = {"user_settings_id"})
+)
 public class User implements Persistable<Integer> {
 
     @Id

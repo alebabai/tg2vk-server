@@ -14,6 +14,7 @@ CREATE TABLE tg2vk_user (
     CONSTRAINT uk_tg2vk_user_tg_id UNIQUE (tg_id),
     CONSTRAINT uk_tg2vk_user_vk_id UNIQUE (vk_id),
     CONSTRAINT uk_tg2vk_user_vk_token UNIQUE (vk_token),
+    CONSTRAINT uk_tg2vk_user_user_settings_id UNIQUE (user_settings_id),
     CONSTRAINT fk_tg2vk_user_user_settings_id FOREIGN KEY (user_settings_id) REFERENCES tg2vk_user_settings (id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
