@@ -18,8 +18,8 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @Accessors(chain = true)
-@EqualsAndHashCode(of = {"id"})
-@ToString(of = {"id", "roles"})
+@EqualsAndHashCode(of = {"id", "tgId", "vkId"})
+@ToString(of = {"id", "tgId", "vkId"})
 @Entity
 @Table(
         name = "tg2vk_user",
@@ -51,7 +51,7 @@ public class User implements Persistable<Integer> {
     @JoinColumn(name = "user_settings_id", nullable = false)
     private UserSettings settings;
 
-    @RestResource(rel = "chatsSettings", path = "chat-settings")
+    @RestResource(rel = "chatsSettings", path = "chats-settings")
     @JsonIgnoreProperties(value = "user")
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<ChatSettings> chatsSettings = new HashSet<>();

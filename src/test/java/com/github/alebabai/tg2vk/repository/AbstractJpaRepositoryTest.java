@@ -19,7 +19,7 @@ import java.util.stream.Stream;
 
 import static com.github.alebabai.tg2vk.util.TestUtils.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 @Transactional
 abstract public class AbstractJpaRepositoryTest<T extends Persistable<ID>, ID extends Serializable, REPO extends JpaRepository<T, ID>> extends AbstractSpringTest {
@@ -85,7 +85,7 @@ abstract public class AbstractJpaRepositoryTest<T extends Persistable<ID>, ID ex
         final ID savedId = repository.save(entity).getId();
         repository.delete(savedId);
 
-        assertFalse(repository.exists(savedId));
+        assertThat(repository.exists(savedId), is(false));
     }
 
     @Test
@@ -96,7 +96,7 @@ abstract public class AbstractJpaRepositoryTest<T extends Persistable<ID>, ID ex
                 .collect(Collectors.toList());
         repository.delete(saved);
 
-        assertThat(repository.findAll(ids), emptyIterable());
+        assertThat(repository.findAll(ids), empty());
     }
 
     @Test
@@ -104,15 +104,15 @@ abstract public class AbstractJpaRepositoryTest<T extends Persistable<ID>, ID ex
         final T saved = repository.save(entity);
         repository.delete(saved);
 
-        assertFalse(repository.exists(saved.getId()));
+        assertThat(repository.exists(saved.getId()), is(false));
     }
 
     @Test
     public void deleteAllEntitiesTest() {
-        repository.save(entity);
+        final T entities = repository.save(entity);
         repository.deleteAll();
 
-        assertTrue(repository.count() == 0);
+        assertThat(repository.findAll(), not(hasItem(entities)));
     }
 
     @Test
@@ -120,7 +120,7 @@ abstract public class AbstractJpaRepositoryTest<T extends Persistable<ID>, ID ex
         repository.save(entities);
         repository.deleteAllInBatch();
 
-        assertTrue(repository.count() == 0);
+        assertThat(repository.findAll(), empty());
     }
 
     @Test
@@ -133,23 +133,21 @@ abstract public class AbstractJpaRepositoryTest<T extends Persistable<ID>, ID ex
 
         repository.deleteInBatch((Iterable<T>) saved);
 
-        assertThat(repository.findAll(ids), emptyIterable());
+        assertThat(repository.findAll(ids), empty());
     }
 
     @Test
     public void entityExistenceByIdTest() {
         final T saved = repository.save(entity);
 
-        assertTrue(repository.exists(saved.getId()));
+        assertThat(repository.exists(saved.getId()), is(true));
     }
 
     @Test
     public void findAllEntitiesTest() {
-        repository.deleteAll();
         final List<? extends T> saved = repository.save(entities);
-        final List<? extends T> found = repository.findAll();
 
-        assertThat(found, is(saved));
+        assertThat(saved, is(repository.findAll()));
     }
 
     @Test
@@ -168,7 +166,7 @@ abstract public class AbstractJpaRepositoryTest<T extends Persistable<ID>, ID ex
         repository.save(entities);
         final Page<T> found = repository.findAll(pageable);
 
-        assertTrue(found.getTotalPages() <= entities.size());
+        assertThat(found.getTotalPages() <= entities.size(), is(true));
     }
 
     @Test

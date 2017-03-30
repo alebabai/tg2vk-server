@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.rest.core.annotation.RestResource;
@@ -16,7 +17,8 @@ import javax.validation.constraints.NotNull;
 @Data
 @NoArgsConstructor
 @Accessors(chain = true)
-@EqualsAndHashCode(of = {"id"})
+@EqualsAndHashCode(exclude = {"user"})
+@ToString(exclude = {"user"})
 @Entity
 @Table(
         name = "tg2vk_chat_settings",

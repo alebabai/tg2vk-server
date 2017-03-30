@@ -2,7 +2,6 @@ package com.github.alebabai.tg2vk.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.springframework.data.domain.Persistable;
 
@@ -10,7 +9,6 @@ import javax.persistence.*;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(of = {"id"})
 @Entity
 @Table(name = "tg2vk_user_settings")
 public class UserSettings implements Persistable<Integer> {
