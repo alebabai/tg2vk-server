@@ -2,7 +2,6 @@ package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.domain.User;
-import com.github.alebabai.tg2vk.repository.ChatSettingsRepository;
 import com.github.alebabai.tg2vk.service.LinkerService;
 import com.github.alebabai.tg2vk.service.TelegramService;
 import com.github.alebabai.tg2vk.service.TemplateRenderer;
@@ -31,6 +30,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -43,7 +43,6 @@ public class LinkerServiceImpl implements LinkerService {
     private static final String PRIVATE_MESSAGE_TEMPLATE = "telegram/private_message.html";
     private static final String GROUP_MESSAGE_TEMPLATE = "telegram/group_message.html";
 
-    private final ChatSettingsRepository chatSettingsRepository;
     private final TelegramService tgService;
     private final TemplateRenderer templateRenderer;
     private final MessageSourceAccessor messages;
@@ -51,11 +50,9 @@ public class LinkerServiceImpl implements LinkerService {
     private final Gson gson;
 
     @Autowired
-    public LinkerServiceImpl(ChatSettingsRepository chatSettingsRepository,
-                             TelegramService tgService,
+    public LinkerServiceImpl(TelegramService tgService,
                              TemplateRenderer templateRenderer,
                              MessageSource messageSource) {
-        this.chatSettingsRepository = chatSettingsRepository;
         this.tgService = tgService;
         this.templateRenderer = templateRenderer;
         this.messages = new MessageSourceAccessor(messageSource);
@@ -69,7 +66,10 @@ public class LinkerServiceImpl implements LinkerService {
             try {
                 final Integer vkChatId = Tg2vkMapperUtils.getVkChatId(message);
                 Optional.of(
-                        chatSettingsRepository.findOneByUserAndVkChatId(user, vkChatId)
+                        user.getChatsSettings()
+                                .stream()
+                                .filter(chatSettings -> Objects.equals(chatSettings.getVkChatId(), vkChatId))
+                                .findAny()
                                 .orElse(new ChatSettings()
                                         .setTgChatId(user.getTgId())
                                         .setVkChatId(vkChatId)

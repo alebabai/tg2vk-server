@@ -1,14 +1,12 @@
 package com.github.alebabai.tg2vk.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.springframework.data.domain.Persistable;
-import org.springframework.data.rest.core.annotation.RestResource;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -46,14 +44,12 @@ public class User implements Persistable<Integer> {
     private String vkToken;
 
     @NotNull(message = "Can't save user without settings!")
-    @RestResource(rel = "settings", path = "settings")
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true, cascade = CascadeType.ALL)
     @JoinColumn(name = "user_settings_id", nullable = false)
     private UserSettings settings;
 
-    @RestResource(rel = "chatsSettings", path = "chats-settings")
-    @JsonIgnoreProperties(value = "user")
-    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private Set<ChatSettings> chatsSettings = new HashSet<>();
 
     @JsonIgnore
@@ -73,6 +69,16 @@ public class User implements Persistable<Integer> {
         this.vkId = vkId;
         this.vkToken = vkToken;
         this.settings = settings;
+    }
+
+    public User setChatsSettings(Set<ChatSettings> chatsSettings) {
+        this.chatsSettings.retainAll(chatsSettings);
+        return this;
+    }
+
+    public User setRoles(Set<Role> roles) {
+        this.roles.retainAll(roles);
+        return this;
     }
 
     @JsonIgnore

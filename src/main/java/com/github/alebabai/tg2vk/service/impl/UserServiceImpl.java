@@ -2,9 +2,7 @@ package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.domain.Role;
 import com.github.alebabai.tg2vk.domain.User;
-import com.github.alebabai.tg2vk.repository.ChatSettingsRepository;
 import com.github.alebabai.tg2vk.repository.UserRepository;
-import com.github.alebabai.tg2vk.repository.UserSettingsRepository;
 import com.github.alebabai.tg2vk.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,14 +15,10 @@ import java.util.Collections;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final ChatSettingsRepository chatSettingsRepository;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository,
-                           UserSettingsRepository settingsRepository,
-                           ChatSettingsRepository chatSettingsRepository) {
+    public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.chatSettingsRepository = chatSettingsRepository;
     }
 
     @Transactional
@@ -35,7 +29,6 @@ public class UserServiceImpl implements UserService {
         Assert.notNull(tgId, "vkToken is required param!");
         return userRepository.findOneByTgId(tgId)
                 .map(user -> {
-                    chatSettingsRepository.delete(user.getChatsSettings());
                     user.setChatsSettings(Collections.emptySet());
                     user.setVkId(vkId).setVkToken(vkToken);
                     return userRepository.save(user);

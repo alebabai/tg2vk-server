@@ -1,14 +1,10 @@
 package com.github.alebabai.tg2vk.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.springframework.data.domain.Persistable;
-import org.springframework.data.rest.core.annotation.RestResource;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -17,8 +13,6 @@ import javax.validation.constraints.NotNull;
 @Data
 @NoArgsConstructor
 @Accessors(chain = true)
-@EqualsAndHashCode(exclude = {"user"})
-@ToString(exclude = {"user"})
 @Entity
 @Table(
         name = "tg2vk_chat_settings",
@@ -48,17 +42,9 @@ public class ChatSettings implements Persistable<Integer> {
     @Column(name = "started", nullable = false)
     private boolean started;
 
-    @NotNull(message = "ChatSettings can't be saved without specified reference to the User!")
-    @RestResource(rel = "user", path = "user")
-    @JsonIgnoreProperties(value = "chatsSettings")
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    public ChatSettings(Integer tgChatId, Integer vkChatId, User user) {
+    public ChatSettings(Integer tgChatId, Integer vkChatId) {
         this.tgChatId = tgChatId;
         this.vkChatId = vkChatId;
-        this.user = user;
     }
 
     @JsonIgnore

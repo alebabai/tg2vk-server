@@ -4,6 +4,7 @@ import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.domain.Role;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.domain.UserSettings;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
@@ -39,6 +40,7 @@ public abstract class TestUtils {
                 .setVkId(getRandomInteger(Integer.MAX_VALUE))
                 .setVkToken(getRandomString(MAX_STRING_LENGTH))
                 .setRoles(Collections.singleton(generateRole()))
+                .setChatsSettings(Sets.newHashSet(generateChatSettings(), generateChatSettings()))
                 .setSettings(generateUserSettings());
     }
 
