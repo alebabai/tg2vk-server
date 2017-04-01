@@ -12,7 +12,6 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,7 +22,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 @RepositoryRestController
-@RequestMapping("api/users/authorize")
+@RequestMapping("/users/authorize")
 @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
 public class UserAuthorizationController {
 
@@ -40,14 +39,14 @@ public class UserAuthorizationController {
         this.pathResolver = pathResolver;
     }
 
-    @PostMapping(value = "/code", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/code")
     public ResponseEntity<Resource<User>> authorize(@RequestParam String code, Authentication auth) {
         return vkService.authorize(code)
                 .map(actor -> processAuthorization((Integer) auth.getPrincipal(), actor.getId(), actor.getAccessToken()))
                 .orElseThrow(() -> new IllegalArgumentException("Wrong vk authorization code!"));
     }
 
-    @PostMapping(value = "/implicit", produces = MediaType.APPLICATION_JSON_VALUE)
+        @PostMapping(value = "/implicit")
     public ResponseEntity<Resource<User>> authorize(@RequestParam Integer vkId, @RequestParam String vkToken, Authentication auth) {
         return vkService.authorize(vkId, vkToken)
                 .map(actor -> processAuthorization((Integer) auth.getPrincipal(), actor.getId(), actor.getAccessToken()))
