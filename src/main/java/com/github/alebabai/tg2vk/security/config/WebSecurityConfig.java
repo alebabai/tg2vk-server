@@ -40,7 +40,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf().disable()
                 .formLogin().disable()
                 .httpBasic().disable()
-                .anonymous()
+                .exceptionHandling()
                 .and()
                 .authenticationProvider(authenticationProvider)
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)

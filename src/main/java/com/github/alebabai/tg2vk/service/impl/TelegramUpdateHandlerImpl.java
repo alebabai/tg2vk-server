@@ -7,7 +7,6 @@ import com.github.alebabai.tg2vk.security.service.JwtTokenFactoryService;
 import com.github.alebabai.tg2vk.service.PathResolver;
 import com.github.alebabai.tg2vk.service.TelegramService;
 import com.github.alebabai.tg2vk.service.VkMessagesProcessor;
-import com.github.alebabai.tg2vk.util.constants.PathConstants;
 import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.ChosenInlineResult;
 import com.pengrad.telegrambot.model.InlineQuery;
@@ -135,9 +134,9 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
                 .parseMode(ParseMode.Markdown)
                 .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
                         new InlineKeyboardButton(messages.getMessage("tg.command.login.button.get_token.label", StringUtils.EMPTY))
-                                .url(pathResolver.getAbsoluteUrl(PathConstants.API_AUTH_LOGIN)),
+                                .url(pathResolver.getAbsoluteUrl("/api/redirect/vk-login")),
                         new InlineKeyboardButton(messages.getMessage("tg.command.login.button.send_token.label", StringUtils.EMPTY))
-                                .url(String.join("#", pathResolver.getClientUrl(), tokenFactory.generate(context.from().id(), Role.USER))),
+                                .url(String.format("%s?token%s", pathResolver.getAbsoluteUrl("/api/redirect/client"), tokenFactory.generate(context.from().id(), Role.USER))),
                 }));
         tgService.send(loginMessage);
     }

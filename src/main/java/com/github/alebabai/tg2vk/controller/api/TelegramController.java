@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 
-@RestController(PathConstants.API_TELEGRAM)
+@RestController("/api/telegram")
 public class TelegramController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramController.class);
@@ -26,7 +26,7 @@ public class TelegramController {
         this.updateHandler = updateHandler;
     }
 
-    @PostMapping(PathConstants.API_TELEGRAM_FETCH_UPDATES)
+    @PostMapping("/updates")
     public ResponseEntity<String> fetchUpdates(HttpServletRequest request) {
         ResponseEntity<String> response = new ResponseEntity<>("Update has been successfully handled!", HttpStatus.OK);
         try {

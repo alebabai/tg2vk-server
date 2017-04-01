@@ -3,7 +3,6 @@ package com.github.alebabai.tg2vk.service.impl;
 import com.github.alebabai.tg2vk.service.PathResolver;
 import com.github.alebabai.tg2vk.service.TelegramService;
 import com.github.alebabai.tg2vk.util.constants.EnvConstants;
-import com.github.alebabai.tg2vk.util.constants.PathConstants;
 import com.pengrad.telegrambot.Callback;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.TelegramBotAdapter;
@@ -60,7 +59,7 @@ public class TelegramServiceImpl implements TelegramService {
             final Resource certificate = resourceLoader.getResource(ResourceLoader.CLASSPATH_URL_PREFIX + "certificates/tg2vk.pem");
             if (certificate.exists() && certificate.isReadable()) {
                 SetWebhook request = new SetWebhook()
-                        .url(pathResolver.getAbsoluteUrl(PathConstants.API_TELEGRAM_FETCH_UPDATES))
+                        .url(pathResolver.getAbsoluteUrl("/api/telegram/updates"))
                         .maxConnections(env.getProperty(EnvConstants.PROP_TELEGRAM_BOT_MAX_CONNECTIONS, Integer.TYPE, 40))
                         .certificate(certificate.getFile());
                 bot.execute(request, loggerCallback());

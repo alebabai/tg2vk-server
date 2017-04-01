@@ -30,10 +30,11 @@ public class Tg2VkApplication {
 
     @Bean
     public Docket getApi(@Autowired JwtSettings settings) {
+        final ApiKey apiKey = new ApiKey(settings.getHeaderName(), settings.getHeaderName(), "header");
         return new Docket(DocumentationType.SWAGGER_2)
-                .securitySchemes(Collections.singletonList(new ApiKey(settings.getHeaderName(), settings.getHeaderName(), "header")))
+                .securitySchemes(Collections.singletonList(apiKey))
                 .select()
-                .paths(PathSelectors.ant("/api/**"))
+                .paths(PathSelectors.ant("/api/users/**"))
                 .build();
     }
 }
