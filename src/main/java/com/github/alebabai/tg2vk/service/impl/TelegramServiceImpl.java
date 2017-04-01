@@ -17,8 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -32,14 +30,12 @@ public class TelegramServiceImpl implements TelegramService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramServiceImpl.class);
 
     private final TelegramBot bot;
-    private final ResourceLoader resourceLoader;
     private final PathResolver pathResolver;
     private final Environment env;
 
     @Autowired
-    public TelegramServiceImpl(Environment env, ResourceLoader resourceLoader, PathResolver pathResolver) {
+    public TelegramServiceImpl(Environment env, PathResolver pathResolver) {
         this.bot = TelegramBotAdapter.build(env.getRequiredProperty(EnvConstants.PROP_TELEGRAM_BOT_TOKEN));
-        this.resourceLoader = resourceLoader;
         this.pathResolver = pathResolver;
         this.env = env;
     }
@@ -56,16 +52,10 @@ public class TelegramServiceImpl implements TelegramService {
     @Override
     public void startWebHookUpdates() {
         try {
-            final Resource certificate = resourceLoader.getResource(ResourceLoader.CLASSPATH_URL_PREFIX + "certificates/tg2vk.pem");
-            if (certificate.exists() && certificate.isReadable()) {
-                SetWebhook request = new SetWebhook()
-                        .url(pathResolver.getAbsoluteUrl("/api/telegram/updates"))
-                        .maxConnections(env.getProperty(EnvConstants.PROP_TELEGRAM_BOT_MAX_CONNECTIONS, Integer.TYPE, 40))
-                        .certificate(certificate.getFile());
-                bot.execute(request, loggerCallback());
-            } else {
-                throw new IOException(String.format("Certificate file '%s' doesn't exist or unreadable!", certificate.getFilename()));
-            }
+            final SetWebhook request = new SetWebhook()
+                    .url(pathResolver.getAbsoluteUrl("/api/telegram/updates"))
+                    .maxConnections(env.getProperty(EnvConstants.PROP_TELEGRAM_BOT_MAX_CONNECTIONS, Integer.TYPE, 40));
+            bot.execute(request, loggerCallback());
         } catch (Exception e) {
             LOGGER.error("Error during webhook setup: ", e);
         }

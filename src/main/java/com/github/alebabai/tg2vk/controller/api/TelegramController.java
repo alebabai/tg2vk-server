@@ -1,7 +1,6 @@
 package com.github.alebabai.tg2vk.controller.api;
 
 import com.github.alebabai.tg2vk.service.TelegramUpdateHandler;
-import com.github.alebabai.tg2vk.util.constants.PathConstants;
 import com.pengrad.telegrambot.BotUtils;
 import com.pengrad.telegrambot.model.Update;
 import org.slf4j.Logger;
@@ -10,11 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 
-@RestController("/api/telegram")
+@RestController
+@RequestMapping("/api/telegram")
 public class TelegramController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramController.class);
