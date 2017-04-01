@@ -27,15 +27,15 @@ public class TelegramController {
         this.updateHandler = updateHandler;
     }
 
-    @PostMapping("/updates")
+    @PostMapping(value = "/updates")
     public ResponseEntity<String> fetchUpdates(HttpServletRequest request) {
-        ResponseEntity<String> response = new ResponseEntity<>("Update has been successfully handled!", HttpStatus.OK);
+        ResponseEntity<String> response = ResponseEntity.ok("Update has been successfully handled!");
         try {
             final Update update = BotUtils.parseUpdate(request.getReader());
             updateHandler.handleAsync(update);
         } catch (Exception e) {
             LOGGER.error("Error during webhook update handling: ", e);
-            response = new ResponseEntity<>("Some error happened", HttpStatus.BAD_REQUEST);
+            response = new ResponseEntity<>("Some error happened", HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return response;
     }

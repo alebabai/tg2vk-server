@@ -9,7 +9,7 @@ import java.util.Map;
 
 @Controller
 @RequestMapping("/")
-public class PageController {
+public class RootController {
 
     @GetMapping
     public String page(Map<String, Object> model) {
