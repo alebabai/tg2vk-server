@@ -12,6 +12,8 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +24,7 @@ import java.net.URISyntaxException;
 
 @RepositoryRestController
 @RequestMapping("api/users/authorize")
+@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
 public class UserAuthorizationController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserAuthorizationController.class);
