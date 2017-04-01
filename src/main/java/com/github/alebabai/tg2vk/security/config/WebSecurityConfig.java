@@ -1,10 +1,9 @@
 package com.github.alebabai.tg2vk.security.config;
 
-import com.github.alebabai.tg2vk.domain.Role;
 import com.github.alebabai.tg2vk.security.provider.JwtAuthenticationProvider;
-import com.github.alebabai.tg2vk.util.constants.PathConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -14,6 +13,7 @@ import org.springframework.security.web.authentication.preauth.RequestHeaderAuth
 import javax.servlet.Filter;
 
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final JwtAuthenticationProvider authenticationProvider;
@@ -40,11 +40,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf().disable()
                 .formLogin().disable()
                 .httpBasic().disable()
-//                .authorizeRequests()
-//                .mvcMatchers(PathConstants.API_TELEGRAM_FETCH_UPDATES).permitAll()
-//                .mvcMatchers(PathConstants.API_AUTH_LOGIN).permitAll()
-//                .mvcMatchers(PathConstants.API + "/**").hasAnyAuthority(Role.USER.getName(), Role.ADMIN.getName())
-//                .and()
+                .anonymous()
+                .and()
                 .authenticationProvider(authenticationProvider)
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()

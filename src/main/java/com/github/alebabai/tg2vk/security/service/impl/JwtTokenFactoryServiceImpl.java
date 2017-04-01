@@ -13,6 +13,8 @@ import org.springframework.util.Assert;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class JwtTokenFactoryServiceImpl implements JwtTokenFactoryService {
@@ -31,7 +33,7 @@ public class JwtTokenFactoryServiceImpl implements JwtTokenFactoryService {
 
         final Claims claims = Jwts.claims();
         claims.put("tgId", tgId);
-        claims.put("roles", roles);
+        claims.put("roles", Stream.of(roles).map(Role::getName).collect(Collectors.toList()));
 
         final LocalDateTime currentTime = LocalDateTime.now();
         return Jwts.builder()
