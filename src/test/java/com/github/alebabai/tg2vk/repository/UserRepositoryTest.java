@@ -7,6 +7,7 @@ import com.github.alebabai.tg2vk.domain.UserSettings;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.transaction.Transactional;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +19,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 
+@Transactional
 public class UserRepositoryTest extends AbstractJpaRepositoryTest<User, Integer, UserRepository> {
 
     @Override
