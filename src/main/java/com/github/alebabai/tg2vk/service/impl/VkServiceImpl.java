@@ -1,7 +1,6 @@
 package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.service.VkService;
-import com.github.alebabai.tg2vk.util.constants.EnvConstants;
 import com.github.alebabai.tg2vk.util.constants.VkConstants;
 import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.client.actors.Actor;
@@ -20,7 +19,7 @@ import org.apache.commons.lang3.text.StrSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -30,8 +29,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
-import static com.github.alebabai.tg2vk.util.constants.EnvConstants.PROP_VK_FETCH_DELAY;
-
 @Service
 public class VkServiceImpl implements VkService {
 
@@ -39,12 +36,19 @@ public class VkServiceImpl implements VkService {
 
     private static final String VK_AUTHORIZE_URL_FORMAT = "${vk_auth_url}?client_id=${client_id}&display=${display}&redirect_uri=${redirect_uri}&scope=${scope}&response_type=${response_type}&v=${vk_api_version}";
 
-    private final Environment env;
+    @Value("${tg2vk.vk.client_id}")
+    private Integer clientId;
+
+    @Value("${tg2vk.vk.client_secret}")
+    private String clientSecret;
+
+    @Value("${tg2vk.vk.service.fetch_delay:5000}")
+    private Integer fetchDelay;
+
     private final VkApiClient api;
 
     @Autowired
-    public VkServiceImpl(Environment env) {
-        this.env = env;
+    public VkServiceImpl() {
         this.api = new VkApiClient(new HttpTransportClient());
     }
 
@@ -53,11 +57,7 @@ public class VkServiceImpl implements VkService {
         Optional<UserActor> result = Optional.empty();
         try {
             final UserAuthResponse authResponse = api.oauth()
-                    .userAuthorizationCodeFlow(
-                            env.getRequiredProperty(EnvConstants.PROP_VK_CLIENT_ID, Integer.class),
-                            env.getRequiredProperty(EnvConstants.PROP_VK_CLIENT_SECRET),
-                            VkConstants.VK_URL_REDIRECT,
-                            code)
+                    .userAuthorizationCodeFlow(clientId, clientSecret, VkConstants.VK_URL_REDIRECT, code)
                     .execute();
             result = Optional.of(new UserActor(authResponse.getUserId(), authResponse.getAccessToken()));
         } catch (ApiException | ClientException | IllegalStateException e) {
@@ -76,7 +76,7 @@ public class VkServiceImpl implements VkService {
         try {
             final Map<String, String> params = new HashMap<>();
             params.put("vk_auth_url", VkConstants.VK_URL_AUTHORIZE);
-            params.put("client_id", env.getRequiredProperty(EnvConstants.PROP_VK_CLIENT_ID));
+            params.put("client_id", clientId.toString());
             params.put("display", VkConstants.VK_DISPLAY_TYPE_POPUP);
             params.put("redirect_uri", redirectUrl);
             params.put("scope", StringUtils.join(scopes, ","));
@@ -120,7 +120,7 @@ public class VkServiceImpl implements VkService {
                     .forEach(message -> profiles.stream()
                             .filter(profile -> profile.getId().equals(message.getUserId()))
                             .forEach(profile -> consumer.accept(profile, message)));
-            Thread.sleep(env.getProperty(PROP_VK_FETCH_DELAY, Integer.class, 1000));
+            Thread.sleep(fetchDelay);
         }
         return newTs;
     }

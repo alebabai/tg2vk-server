@@ -11,13 +11,13 @@ public class PathResolverImpl implements PathResolver {
     @Value("${tg2vk.client.url}")
     private String clientBaseUrl;
 
-    @Value("${tg2vk.server.lb.scheme:${tg2vk.server.scheme}}")
+    @Value("${tg2vk.server.lb.scheme:${tg2vk.server.scheme:http}}")
     private String serverScheme;
 
-    @Value("${tg2vk.server.lb.name:${tg2vk.server.name}}")
+    @Value("${tg2vk.server.lb.name:${tg2vk.server.name:localhost}}")
     private String serverName;
 
-    @Value("${tg2vk.server.lb.port:${tg2vk.server.port}}")
+    @Value("${tg2vk.server.lb.port:${tg2vk.server.port:80}}")
     private Integer serverPort;
 
     @Override

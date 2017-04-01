@@ -2,7 +2,6 @@ package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.service.PathResolver;
 import com.github.alebabai.tg2vk.service.TelegramService;
-import com.github.alebabai.tg2vk.util.constants.EnvConstants;
 import com.pengrad.telegrambot.Callback;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.TelegramBotAdapter;
@@ -16,7 +15,7 @@ import com.pengrad.telegrambot.response.BaseResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -29,15 +28,19 @@ public class TelegramServiceImpl implements TelegramService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramServiceImpl.class);
 
+    @Value("${tg2vk.telegram.bot.token}")
+    private String token;
+
+    @Value("${tg2vk.telegram.bot.max_connections:40}")
+    private Integer maxConnectionsCount;
+
     private final TelegramBot bot;
     private final PathResolver pathResolver;
-    private final Environment env;
 
     @Autowired
-    public TelegramServiceImpl(Environment env, PathResolver pathResolver) {
-        this.bot = TelegramBotAdapter.build(env.getRequiredProperty(EnvConstants.PROP_TELEGRAM_BOT_TOKEN));
+    public TelegramServiceImpl(PathResolver pathResolver) {
+        this.bot = TelegramBotAdapter.build(token);
         this.pathResolver = pathResolver;
-        this.env = env;
     }
 
     @Override
@@ -54,7 +57,7 @@ public class TelegramServiceImpl implements TelegramService {
         try {
             final SetWebhook request = new SetWebhook()
                     .url(pathResolver.getAbsoluteUrl("/api/telegram/updates"))
-                    .maxConnections(env.getProperty(EnvConstants.PROP_TELEGRAM_BOT_MAX_CONNECTIONS, Integer.TYPE, 40));
+                    .maxConnections(maxConnectionsCount);
             bot.execute(request, loggerCallback());
         } catch (Exception e) {
             LOGGER.error("Error during webhook setup: ", e);

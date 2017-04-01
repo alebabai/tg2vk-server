@@ -4,13 +4,12 @@ import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.service.VkMessagesProcessor;
 import com.github.alebabai.tg2vk.service.VkService;
-import com.github.alebabai.tg2vk.util.constants.EnvConstants;
 import com.vk.api.sdk.client.actors.UserActor;
 import com.vk.api.sdk.objects.messages.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -27,28 +26,27 @@ public class VkMessagesProcessorImpl implements VkMessagesProcessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VkMessagesProcessorImpl.class);
 
+    @Value("${tg2vk.vk.service.processor.auto_init_pool:false}")
+    private boolean autoInitPool;
+
     private final UserRepository userRepository;
     private final VkService vkService;
     private final LinkerServiceImpl linkerService;
-    private final Environment env;
     private Map<Integer, CompletableFuture<Integer>> taskPool;
 
     @Autowired
     public VkMessagesProcessorImpl(UserRepository userRepository,
                                    VkService vkService,
-                                   LinkerServiceImpl linkerService,
-                                   Environment env) {
+                                   LinkerServiceImpl linkerService) {
         this.userRepository = userRepository;
         this.vkService = vkService;
         this.linkerService = linkerService;
-        this.env = env;
         this.taskPool = new HashMap<>();
     }
 
     @PostConstruct
     protected void init() {
-        final boolean autoInit = env.getProperty(EnvConstants.PROP_VK_AUTO_INIT_POOL, Boolean.TYPE, true);
-        if (autoInit) {
+        if (autoInitPool) {
             userRepository.findAllStarted().forEach(this::start);
         }
     }
