@@ -1,6 +1,7 @@
 package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.domain.Chat;
+import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.service.VkService;
 import com.github.alebabai.tg2vk.util.constants.VkConstants;
 import com.vk.api.sdk.client.VkApiClient;
@@ -13,7 +14,6 @@ import com.vk.api.sdk.objects.UserAuthResponse;
 import com.vk.api.sdk.objects.messages.LongpollMessages;
 import com.vk.api.sdk.objects.messages.Message;
 import com.vk.api.sdk.objects.messages.responses.GetLongPollHistoryResponse;
-import com.vk.api.sdk.objects.users.User;
 import com.vk.api.sdk.queries.messages.MessagesGetLongPollServerQuery;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
@@ -88,7 +88,8 @@ public class VkServiceImpl implements VkService {
     }
 
     @Override
-    public CompletableFuture<Integer> fetchMessages(Actor actor, BiConsumer<User, Message> consumer) {
+    public CompletableFuture<Integer> fetchMessages(User user, BiConsumer<com.vk.api.sdk.objects.users.User, Message> consumer) {
+        final UserActor actor = new UserActor(user.getVkId(), user.getVkToken());
         return CompletableFuture
                 .supplyAsync(() -> triggerMessagesFetching(actor, consumer))
                 .whenCompleteAsync((result, error) -> LOGGER.error("Error during vk messages fetching :", error));
@@ -96,10 +97,12 @@ public class VkServiceImpl implements VkService {
 
     @Override
     public Collection<Chat> getChats(com.github.alebabai.tg2vk.domain.User user) {
+        final UserActor actor = new UserActor(user.getVkId(), user.getVkToken());
+        api.messages().getDialogs(actor);
         return Collections.emptyList();
     }
 
-    private int triggerMessagesFetching(Actor actor, BiConsumer<User, Message> consumer) {
+    private int triggerMessagesFetching(Actor actor, BiConsumer<com.vk.api.sdk.objects.users.User, Message> consumer) {
         try {
             final MessagesGetLongPollServerQuery query = api.messages().getLongPollServer(actor).useSsl(true).needPts(true);
             return getMessages(actor, query, consumer);
@@ -111,12 +114,12 @@ public class VkServiceImpl implements VkService {
 
     }
 
-    private int getMessages(Actor actor, MessagesGetLongPollServerQuery query, BiConsumer<User, Message> consumer) throws ClientException, ApiException, InterruptedException {
+    private int getMessages(Actor actor, MessagesGetLongPollServerQuery query, BiConsumer<com.vk.api.sdk.objects.users.User, Message> consumer) throws ClientException, ApiException, InterruptedException {
         int newTs = query.execute().getTs();
         while (!Thread.interrupted()) {
             final GetLongPollHistoryResponse response = api.messages().getLongPollHistory(actor).ts(newTs).execute();
             final LongpollMessages messages = response.getMessages();
-            final List<User> profiles = response.getProfiles();
+            final List<com.vk.api.sdk.objects.users.User> profiles = response.getProfiles();
             newTs = messages.getCount() > 0 ? query.execute().getTs() : newTs;
             messages.getMessages().stream()
                     .filter(message -> !message.isOut())

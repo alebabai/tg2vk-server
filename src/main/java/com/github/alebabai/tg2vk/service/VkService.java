@@ -18,7 +18,7 @@ public interface VkService {
 
     String getAuthorizeUrl(String redirectUrl, String... scopes);
 
-    CompletableFuture<Integer> fetchMessages(Actor actor, BiConsumer<com.vk.api.sdk.objects.users.User, Message> consumer);
+    CompletableFuture<Integer> fetchMessages(User user, BiConsumer<com.vk.api.sdk.objects.users.User, Message> consumer);
 
     Collection<Chat> getChats(User user);
 }
