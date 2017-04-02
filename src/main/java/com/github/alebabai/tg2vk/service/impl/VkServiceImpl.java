@@ -4,6 +4,9 @@ import com.github.alebabai.tg2vk.domain.Chat;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.service.VkService;
 import com.github.alebabai.tg2vk.util.constants.VkConstants;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.client.actors.Actor;
 import com.vk.api.sdk.client.actors.UserActor;
@@ -11,10 +14,8 @@ import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
 import com.vk.api.sdk.objects.UserAuthResponse;
-import com.vk.api.sdk.objects.messages.Dialog;
 import com.vk.api.sdk.objects.messages.LongpollMessages;
 import com.vk.api.sdk.objects.messages.Message;
-import com.vk.api.sdk.objects.messages.responses.GetDialogsResponse;
 import com.vk.api.sdk.objects.messages.responses.GetLongPollHistoryResponse;
 import com.vk.api.sdk.queries.messages.MessagesGetLongPollServerQuery;
 import org.apache.commons.lang3.StringUtils;
@@ -28,6 +29,8 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 public class VkServiceImpl implements VkService {
@@ -101,8 +104,25 @@ public class VkServiceImpl implements VkService {
     public Collection<Chat> getChats(com.github.alebabai.tg2vk.domain.User user) {
         try {
             final UserActor actor = new UserActor(user.getVkId(), user.getVkToken());
-            final GetDialogsResponse response = api.messages().getDialogs(actor).execute();
-            final List<Dialog> dialogs = response.getItems();
+            final Gson gson = new Gson();
+            return Optional.ofNullable(api.messages().searchDialogs(actor).executeAsString())
+                    .map(json -> gson.fromJson(json, JsonObject.class))
+                    .map(jsonObject -> jsonObject.getAsJsonArray("response"))
+                    .map(dialogs -> StreamSupport.stream(dialogs.spliterator(), true)
+                            .map(JsonElement::getAsJsonObject)
+                            .map(dialog -> Optional.of(dialog)
+                                    .filter(json -> StringUtils.equals("chat", json.get("type").getAsString()))
+                                    .map(json -> new Chat(json.get("id").getAsInt(), json.get("title").getAsString()))
+                                    .orElseGet(() -> {
+                                        final int id = dialog.get("id").getAsInt();
+                                        final String firstName = dialog.get("first_name").getAsString();
+                                        final String lastName = dialog.get("last_name").getAsString();
+                                        final String title = String.join(StringUtils.SPACE, firstName, lastName);
+                                        return new Chat(id, title);
+                                    }))
+                            .sorted((chat1, chat2) -> chat1.getTitle().compareToIgnoreCase(chat2.getTitle()))
+                            .collect(Collectors.toList()))
+                    .orElse(Collections.emptyList());
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
         }
