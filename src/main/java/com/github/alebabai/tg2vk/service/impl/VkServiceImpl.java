@@ -11,8 +11,10 @@ import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
 import com.vk.api.sdk.objects.UserAuthResponse;
+import com.vk.api.sdk.objects.messages.Dialog;
 import com.vk.api.sdk.objects.messages.LongpollMessages;
 import com.vk.api.sdk.objects.messages.Message;
+import com.vk.api.sdk.objects.messages.responses.GetDialogsResponse;
 import com.vk.api.sdk.objects.messages.responses.GetLongPollHistoryResponse;
 import com.vk.api.sdk.queries.messages.MessagesGetLongPollServerQuery;
 import org.apache.commons.lang3.StringUtils;
@@ -97,8 +99,13 @@ public class VkServiceImpl implements VkService {
 
     @Override
     public Collection<Chat> getChats(com.github.alebabai.tg2vk.domain.User user) {
-        final UserActor actor = new UserActor(user.getVkId(), user.getVkToken());
-        api.messages().getDialogs(actor);
+        try {
+            final UserActor actor = new UserActor(user.getVkId(), user.getVkToken());
+            final GetDialogsResponse response = api.messages().getDialogs(actor).execute();
+            final List<Dialog> dialogs = response.getItems();
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
         return Collections.emptyList();
     }
 

@@ -2,7 +2,6 @@ package com.github.alebabai.tg2vk.service;
 
 import com.github.alebabai.tg2vk.domain.Chat;
 import com.github.alebabai.tg2vk.domain.User;
-import com.vk.api.sdk.client.actors.Actor;
 import com.vk.api.sdk.client.actors.UserActor;
 import com.vk.api.sdk.objects.messages.Message;
 
