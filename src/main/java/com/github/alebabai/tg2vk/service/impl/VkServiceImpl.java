@@ -1,5 +1,6 @@
 package com.github.alebabai.tg2vk.service.impl;
 
+import com.github.alebabai.tg2vk.domain.Chat;
 import com.github.alebabai.tg2vk.service.VkService;
 import com.github.alebabai.tg2vk.util.constants.VkConstants;
 import com.vk.api.sdk.client.VkApiClient;
@@ -22,10 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
@@ -94,6 +92,11 @@ public class VkServiceImpl implements VkService {
         return CompletableFuture
                 .supplyAsync(() -> triggerMessagesFetching(actor, consumer))
                 .whenCompleteAsync((result, error) -> LOGGER.error("Error during vk messages fetching :", error));
+    }
+
+    @Override
+    public Collection<Chat> getChats(com.github.alebabai.tg2vk.domain.User user) {
+        return Collections.emptyList();
     }
 
     private int triggerMessagesFetching(Actor actor, BiConsumer<User, Message> consumer) {

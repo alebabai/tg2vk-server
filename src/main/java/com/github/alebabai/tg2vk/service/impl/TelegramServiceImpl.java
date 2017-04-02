@@ -1,5 +1,7 @@
 package com.github.alebabai.tg2vk.service.impl;
 
+import com.github.alebabai.tg2vk.domain.Chat;
+import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.service.PathResolver;
 import com.github.alebabai.tg2vk.service.TelegramService;
 import com.pengrad.telegrambot.Callback;
@@ -21,6 +23,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.function.Consumer;
 
 @Service
@@ -78,6 +82,11 @@ public class TelegramServiceImpl implements TelegramService {
     @Override
     public <T extends AbstractSendRequest<T>> void send(T request) {
         bot.execute(request, loggerCallback());
+    }
+
+    @Override
+    public Collection<Chat> getChats(User user) {
+        return Collections.emptyList();
     }
 
     private <T extends BaseRequest<T, R>, R extends BaseResponse> Callback<T, R> loggerCallback() {
