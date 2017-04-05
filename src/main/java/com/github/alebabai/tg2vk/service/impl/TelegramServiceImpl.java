@@ -1,7 +1,5 @@
 package com.github.alebabai.tg2vk.service.impl;
 
-import com.github.alebabai.tg2vk.domain.Chat;
-import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.service.PathResolver;
 import com.github.alebabai.tg2vk.service.TelegramService;
 import com.pengrad.telegrambot.Callback;
@@ -9,7 +7,6 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.TelegramBotAdapter;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
-import com.pengrad.telegrambot.request.AbstractSendRequest;
 import com.pengrad.telegrambot.request.BaseRequest;
 import com.pengrad.telegrambot.request.DeleteWebhook;
 import com.pengrad.telegrambot.request.SetWebhook;
@@ -23,17 +20,12 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.function.Consumer;
 
 @Service
 public class TelegramServiceImpl implements TelegramService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramServiceImpl.class);
-
-    @Value("${tg2vk.telegram.bot.token}")
-    private String token;
 
     @Value("${tg2vk.telegram.bot.max_connections:40}")
     private Integer maxConnectionsCount;
@@ -42,7 +34,7 @@ public class TelegramServiceImpl implements TelegramService {
     private final PathResolver pathResolver;
 
     @Autowired
-    public TelegramServiceImpl(PathResolver pathResolver) {
+    public TelegramServiceImpl(PathResolver pathResolver, @Value("${tg2vk.telegram.bot.token}") String token) {
         this.bot = TelegramBotAdapter.build(token);
         this.pathResolver = pathResolver;
     }
@@ -80,13 +72,8 @@ public class TelegramServiceImpl implements TelegramService {
     }
 
     @Override
-    public <T extends AbstractSendRequest<T>> void send(T request) {
+    public void send(BaseRequest request) {
         bot.execute(request, loggerCallback());
-    }
-
-    @Override
-    public Collection<Chat> getChats(User user) {
-        return Collections.emptyList();
     }
 
     private <T extends BaseRequest<T, R>, R extends BaseResponse> Callback<T, R> loggerCallback() {

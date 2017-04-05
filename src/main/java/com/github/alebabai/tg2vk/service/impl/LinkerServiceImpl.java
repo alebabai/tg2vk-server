@@ -103,9 +103,8 @@ public class LinkerServiceImpl implements LinkerService {
         return target;
     }
 
-    @SuppressWarnings("unchecked")
-    private <T extends AbstractSendRequest> T convertMessage(Integer tgChatId, Message message, com.vk.api.sdk.objects.users.User profile) {
-        return (T) Optional.ofNullable(message.getAttachments())
+    private AbstractSendRequest convertMessage(Integer tgChatId, Message message, com.vk.api.sdk.objects.users.User profile) {
+        return Optional.ofNullable(message.getAttachments())
                 .map(attachments -> attachments.get(0))
                 .map(attachment -> convertMessageAttachment(tgChatId, message, attachment, profile))
                 .orElse(Optional.ofNullable(message.getGeo())
@@ -113,23 +112,22 @@ public class LinkerServiceImpl implements LinkerService {
                             final String[] coordinates = StringUtils.split(geo.getCoordinates(), StringUtils.SPACE);
                             float latitude = NumberUtils.toFloat(coordinates[0]);
                             float longitude = NumberUtils.toFloat(coordinates[1]);
-                            return (T) new SendLocation(tgChatId, latitude, longitude);
+                            return (AbstractSendRequest) new SendLocation(tgChatId, latitude, longitude);
                         })
-                        .orElse((T) convertTextMessage(tgChatId, message, profile))
+                        .orElse(convertTextMessage(tgChatId, message, profile))
                 );
     }
 
-    @SuppressWarnings("unchecked")
-    private <T extends AbstractSendRequest> T convertMessageAttachment(Integer tgChatId, Message message, MessageAttachment attachment, com.vk.api.sdk.objects.users.User profile) {
-        T result;
+    private AbstractSendRequest convertMessageAttachment(Integer tgChatId, Message message, MessageAttachment attachment, com.vk.api.sdk.objects.users.User profile) {
+        AbstractSendRequest result;
         switch (attachment.getType()) {
             case PHOTO:
                 final Message photoMessage = createFakeVkMessage(message, attachment.getPhoto().getPhoto604());
-                result = (T) convertTextMessage(tgChatId, photoMessage, profile);
+                result = convertTextMessage(tgChatId, photoMessage, profile);
                 break;
             case AUDIO:
                 final AudioFull audio = attachment.getAudio();
-                result = (T) new SendAudio(tgChatId, fetchAttachment(attachment.getAudio().getUrl()))
+                result = new SendAudio(tgChatId, fetchAttachment(attachment.getAudio().getUrl()))
                         .caption(message.getBody())
                         .duration(audio.getDuration())
                         .performer(audio.getArtist())
@@ -138,40 +136,40 @@ public class LinkerServiceImpl implements LinkerService {
             case VIDEO:
                 final String videoText = messages.getMessage("vk.messages.attachment.video", StringUtils.EMPTY) + attachment.getVideo().getPhoto320();
                 final Message videoMessage = createFakeVkMessage(message, videoText);
-                result = (T) convertTextMessage(tgChatId, videoMessage, profile);
+                result = convertTextMessage(tgChatId, videoMessage, profile);
                 break;
             case DOC:
                 final Doc doc = attachment.getDoc();
-                result = (T) new SendDocument(tgChatId, fetchAttachment(doc.getUrl()))
+                result = new SendDocument(tgChatId, fetchAttachment(doc.getUrl()))
                         .caption(message.getBody())
                         .fileName(doc.getTitle());
                 break;
             case LINK:
                 final Message linkMessage = createFakeVkMessage(message, attachment.getLink().getUrl());
-                result = (T) convertTextMessage(tgChatId, linkMessage, profile);
+                result = convertTextMessage(tgChatId, linkMessage, profile);
                 break;
             case GIFT:
                 final String giftText = messages.getMessage("vk.messages.attachment.gift", StringUtils.EMPTY) + attachment.getGift().getThumb256();
                 final Message giftMessage = createFakeVkMessage(message, giftText);
-                result = (T) convertTextMessage(tgChatId, giftMessage, profile);
+                result = convertTextMessage(tgChatId, giftMessage, profile);
                 break;
             case STICKER:
                 final String stickerText = messages.getMessage("vk.messages.attachment.sticker", StringUtils.EMPTY) + attachment.getSticker().getPhoto256();
                 final Message stickerMessage = createFakeVkMessage(message, stickerText);
-                result = (T) convertTextMessage(tgChatId, stickerMessage, profile);
+                result = convertTextMessage(tgChatId, stickerMessage, profile);
                 break;
             case WALL:
                 final String wallText = messages.getMessage("vk.messages.attachment.wall", StringUtils.EMPTY) + attachment.getWall().getText();
                 final Message wallMessage = createFakeVkMessage(message, wallText);
-                result = (T) convertTextMessage(tgChatId, wallMessage, profile);
+                result = convertTextMessage(tgChatId, wallMessage, profile);
                 break;
             case WALL_REPLY:
                 final String wallReplyText = messages.getMessage("vk.messages.attachment.wall_reply", StringUtils.EMPTY) + attachment.getWallReply().getText();
                 final Message wallReplyMessage = createFakeVkMessage(message, wallReplyText);
-                result = (T) convertTextMessage(tgChatId, wallReplyMessage, profile);
+                result = convertTextMessage(tgChatId, wallReplyMessage, profile);
                 break;
             default:
-                result = (T) convertTextMessage(tgChatId, message, profile);
+                result = convertTextMessage(tgChatId, message, profile);
                 break;
         }
         return result;

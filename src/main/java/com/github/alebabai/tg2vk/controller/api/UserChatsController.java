@@ -37,12 +37,4 @@ public class UserChatsController {
                 .map(vkService::getChats)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
-
-    @GetMapping("/tg")
-    @ResponseBody
-    public Collection<Chat> getTgChats(@PathVariable Integer id) {
-        return Optional.ofNullable(userRepository.findOne(id))
-                .map(telegramService::getChats)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-    }
 }
