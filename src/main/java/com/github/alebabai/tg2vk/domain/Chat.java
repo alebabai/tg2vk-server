@@ -8,4 +8,7 @@ import lombok.experimental.Accessors;
 public class Chat {
     private final Integer id;
     private final String title;
+    private final ChatType type;
+    private String photoUrl;
+    private String thumbUrl;
 }

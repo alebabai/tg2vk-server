@@ -1,6 +1,7 @@
 package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.domain.Chat;
+import com.github.alebabai.tg2vk.domain.ChatType;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.service.VkService;
 import com.github.alebabai.tg2vk.util.constants.VkConstants;
@@ -112,14 +113,8 @@ public class VkServiceImpl implements VkService {
                             .map(JsonElement::getAsJsonObject)
                             .map(dialog -> Optional.of(dialog)
                                     .filter(json -> StringUtils.equals("chat", json.get("type").getAsString()))
-                                    .map(json -> new Chat(json.get("id").getAsInt(), json.get("title").getAsString()))
-                                    .orElseGet(() -> {
-                                        final int id = dialog.get("id").getAsInt();
-                                        final String firstName = dialog.get("first_name").getAsString();
-                                        final String lastName = dialog.get("last_name").getAsString();
-                                        final String title = String.join(StringUtils.SPACE, firstName, lastName);
-                                        return new Chat(id, title);
-                                    }))
+                                    .map(this::getChatFromJson)
+                                    .orElse(getChatFromJson(dialog)))
                             .sorted((chat1, chat2) -> chat1.getTitle().compareToIgnoreCase(chat2.getTitle()))
                             .collect(Collectors.toList()))
                     .orElse(Collections.emptyList());
@@ -127,6 +122,28 @@ public class VkServiceImpl implements VkService {
             LOGGER.error(e.getMessage(), e);
         }
         return Collections.emptyList();
+    }
+
+    private Chat getChatFromJson(JsonObject json) {
+        final int id = json.get("id").getAsInt();
+        return Optional.ofNullable(json.get("type"))
+                .map(JsonElement::getAsString)
+                .filter("chat"::equals)
+                .map(type -> ChatType.GROUP_CHAT)
+                .map(type -> {
+                    final String title = json.get("title").getAsString();
+                    final String photoUrl = json.get("photo_200").getAsString();
+                    final String thumbUrl = json.get("photo_50").getAsString();
+                    return new Chat(id, title, type)
+                            .setPhotoUrl(photoUrl)
+                            .setThumbUrl(thumbUrl);
+                })
+                .orElseGet(() -> {
+                    final String firstName = json.get("first_name").getAsString();
+                    final String lastName = json.get("last_name").getAsString();
+                    final String title = String.join(StringUtils.SPACE, firstName, lastName);
+                    return new Chat(id, title, ChatType.PRIVATE_CHAT);
+                });
     }
 
     private int triggerMessagesFetching(Actor actor, BiConsumer<com.vk.api.sdk.objects.users.User, Message> consumer) {

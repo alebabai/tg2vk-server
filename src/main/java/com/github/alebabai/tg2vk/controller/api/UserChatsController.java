@@ -2,7 +2,6 @@ package com.github.alebabai.tg2vk.controller.api;
 
 import com.github.alebabai.tg2vk.domain.Chat;
 import com.github.alebabai.tg2vk.repository.UserRestRepository;
-import com.github.alebabai.tg2vk.service.TelegramService;
 import com.github.alebabai.tg2vk.service.VkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.RepositoryRestController;
@@ -21,13 +20,11 @@ public class UserChatsController {
 
     private final UserRestRepository userRepository;
     private final VkService vkService;
-    private final TelegramService telegramService;
 
     @Autowired
-    public UserChatsController(UserRestRepository userRepository, VkService vkService, TelegramService telegramService) {
+    public UserChatsController(UserRestRepository userRepository, VkService vkService) {
         this.userRepository = userRepository;
         this.vkService = vkService;
-        this.telegramService = telegramService;
     }
 
     @GetMapping("/vk")

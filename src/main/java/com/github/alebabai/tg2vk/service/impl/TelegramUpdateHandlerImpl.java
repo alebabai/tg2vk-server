@@ -66,7 +66,6 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
     @Override
     protected void onChosenInlineResultReceived(ChosenInlineResult queryResult) {
         LOGGER.debug("Chosen inline result received: {}", queryResult);
-
     }
 
     @Override
@@ -136,7 +135,7 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
                         new InlineKeyboardButton(messages.getMessage("tg.command.login.button.get_token.label", StringUtils.EMPTY))
                                 .url(pathResolver.getAbsoluteUrl("/api/redirect/vk-login")),
                         new InlineKeyboardButton(messages.getMessage("tg.command.login.button.send_token.label", StringUtils.EMPTY))
-                                .url(String.format("%s?token%s", pathResolver.getAbsoluteUrl("/api/redirect/client"), tokenFactory.generate(context.from().id(), Role.USER))),
+                                .url(String.format("%s?token=%s", pathResolver.getAbsoluteUrl("/api/redirect/client"), tokenFactory.generate(context.from().id(), Role.USER))),
                 }));
         tgService.send(loginMessage);
     }
