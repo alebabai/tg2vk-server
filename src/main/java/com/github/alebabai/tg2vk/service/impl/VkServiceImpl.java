@@ -102,11 +102,11 @@ public class VkServiceImpl implements VkService {
     }
 
     @Override
-    public Collection<Chat> getChats(com.github.alebabai.tg2vk.domain.User user) {
+    public Collection<Chat> findChats(com.github.alebabai.tg2vk.domain.User user, String query) {
         try {
             final UserActor actor = new UserActor(user.getVkId(), user.getVkToken());
             final Gson gson = new Gson();
-            return Optional.ofNullable(api.messages().searchDialogs(actor).executeAsString())
+            return Optional.ofNullable(api.messages().searchDialogs(actor).q(query).executeAsString())
                     .map(json -> gson.fromJson(json, JsonObject.class))
                     .map(jsonObject -> jsonObject.getAsJsonArray("response"))
                     .map(dialogs -> StreamSupport.stream(dialogs.spliterator(), true)

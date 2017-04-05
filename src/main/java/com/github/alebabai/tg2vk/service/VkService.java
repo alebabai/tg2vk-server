@@ -19,5 +19,5 @@ public interface VkService {
 
     CompletableFuture<Integer> fetchMessages(User user, BiConsumer<com.vk.api.sdk.objects.users.User, Message> consumer);
 
-    Collection<Chat> getChats(User user);
+    Collection<Chat> findChats(User user, String query);
 }

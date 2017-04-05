@@ -6,10 +6,7 @@ import com.github.alebabai.tg2vk.service.VkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.RepositoryRestController;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -29,9 +26,9 @@ public class UserChatsController {
 
     @GetMapping("/vk")
     @ResponseBody
-    public Collection<Chat> getVkChats(@PathVariable Integer id) {
+    public Collection<Chat> getVkChats(@PathVariable Integer id, @RequestParam(required = false) String query) {
         return Optional.ofNullable(userRepository.findOne(id))
-                .map(vkService::getChats)
+                .map(user -> vkService.findChats(user, query))
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 }
