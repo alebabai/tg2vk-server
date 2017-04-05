@@ -169,7 +169,7 @@ abstract public class AbstractRepositoryTest<T extends Persistable<ID>, ID exten
     public void saveSequenceOfEntitiesTest() {
         final Iterable<? extends T> saved = repository.save(entities);
 
-        assertThat(repository.findAll(), contains(saved));
+        assertThat(repository.findAll(), containsInAnyOrder(saved));
     }
 
     @Test
