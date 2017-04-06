@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 import java.util.Optional;
@@ -133,9 +134,12 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
                 .parseMode(ParseMode.Markdown)
                 .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
                         new InlineKeyboardButton(messages.getMessage("tg.command.login.button.get_token.label", StringUtils.EMPTY))
-                                .url(pathResolver.getAbsoluteUrl("/api/redirect/vk-login")),
+                                .url(pathResolver.resolveServerUrl("/api/redirect/vk-login")),
                         new InlineKeyboardButton(messages.getMessage("tg.command.login.button.send_token.label", StringUtils.EMPTY))
-                                .url(String.format("%s?token=%s", pathResolver.getAbsoluteUrl("/api/redirect/client"), tokenFactory.generate(context.from().id(), Role.USER))),
+                                .url(UriComponentsBuilder
+                                .fromUriString(pathResolver.resolveServerUrl("/api/redirect/client/revoke"))
+                                .queryParam("token", tokenFactory.generate(context.from().id(), Role.USER))
+                                .toUriString()),
                 }));
         tgService.send(loginMessage);
     }

@@ -52,7 +52,7 @@ public class TelegramServiceImpl implements TelegramService {
     public void startWebHookUpdates() {
         try {
             final SetWebhook request = new SetWebhook()
-                    .url(pathResolver.getAbsoluteUrl("/api/telegram/updates"))
+                    .url(pathResolver.resolveServerUrl("/api/telegram/updates"))
                     .maxConnections(maxConnectionsCount);
             bot.execute(request, loggerCallback());
         } catch (Exception e) {
