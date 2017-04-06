@@ -1,7 +1,6 @@
 package com.github.alebabai.tg2vk.controller.api;
 
 import com.github.alebabai.tg2vk.domain.User;
-import com.github.alebabai.tg2vk.service.PathResolver;
 import com.github.alebabai.tg2vk.service.UserService;
 import com.github.alebabai.tg2vk.service.VkService;
 import org.slf4j.Logger;
@@ -29,13 +28,11 @@ public class UserAuthorizationController {
 
     private final VkService vkService;
     private final UserService userService;
-    private final PathResolver pathResolver;
 
     @Autowired
-    public UserAuthorizationController(VkService vkService, UserService userService, PathResolver pathResolver) {
+    public UserAuthorizationController(VkService vkService, UserService userService) {
         this.vkService = vkService;
         this.userService = userService;
-        this.pathResolver = pathResolver;
     }
 
     @PostMapping(value = "/code")
