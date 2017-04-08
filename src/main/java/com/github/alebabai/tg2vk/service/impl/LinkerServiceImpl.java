@@ -1,7 +1,7 @@
 package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.domain.ChatSettings;
-import com.github.alebabai.tg2vk.domain.User;
+import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.service.LinkerService;
 import com.github.alebabai.tg2vk.service.TelegramService;
 import com.github.alebabai.tg2vk.service.TemplateRenderer;
@@ -15,6 +15,7 @@ import com.vk.api.sdk.objects.audio.AudioFull;
 import com.vk.api.sdk.objects.docs.Doc;
 import com.vk.api.sdk.objects.messages.Message;
 import com.vk.api.sdk.objects.messages.MessageAttachment;
+import com.vk.api.sdk.objects.users.User;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +44,7 @@ public class LinkerServiceImpl implements LinkerService {
     private static final String PRIVATE_MESSAGE_TEMPLATE = "telegram/private_message.html";
     private static final String GROUP_MESSAGE_TEMPLATE = "telegram/group_message.html";
 
+    private final UserRepository userRepository;
     private final TelegramService tgService;
     private final TemplateRenderer templateRenderer;
     private final MessageSourceAccessor messages;
@@ -50,9 +52,11 @@ public class LinkerServiceImpl implements LinkerService {
     private final Gson gson;
 
     @Autowired
-    public LinkerServiceImpl(TelegramService tgService,
+    public LinkerServiceImpl(UserRepository userRepository,
+                             TelegramService tgService,
                              TemplateRenderer templateRenderer,
                              MessageSource messageSource) {
+        this.userRepository = userRepository;
         this.tgService = tgService;
         this.templateRenderer = templateRenderer;
         this.messages = new MessageSourceAccessor(messageSource);
@@ -61,12 +65,12 @@ public class LinkerServiceImpl implements LinkerService {
     }
 
     @Override
-    public BiConsumer<com.vk.api.sdk.objects.users.User, Message> getVkMessageHandler(User user) {
+    public BiConsumer<User, Message> getVkMessageHandler(Integer userId) {
         return (profile, message) -> {
             try {
                 final Integer vkChatId = Tg2vkMapperUtils.getVkChatId(message);
-                Optional.of(
-                        user.getChatsSettings()
+                Optional.ofNullable(userRepository.findOne(userId))
+                        .map(user -> user.getChatsSettings()
                                 .stream()
                                 .filter(chatSettings -> Objects.equals(chatSettings.getVkChatId(), vkChatId))
                                 .findAny()

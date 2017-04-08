@@ -10,6 +10,7 @@ CREATE TABLE tg2vk_user (
     vk_id INTEGER NOT NULL,
     vk_token VARCHAR(100) NOT NULL,
     user_settings_id INTEGER NOT NULL,
+    temp_tg_chat_id INTEGER,
     CONSTRAINT pk_tg2vk_user_id PRIMARY KEY (id),
     CONSTRAINT uk_tg2vk_user_tg_id UNIQUE (tg_id),
     CONSTRAINT uk_tg2vk_user_vk_id UNIQUE (vk_id),

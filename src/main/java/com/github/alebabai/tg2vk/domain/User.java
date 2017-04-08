@@ -64,6 +64,9 @@ public class User implements Persistable<Integer> {
     @Enumerated(EnumType.ORDINAL)
     private Set<Role> roles = new HashSet<>();
 
+    @Column(name = "temp_tg_chat_id")
+    private Integer tempTgChatId;
+
     public User(Integer tgId, Integer vkId, String vkToken, UserSettings settings) {
         this.tgId = tgId;
         this.vkId = vkId;

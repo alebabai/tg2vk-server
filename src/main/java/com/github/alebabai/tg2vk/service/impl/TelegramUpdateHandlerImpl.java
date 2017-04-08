@@ -1,5 +1,6 @@
 package com.github.alebabai.tg2vk.service.impl;
 
+import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.domain.Role;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.repository.UserRepository;
@@ -14,6 +15,7 @@ import com.pengrad.telegrambot.request.AnswerCallbackQuery;
 import com.pengrad.telegrambot.request.AnswerInlineQuery;
 import com.pengrad.telegrambot.request.SendMessage;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,8 +104,11 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
         if (message.text().startsWith("/")) {
             parseCommand(message.text(), (command, args) -> processCommand(command, args, message));
         } else {
-            SendMessage anyMessage = new SendMessage(message.chat().id(), message.text());
-            tgService.send(anyMessage);
+            /**
+             * Disable echo
+             */
+            //SendMessage anyMessage = new SendMessage(message.chat().id(), message.text());
+            //tgService.send(anyMessage);
         }
     }
 
@@ -131,15 +136,16 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
     private void processChatLinkingCallbackQuery(CallbackQuery callbackQuery) {
         final String messageText = userRepository.findOneByTgId(callbackQuery.from().id())
                 .map(user -> {
-//                    final Integer tgChatId = Math.toIntExact(callbackQuery.message().chat().id());
-//                    final Integer vkChatId = NumberUtils.createInteger(callbackQuery.data());
-//                    final boolean alreadyExists = user.getChatsSettings().parallelStream()
-//                            .anyMatch(it -> it.getTgChatId().equals(tgChatId) && it.getVkChatId().equals(vkChatId));
-//                    if (!alreadyExists) {
-//                        user.getChatsSettings().add(new ChatSettings(tgChatId, vkChatId).setStarted(true));
-//                        userRepository.save(user);
-//                        return messages.getMessage("tg.callback.chats.link.msg.success");
-//                    }
+                    final Integer tgChatId = user.getTempTgChatId();
+                    final Integer vkChatId = NumberUtils.createInteger(callbackQuery.data());
+                    final boolean alreadyExists = user.getChatsSettings().parallelStream()
+                            .anyMatch(it -> it.getTgChatId().equals(tgChatId) && it.getVkChatId().equals(vkChatId));
+                    if (!alreadyExists) {
+                        user.setTempTgChatId(null);
+                        user.getChatsSettings().add(new ChatSettings(tgChatId, vkChatId).setStarted(true));
+                        userRepository.save(user);
+                        return messages.getMessage("tg.callback.chats.link.msg.success");
+                    }
                     return messages.getMessage("tg.callback.chats.link.msg.already_exists");
                 })
                 .orElse(messages.getMessage("tg.callback.chats.link.msg.denied"));
@@ -160,10 +166,31 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
             case COMMAND_STOP:
                 processStopCommand(context);
                 break;
+            case COMMAND_LINK:
+                processLinkCommand(context, args);
+                break;
             default:
                 processUnknownCommand(context);
                 break;
         }
+    }
+
+    private void processLinkCommand(Message context, List<String> args) {
+        final String query = StringUtils.join(args, StringUtils.SPACE);
+        final Long chatId = context.chat().id();
+        final SendMessage linkMessage = userRepository.findOneByTgId(context.from().id())
+                .map(user -> {
+                    user.setTempTgChatId(Math.toIntExact(chatId));
+                    userRepository.save(user);
+                    return new SendMessage(chatId, messages.getMessage("tg.command.link.msg.info"))
+                            .parseMode(ParseMode.Markdown)
+                            .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
+                                    new InlineKeyboardButton(messages.getMessage("tg.command.link.button.label"))
+                                            .switchInlineQueryCurrentChat(query),
+                            }));
+                })
+                .orElse(new SendMessage(chatId, messages.getMessage("tg.command.link.msg.denied")));
+        tgService.send(linkMessage);
     }
 
     private void processLoginCommand(Message context) {

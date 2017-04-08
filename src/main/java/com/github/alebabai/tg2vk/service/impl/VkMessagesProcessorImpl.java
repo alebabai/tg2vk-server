@@ -57,7 +57,7 @@ public class VkMessagesProcessorImpl implements VkMessagesProcessor {
                 .stream()
                 .anyMatch(id -> Objects.equals(id, user.getId()));
         if (!isStarted) {
-            final BiConsumer<com.vk.api.sdk.objects.users.User, Message> messageHandler = linkerService.getVkMessageHandler(user);
+            final BiConsumer<com.vk.api.sdk.objects.users.User, Message> messageHandler = linkerService.getVkMessageHandler(user.getId());
             final CompletableFuture<Integer> task = vkService.fetchMessages(user, messageHandler);
             taskPool.put(user.getId(), task);
             user.getSettings().setStarted(true);
