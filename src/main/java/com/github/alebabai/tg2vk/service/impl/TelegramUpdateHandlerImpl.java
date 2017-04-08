@@ -7,13 +7,13 @@ import com.github.alebabai.tg2vk.security.service.JwtTokenFactoryService;
 import com.github.alebabai.tg2vk.service.PathResolver;
 import com.github.alebabai.tg2vk.service.TelegramService;
 import com.github.alebabai.tg2vk.service.VkMessagesProcessor;
+import com.github.alebabai.tg2vk.service.VkService;
 import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.ChosenInlineResult;
 import com.pengrad.telegrambot.model.InlineQuery;
 import com.pengrad.telegrambot.model.Message;
-import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
-import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
-import com.pengrad.telegrambot.model.request.ParseMode;
+import com.pengrad.telegrambot.model.request.*;
+import com.pengrad.telegrambot.request.AnswerInlineQuery;
 import com.pengrad.telegrambot.request.SendMessage;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.github.alebabai.tg2vk.util.CommandUtils.parseCommand;
 import static com.github.alebabai.tg2vk.util.constants.CommandConstants.*;
@@ -39,6 +40,7 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
 
     private final UserRepository userRepository;
     private final TelegramService tgService;
+    private final VkService vkService;
     private final VkMessagesProcessor vkMessageProcessor;
     private final PathResolver pathResolver;
     private final JwtTokenFactoryService tokenFactory;
@@ -48,12 +50,14 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
     public TelegramUpdateHandlerImpl(UserRepository userRepository,
                                      PathResolver pathResolver,
                                      TelegramService tgService,
+                                     VkService vkService,
                                      VkMessagesProcessor vkMessageProcessor,
                                      JwtTokenFactoryService tokenFactory,
                                      MessageSource messageSource) {
         this.userRepository = userRepository;
         this.pathResolver = pathResolver;
         this.tgService = tgService;
+        this.vkService = vkService;
         this.vkMessageProcessor = vkMessageProcessor;
         this.tokenFactory = tokenFactory;
         this.messages = new MessageSourceAccessor(messageSource);
@@ -62,6 +66,20 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
     @Override
     protected void onInlineQueryReceived(InlineQuery query) {
         LOGGER.debug("Inline query received: {}", query);
+        final AnswerInlineQuery answerInlineQuery = userRepository.findOneByTgId(query.from().id())
+                .map(user -> vkService.findChats(user, query.query()))
+                .map(chats -> chats.parallelStream()
+                        .map(chat -> new InlineQueryResultArticle(chat.getId().toString(), chat.getTitle(), chat.getTitle())
+                                .thumbUrl(chat.getThumbUrl())
+                                .description(messages.getMessage("tg.inline.chats." + StringUtils.lowerCase(chat.getType().toString()), StringUtils.EMPTY))
+                                .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
+                                        new InlineKeyboardButton("Link chat").callbackData(chat.getId().toString())
+                                })))
+                        .collect(Collectors.toList()))
+                .map(queryResults -> new AnswerInlineQuery(query.id(), queryResults.toArray(new InlineQueryResult[0]))
+                        .isPersonal(true))
+                .orElse(new AnswerInlineQuery(query.id()).isPersonal(true));
+        tgService.send(answerInlineQuery);
     }
 
     @Override
@@ -72,7 +90,6 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
     @Override
     protected void onCallbackQueryReceived(CallbackQuery callbackQuery) {
         LOGGER.debug("Callback query received: {}", callbackQuery);
-
     }
 
     @Override

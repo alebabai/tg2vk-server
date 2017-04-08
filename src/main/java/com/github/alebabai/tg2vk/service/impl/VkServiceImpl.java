@@ -19,6 +19,8 @@ import com.vk.api.sdk.objects.messages.LongpollMessages;
 import com.vk.api.sdk.objects.messages.Message;
 import com.vk.api.sdk.objects.messages.responses.GetLongPollHistoryResponse;
 import com.vk.api.sdk.queries.messages.MessagesGetLongPollServerQuery;
+import com.vk.api.sdk.queries.users.UserField;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
 import org.slf4j.Logger;
@@ -106,15 +108,16 @@ public class VkServiceImpl implements VkService {
         try {
             final UserActor actor = new UserActor(user.getVkId(), user.getVkToken());
             final Gson gson = new Gson();
-            return Optional.ofNullable(api.messages().searchDialogs(actor).q(query).executeAsString())
+            return Optional.ofNullable(api.messages()
+                    .searchDialogs(actor)
+                    .q(query)
+                    .fields(UserField.HAS_PHOTO, UserField.PHOTO_100, UserField.PHOTO_200)
+                    .executeAsString())
                     .map(json -> gson.fromJson(json, JsonObject.class))
                     .map(jsonObject -> jsonObject.getAsJsonArray("response"))
                     .map(dialogs -> StreamSupport.stream(dialogs.spliterator(), true)
                             .map(JsonElement::getAsJsonObject)
-                            .map(dialog -> Optional.of(dialog)
-                                    .filter(json -> StringUtils.equals("chat", json.get("type").getAsString()))
-                                    .map(this::getChatFromJson)
-                                    .orElse(getChatFromJson(dialog)))
+                            .map(this::getChatFromJson)
                             .sorted((chat1, chat2) -> chat1.getTitle().compareToIgnoreCase(chat2.getTitle()))
                             .collect(Collectors.toList()))
                     .orElse(Collections.emptyList());
@@ -126,24 +129,32 @@ public class VkServiceImpl implements VkService {
 
     private Chat getChatFromJson(JsonObject json) {
         final int id = json.get("id").getAsInt();
-        return Optional.ofNullable(json.get("type"))
+        final String title = Optional.ofNullable(json.get("title"))
                 .map(JsonElement::getAsString)
-                .filter("chat"::equals)
-                .map(type -> ChatType.GROUP_CHAT)
-                .map(type -> {
-                    final String title = json.get("title").getAsString();
-                    final String photoUrl = json.get("photo_200").getAsString();
-                    final String thumbUrl = json.get("photo_50").getAsString();
-                    return new Chat(id, title, type)
-                            .setPhotoUrl(photoUrl)
-                            .setThumbUrl(thumbUrl);
-                })
                 .orElseGet(() -> {
                     final String firstName = json.get("first_name").getAsString();
                     final String lastName = json.get("last_name").getAsString();
-                    final String title = String.join(StringUtils.SPACE, firstName, lastName);
-                    return new Chat(id, title, ChatType.PRIVATE_CHAT);
+                    return String.join(StringUtils.SPACE, firstName, lastName);
                 });
+        final ChatType type = Optional.of(json.get("type"))
+                .map(JsonElement::getAsString)
+                .filter("chat"::equals)
+                .map(it -> ChatType.GROUP_CHAT)
+                .orElse(ChatType.PRIVATE_CHAT);
+        final boolean hasPhoto = Optional.ofNullable(json.get("has_photo"))
+                .map(JsonElement::getAsInt)
+                .map(BooleanUtils::toBoolean)
+                .orElse(false);
+        final String photoUrl = Optional.ofNullable(json.get("photo_200"))
+                .map(JsonElement::getAsString)
+                .orElse(StringUtils.EMPTY);
+        final String thumbUrl = Optional.ofNullable(json.get("photo_100"))
+                .map(JsonElement::getAsString)
+                .orElse(StringUtils.EMPTY);
+        return new Chat(id, title, type)
+                .setHasPhoto(hasPhoto)
+                .setPhotoUrl(photoUrl)
+                .setThumbUrl(thumbUrl);
     }
 
     private int triggerMessagesFetching(Actor actor, BiConsumer<com.vk.api.sdk.objects.users.User, Message> consumer) {
