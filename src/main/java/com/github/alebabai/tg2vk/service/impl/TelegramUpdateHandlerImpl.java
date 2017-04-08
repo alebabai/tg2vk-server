@@ -1,5 +1,6 @@
 package com.github.alebabai.tg2vk.service.impl;
 
+import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.domain.Role;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.repository.UserRepository;
@@ -8,14 +9,13 @@ import com.github.alebabai.tg2vk.service.PathResolver;
 import com.github.alebabai.tg2vk.service.TelegramService;
 import com.github.alebabai.tg2vk.service.VkMessagesProcessor;
 import com.github.alebabai.tg2vk.service.VkService;
-import com.pengrad.telegrambot.model.CallbackQuery;
-import com.pengrad.telegrambot.model.ChosenInlineResult;
-import com.pengrad.telegrambot.model.InlineQuery;
-import com.pengrad.telegrambot.model.Message;
+import com.pengrad.telegrambot.model.*;
 import com.pengrad.telegrambot.model.request.*;
+import com.pengrad.telegrambot.request.AnswerCallbackQuery;
 import com.pengrad.telegrambot.request.AnswerInlineQuery;
 import com.pengrad.telegrambot.request.SendMessage;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,20 +66,7 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
     @Override
     protected void onInlineQueryReceived(InlineQuery query) {
         LOGGER.debug("Inline query received: {}", query);
-        final AnswerInlineQuery answerInlineQuery = userRepository.findOneByTgId(query.from().id())
-                .map(user -> vkService.findChats(user, query.query()))
-                .map(chats -> chats.parallelStream()
-                        .map(chat -> new InlineQueryResultArticle(chat.getId().toString(), chat.getTitle(), chat.getTitle())
-                                .thumbUrl(chat.getThumbUrl())
-                                .description(messages.getMessage("tg.inline.chats." + StringUtils.lowerCase(chat.getType().toString()), StringUtils.EMPTY))
-                                .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
-                                        new InlineKeyboardButton("Link chat").callbackData(chat.getId().toString())
-                                })))
-                        .collect(Collectors.toList()))
-                .map(queryResults -> new AnswerInlineQuery(query.id(), queryResults.toArray(new InlineQueryResult[0]))
-                        .isPersonal(true))
-                .orElse(new AnswerInlineQuery(query.id()).isPersonal(true));
-        tgService.send(answerInlineQuery);
+        processVkChatsInlineQuery(query);
     }
 
     @Override
@@ -90,6 +77,7 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
     @Override
     protected void onCallbackQueryReceived(CallbackQuery callbackQuery) {
         LOGGER.debug("Callback query received: {}", callbackQuery);
+        processChatLinkingCallbackQuery(callbackQuery);
     }
 
     @Override
@@ -121,6 +109,39 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
         }
     }
 
+    private void processVkChatsInlineQuery(InlineQuery query) {
+        final AnswerInlineQuery answerInlineQuery = userRepository.findOneByTgId(query.from().id())
+                .map(user -> vkService.findChats(user, query.query()))
+                .map(chats -> chats.parallelStream()
+                        .map(chat -> new InlineQueryResultArticle(chat.getId().toString(), chat.getTitle(), chat.getTitle())
+                                .thumbUrl(chat.getThumbUrl())
+                                .description(messages.getMessage("tg.inline.chats." + StringUtils.lowerCase(chat.getType().toString()), StringUtils.EMPTY))
+                                .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
+                                        new InlineKeyboardButton("Link chat").callbackData(chat.getId().toString())
+                                })))
+                        .collect(Collectors.toList()))
+                .map(queryResults -> new AnswerInlineQuery(query.id(), queryResults.toArray(new InlineQueryResult[0]))
+                        .isPersonal(true))
+                .orElse(new AnswerInlineQuery(query.id()).isPersonal(true));
+        tgService.send(answerInlineQuery);
+    }
+
+    private void processChatLinkingCallbackQuery(CallbackQuery callbackQuery) {
+        final String messageText = userRepository.findOneByTgId(callbackQuery.from().id())
+                .map(user -> {
+                    final Integer tgChatId = NumberUtils.createInteger(callbackQuery.chatInstance());
+                    final Integer vkChatId = NumberUtils.createInteger(callbackQuery.data());
+                    user.getChatsSettings().add(new ChatSettings(tgChatId, vkChatId).setStarted(true));
+                    userRepository.save(user);
+                    return messages.getMessage("tg.callback.chat_link.success", StringUtils.EMPTY);
+                })
+                .orElse(messages.getMessage("tg.callback.chat_link.denied", StringUtils.EMPTY));
+        final AnswerCallbackQuery linkMessage = new AnswerCallbackQuery(callbackQuery.id())
+                .text(messageText)
+                .showAlert(true);
+        tgService.send(linkMessage);
+    }
+
     private void processCommand(String command, List<String> args, Message context) {
         switch (command) {
             case COMMAND_LOGIN:
@@ -139,25 +160,30 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
     }
 
     private void processLoginCommand(Message context) {
-        final String loginText = userRepository.findOneByTgId(context.from().id())
-                .map(user -> String.join(
-                        "\n\n",
-                        messages.getMessage("tg.command.login.msg.warning", StringUtils.EMPTY),
-                        messages.getMessage("tg.command.login.msg.instructions", StringUtils.EMPTY)
-                ))
-                .orElse(messages.getMessage("tg.command.login.msg.instructions", StringUtils.EMPTY));
+        final SendMessage loginMessage = Optional.of(context.chat().type())
+                .filter(Chat.Type.Private::equals)
+                .map(type -> {
+                    final String loginText = userRepository.findOneByTgId(context.from().id())
+                            .map(user -> String.join(
+                                    "\n\n",
+                                    messages.getMessage("tg.command.login.msg.warning", StringUtils.EMPTY),
+                                    messages.getMessage("tg.command.login.msg.instructions", StringUtils.EMPTY)
+                            ))
+                            .orElse(messages.getMessage("tg.command.login.msg.instructions", StringUtils.EMPTY));
 
-        final SendMessage loginMessage = new SendMessage(context.chat().id(), loginText)
-                .parseMode(ParseMode.Markdown)
-                .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
-                        new InlineKeyboardButton(messages.getMessage("tg.command.login.button.get_token.label", StringUtils.EMPTY))
-                                .url(pathResolver.resolveServerUrl("/api/redirect/vk-login")),
-                        new InlineKeyboardButton(messages.getMessage("tg.command.login.button.send_token.label", StringUtils.EMPTY))
-                                .url(UriComponentsBuilder
-                                .fromUriString(pathResolver.resolveServerUrl("/api/redirect/client/revoke"))
-                                .queryParam("token", tokenFactory.generate(context.from().id(), Role.USER))
-                                .toUriString()),
-                }));
+                    return new SendMessage(context.chat().id(), loginText)
+                            .parseMode(ParseMode.Markdown)
+                            .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
+                                    new InlineKeyboardButton(messages.getMessage("tg.command.login.button.get_token.label", StringUtils.EMPTY))
+                                            .url(pathResolver.resolveServerUrl("/api/redirect/vk-login")),
+                                    new InlineKeyboardButton(messages.getMessage("tg.command.login.button.send_token.label", StringUtils.EMPTY))
+                                            .url(UriComponentsBuilder
+                                            .fromUriString(pathResolver.resolveServerUrl("/api/redirect/client/revoke"))
+                                            .queryParam("token", tokenFactory.generate(context.from().id(), Role.USER))
+                                            .toUriString()),
+                            }));
+                })
+                .orElse(new SendMessage(context.chat().id(), messages.getMessage("tg.command.login.msg.denied", StringUtils.EMPTY)));
         tgService.send(loginMessage);
     }
 
