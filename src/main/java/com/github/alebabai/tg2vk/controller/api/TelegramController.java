@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Objects;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/telegram")
@@ -31,11 +33,16 @@ public class TelegramController {
     public ResponseEntity<String> fetchUpdates(HttpServletRequest request) {
         ResponseEntity<String> response = ResponseEntity.ok("Update has been successfully handled!");
         try {
-            final Update update = BotUtils.parseUpdate(request.getReader());
+            final Update update = Optional.ofNullable(BotUtils.parseUpdate(request.getReader()))
+                    .filter(it -> Objects.nonNull(it.updateId()))
+                    .orElseThrow(() -> new IllegalStateException("Incorrect update object"));
             updateHandler.handleAsync(update);
-        } catch (Exception e) {
+        } catch (IllegalStateException e) {
             LOGGER.error("Error during webhook update handling: ", e);
-            response = new ResponseEntity<>("Some error happened", HttpStatus.INTERNAL_SERVER_ERROR);
+            response = ResponseEntity.unprocessableEntity().body(e.getMessage());
+        } catch (Exception e) {
+            LOGGER.error("Unexpected error during webhook update handling: ", e);
+            response = new ResponseEntity<>("Something goes wrong :(", HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return response;
     }

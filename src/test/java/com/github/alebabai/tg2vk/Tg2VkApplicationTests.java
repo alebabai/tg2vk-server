@@ -1,5 +1,6 @@
-package com.github.alebabai.tg2vk.common;
+package com.github.alebabai.tg2vk;
 
+import com.github.alebabai.tg2vk.common.AbstractSpringTest;
 import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.repository.UserRestRepository;
 import org.junit.Test;

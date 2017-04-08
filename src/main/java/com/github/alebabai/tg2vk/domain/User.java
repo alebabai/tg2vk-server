@@ -64,6 +64,9 @@ public class User implements Persistable<Integer> {
     @Enumerated(EnumType.ORDINAL)
     private Set<Role> roles = new HashSet<>();
 
+    @Column(name = "temp_tg_chat_id")
+    private Integer tempTgChatId;
+
     public User(Integer tgId, Integer vkId, String vkToken, UserSettings settings) {
         this.tgId = tgId;
         this.vkId = vkId;
@@ -72,12 +75,14 @@ public class User implements Persistable<Integer> {
     }
 
     public User setChatsSettings(Set<ChatSettings> chatsSettings) {
-        this.chatsSettings.retainAll(chatsSettings);
+        this.chatsSettings.clear();
+        this.chatsSettings.addAll(chatsSettings);
         return this;
     }
 
     public User setRoles(Set<Role> roles) {
-        this.roles.retainAll(roles);
+        this.roles.clear();
+        this.roles.addAll(roles);
         return this;
     }
 

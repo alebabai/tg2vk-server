@@ -3,10 +3,8 @@ package com.github.alebabai.tg2vk.controller.api;
 import com.github.alebabai.tg2vk.service.PathResolver;
 import com.github.alebabai.tg2vk.service.VkService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -36,9 +34,12 @@ public class RedirectController {
         response.sendRedirect(vkService.getAuthorizeUrl(VK_URL_REDIRECT, scopes));
     }
 
-    @GetMapping(value = "/client")
-    public void client(@RequestParam String token, HttpServletResponse response) throws IOException {
-        final String clientRedirectUrl = String.format("%s?token=%s", pathResolver.getClientUrl(), token);
-        response.sendRedirect(clientRedirectUrl);
+    @GetMapping(value = {"/client", "/client/{relativePath}"})
+    public void client(@PathVariable(required = false) String relativePath, @RequestParam String token, HttpServletResponse response) throws IOException {
+        final String redirectUri = UriComponentsBuilder
+                .fromUriString(pathResolver.resolveClientUrl(relativePath))
+                .queryParam("token", token)
+                .toUriString();
+        response.sendRedirect(redirectUri);
     }
 }

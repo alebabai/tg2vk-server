@@ -7,7 +7,6 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.TelegramBotAdapter;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
-import com.pengrad.telegrambot.request.AbstractSendRequest;
 import com.pengrad.telegrambot.request.BaseRequest;
 import com.pengrad.telegrambot.request.DeleteWebhook;
 import com.pengrad.telegrambot.request.SetWebhook;
@@ -28,9 +27,6 @@ public class TelegramServiceImpl implements TelegramService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramServiceImpl.class);
 
-    @Value("${tg2vk.telegram.bot.token}")
-    private String token;
-
     @Value("${tg2vk.telegram.bot.max_connections:40}")
     private Integer maxConnectionsCount;
 
@@ -38,7 +34,7 @@ public class TelegramServiceImpl implements TelegramService {
     private final PathResolver pathResolver;
 
     @Autowired
-    public TelegramServiceImpl(PathResolver pathResolver) {
+    public TelegramServiceImpl(PathResolver pathResolver, @Value("${tg2vk.telegram.bot.token}") String token) {
         this.bot = TelegramBotAdapter.build(token);
         this.pathResolver = pathResolver;
     }
@@ -56,7 +52,7 @@ public class TelegramServiceImpl implements TelegramService {
     public void startWebHookUpdates() {
         try {
             final SetWebhook request = new SetWebhook()
-                    .url(pathResolver.getAbsoluteUrl("/api/telegram/updates"))
+                    .url(pathResolver.resolveServerUrl("/api/telegram/updates"))
                     .maxConnections(maxConnectionsCount);
             bot.execute(request, loggerCallback());
         } catch (Exception e) {
@@ -76,7 +72,7 @@ public class TelegramServiceImpl implements TelegramService {
     }
 
     @Override
-    public <T extends AbstractSendRequest<T>> void send(T request) {
+    public void send(BaseRequest request) {
         bot.execute(request, loggerCallback());
     }
 

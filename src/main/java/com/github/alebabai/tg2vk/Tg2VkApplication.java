@@ -21,7 +21,6 @@ import java.util.Collections;
 @EnableSwagger2
 @Import(SpringDataRestConfiguration.class)
 @EnableJpaRepositories(basePackages = "com.github.alebabai.tg2vk.repository")
-@PropertySource("classpath:application.properties")
 public class Tg2VkApplication {
 
     public static void main(String[] args) {

@@ -1,7 +1,13 @@
 package com.github.alebabai.tg2vk.service.impl;
 
+import com.github.alebabai.tg2vk.domain.Chat;
+import com.github.alebabai.tg2vk.domain.ChatType;
+import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.service.VkService;
 import com.github.alebabai.tg2vk.util.constants.VkConstants;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.client.actors.Actor;
 import com.vk.api.sdk.client.actors.UserActor;
@@ -12,8 +18,9 @@ import com.vk.api.sdk.objects.UserAuthResponse;
 import com.vk.api.sdk.objects.messages.LongpollMessages;
 import com.vk.api.sdk.objects.messages.Message;
 import com.vk.api.sdk.objects.messages.responses.GetLongPollHistoryResponse;
-import com.vk.api.sdk.objects.users.User;
 import com.vk.api.sdk.queries.messages.MessagesGetLongPollServerQuery;
+import com.vk.api.sdk.queries.users.UserField;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
 import org.slf4j.Logger;
@@ -22,12 +29,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 public class VkServiceImpl implements VkService {
@@ -90,13 +96,68 @@ public class VkServiceImpl implements VkService {
     }
 
     @Override
-    public CompletableFuture<Integer> fetchMessages(Actor actor, BiConsumer<User, Message> consumer) {
+    public CompletableFuture<Integer> fetchMessages(User user, BiConsumer<com.vk.api.sdk.objects.users.User, Message> consumer) {
+        final UserActor actor = new UserActor(user.getVkId(), user.getVkToken());
         return CompletableFuture
                 .supplyAsync(() -> triggerMessagesFetching(actor, consumer))
                 .whenCompleteAsync((result, error) -> LOGGER.error("Error during vk messages fetching :", error));
     }
 
-    private int triggerMessagesFetching(Actor actor, BiConsumer<User, Message> consumer) {
+    @Override
+    public Collection<Chat> findChats(com.github.alebabai.tg2vk.domain.User user, String query) {
+        try {
+            final UserActor actor = new UserActor(user.getVkId(), user.getVkToken());
+            final Gson gson = new Gson();
+            return Optional.ofNullable(api.messages()
+                    .searchDialogs(actor)
+                    .q(query)
+                    .fields(UserField.HAS_PHOTO, UserField.PHOTO_100, UserField.PHOTO_200)
+                    .executeAsString())
+                    .map(json -> gson.fromJson(json, JsonObject.class))
+                    .map(jsonObject -> jsonObject.getAsJsonArray("response"))
+                    .map(dialogs -> StreamSupport.stream(dialogs.spliterator(), true)
+                            .map(JsonElement::getAsJsonObject)
+                            .map(this::getChatFromJson)
+                            .sorted((chat1, chat2) -> chat1.getTitle().compareToIgnoreCase(chat2.getTitle()))
+                            .collect(Collectors.toList()))
+                    .orElse(Collections.emptyList());
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+        return Collections.emptyList();
+    }
+
+    private Chat getChatFromJson(JsonObject json) {
+        final int id = json.get("id").getAsInt();
+        final String title = Optional.ofNullable(json.get("title"))
+                .map(JsonElement::getAsString)
+                .orElseGet(() -> {
+                    final String firstName = json.get("first_name").getAsString();
+                    final String lastName = json.get("last_name").getAsString();
+                    return String.join(StringUtils.SPACE, firstName, lastName);
+                });
+        final ChatType type = Optional.of(json.get("type"))
+                .map(JsonElement::getAsString)
+                .filter("chat"::equals)
+                .map(it -> ChatType.GROUP_CHAT)
+                .orElse(ChatType.PRIVATE_CHAT);
+        final boolean hasPhoto = Optional.ofNullable(json.get("has_photo"))
+                .map(JsonElement::getAsInt)
+                .map(BooleanUtils::toBoolean)
+                .orElse(false);
+        final String photoUrl = Optional.ofNullable(json.get("photo_200"))
+                .map(JsonElement::getAsString)
+                .orElse(StringUtils.EMPTY);
+        final String thumbUrl = Optional.ofNullable(json.get("photo_100"))
+                .map(JsonElement::getAsString)
+                .orElse(StringUtils.EMPTY);
+        return new Chat(id, title, type)
+                .setHasPhoto(hasPhoto)
+                .setPhotoUrl(photoUrl)
+                .setThumbUrl(thumbUrl);
+    }
+
+    private int triggerMessagesFetching(Actor actor, BiConsumer<com.vk.api.sdk.objects.users.User, Message> consumer) {
         try {
             final MessagesGetLongPollServerQuery query = api.messages().getLongPollServer(actor).useSsl(true).needPts(true);
             return getMessages(actor, query, consumer);
@@ -108,12 +169,12 @@ public class VkServiceImpl implements VkService {
 
     }
 
-    private int getMessages(Actor actor, MessagesGetLongPollServerQuery query, BiConsumer<User, Message> consumer) throws ClientException, ApiException, InterruptedException {
+    private int getMessages(Actor actor, MessagesGetLongPollServerQuery query, BiConsumer<com.vk.api.sdk.objects.users.User, Message> consumer) throws ClientException, ApiException, InterruptedException {
         int newTs = query.execute().getTs();
         while (!Thread.interrupted()) {
             final GetLongPollHistoryResponse response = api.messages().getLongPollHistory(actor).ts(newTs).execute();
             final LongpollMessages messages = response.getMessages();
-            final List<User> profiles = response.getProfiles();
+            final List<com.vk.api.sdk.objects.users.User> profiles = response.getProfiles();
             newTs = messages.getCount() > 0 ? query.execute().getTs() : newTs;
             messages.getMessages().stream()
                     .filter(message -> !message.isOut())

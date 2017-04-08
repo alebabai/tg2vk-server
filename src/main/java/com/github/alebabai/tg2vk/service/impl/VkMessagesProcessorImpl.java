@@ -4,7 +4,6 @@ import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.service.VkMessagesProcessor;
 import com.github.alebabai.tg2vk.service.VkService;
-import com.vk.api.sdk.client.actors.UserActor;
 import com.vk.api.sdk.objects.messages.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,9 +57,8 @@ public class VkMessagesProcessorImpl implements VkMessagesProcessor {
                 .stream()
                 .anyMatch(id -> Objects.equals(id, user.getId()));
         if (!isStarted) {
-            final UserActor actor = new UserActor(user.getVkId(), user.getVkToken());
-            final BiConsumer<com.vk.api.sdk.objects.users.User, Message> messageHandler = linkerService.getVkMessageHandler(user);
-            final CompletableFuture<Integer> task = vkService.fetchMessages(actor, messageHandler);
+            final BiConsumer<com.vk.api.sdk.objects.users.User, Message> messageHandler = linkerService.getVkMessageHandler(user.getId());
+            final CompletableFuture<Integer> task = vkService.fetchMessages(user, messageHandler);
             taskPool.put(user.getId(), task);
             user.getSettings().setStarted(true);
             userRepository.save(user);

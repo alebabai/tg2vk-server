@@ -2,6 +2,7 @@ package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.domain.Role;
 import com.github.alebabai.tg2vk.domain.User;
+import com.github.alebabai.tg2vk.domain.UserSettings;
 import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,10 +34,7 @@ public class UserServiceImpl implements UserService {
                     user.setVkId(vkId).setVkToken(vkToken);
                     return userRepository.save(user);
                 })
-                .orElseGet(() -> userRepository.save(new User()
-                        .setVkId(vkId)
-                        .setTgId(tgId)
-                        .setVkToken(vkToken)
+                .orElseGet(() -> userRepository.save(new User(tgId, vkId, vkToken, new UserSettings())
                         .setRoles(Collections.singleton(Role.USER))));
     }
 }

@@ -20,7 +20,7 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 
 @Transactional
-public class UserRepositoryTest extends AbstractJpaRepositoryTest<User, Integer, UserRepository> {
+public class UserRepositoryTest extends AbstractRepositoryTest<User, Integer, UserRepository> {
 
     @Override
     protected User generateEntity() {

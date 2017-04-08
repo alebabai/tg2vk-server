@@ -5,5 +5,7 @@ public interface PathResolver {
 
     String getServerUrl();
 
-    String getAbsoluteUrl(String relativePath);
+    String resolveServerUrl(String relativePath);
+
+    String resolveClientUrl(String relativePath);
 }

@@ -7,7 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
 import javax.transaction.Transactional;
 import java.io.Serializable;
@@ -16,13 +16,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static com.github.alebabai.tg2vk.util.TestUtils.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 @Transactional
-abstract public class AbstractJpaRepositoryTest<T extends Persistable<ID>, ID extends Serializable, REPO extends JpaRepository<T, ID>> extends AbstractSpringTest {
+abstract public class AbstractRepositoryTest<T extends Persistable<ID>, ID extends Serializable, REPO extends PagingAndSortingRepository<T, ID>> extends AbstractSpringTest {
 
     protected T entity;
     protected List<? extends T> entities;
@@ -90,13 +91,13 @@ abstract public class AbstractJpaRepositoryTest<T extends Persistable<ID>, ID ex
 
     @Test
     public void deleteSequenceOfEntitiesTest() {
-        final List<? extends T> saved = repository.save(entities);
-        final List<ID> ids = saved.stream()
+        final Iterable<? extends T> saved = repository.save(entities);
+        final List<ID> ids = StreamSupport.stream(saved.spliterator(), true)
                 .map(Persistable::getId)
                 .collect(Collectors.toList());
         repository.delete(saved);
 
-        assertThat(repository.findAll(ids), empty());
+        assertThat(repository.findAll(ids), emptyIterable());
     }
 
     @Test
@@ -116,27 +117,6 @@ abstract public class AbstractJpaRepositoryTest<T extends Persistable<ID>, ID ex
     }
 
     @Test
-    public void deleteAllEntitiesInBatchTest() {
-        repository.save(entities);
-        repository.deleteAllInBatch();
-
-        assertThat(repository.findAll(), empty());
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void deleteSequenceOfEntitiesInBatchTest() {
-        final List<? extends T> saved = repository.save(entities);
-        final List<ID> ids = saved.stream()
-                .map(Persistable::getId)
-                .collect(Collectors.toList());
-
-        repository.deleteInBatch((Iterable<T>) saved);
-
-        assertThat(repository.findAll(ids), empty());
-    }
-
-    @Test
     public void entityExistenceByIdTest() {
         final T saved = repository.save(entity);
 
@@ -145,18 +125,18 @@ abstract public class AbstractJpaRepositoryTest<T extends Persistable<ID>, ID ex
 
     @Test
     public void findAllEntitiesTest() {
-        final List<? extends T> saved = repository.save(entities);
+        final Iterable<? extends T> saved = repository.save(entities);
 
         assertThat(saved, is(repository.findAll()));
     }
 
     @Test
     public void findAllEntitiesByIds() {
-        final List<? extends T> saved = repository.save(entities);
-        final List<ID> ids = saved.stream()
+        final Iterable<? extends T> saved = repository.save(entities);
+        final List<ID> ids = StreamSupport.stream(saved.spliterator(), true)
                 .map(Persistable::getId)
                 .collect(Collectors.toList());
-        final List<? extends T> found = repository.findAll(ids);
+        final Iterable<T> found = repository.findAll(ids);
 
         assertThat(found, is(saved));
     }
@@ -172,9 +152,9 @@ abstract public class AbstractJpaRepositoryTest<T extends Persistable<ID>, ID ex
     @Test
     public void findAllEntitiesBySortTest() {
         repository.save(entities);
-        final List<? extends T> found = repository.findAll(sort);
+        final Iterable<T> found = repository.findAll(sort);
 
-        assertThat(found, notNullValue());
+        assertThat(found, not(emptyIterable()));
     }
 
     @Test
@@ -186,19 +166,10 @@ abstract public class AbstractJpaRepositoryTest<T extends Persistable<ID>, ID ex
     }
 
     @Test
-    public void flushPendingChangesTest() {
-        // Just invoke this method
-        repository.flush();
-    }
-
-    @Test
     public void saveSequenceOfEntitiesTest() {
-        final List<? extends T> saved = repository.save(entities);
-        final List<ID> ids = saved.stream()
-                .map(Persistable::getId)
-                .collect(Collectors.toList());
+        final Iterable<? extends T> saved = repository.save(entities);
 
-        assertThat(repository.findAll(ids), is(saved));
+        assertThat(repository.findAll(), is(saved));
     }
 
     @Test

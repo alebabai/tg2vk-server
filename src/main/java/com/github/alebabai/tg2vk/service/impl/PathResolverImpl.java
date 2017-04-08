@@ -2,8 +2,8 @@ package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.service.PathResolver;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.web.util.UrlUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 public class PathResolverImpl implements PathResolver {
@@ -27,11 +27,27 @@ public class PathResolverImpl implements PathResolver {
 
     @Override
     public String getServerUrl() {
-        return UrlUtils.buildFullRequestUrl(serverScheme, serverName, serverPort, null, null);
+        return UriComponentsBuilder.newInstance()
+                .scheme(serverScheme)
+                .host(serverName)
+                .port(serverPort)
+                .toUriString();
     }
 
     @Override
-    public String getAbsoluteUrl(String relativePath) {
-        return UrlUtils.buildFullRequestUrl(serverScheme, serverName, serverPort, relativePath, null);
+    public String resolveServerUrl(String relativePath) {
+        return UriComponentsBuilder.newInstance()
+                .scheme(serverScheme)
+                .host(serverName)
+                .port(serverPort)
+                .path(relativePath)
+                .toUriString();
+    }
+
+    @Override
+    public String resolveClientUrl(String relativePath) {
+        return UriComponentsBuilder.fromUriString(clientBaseUrl)
+                .replacePath(relativePath)
+                .toUriString();
     }
 }
