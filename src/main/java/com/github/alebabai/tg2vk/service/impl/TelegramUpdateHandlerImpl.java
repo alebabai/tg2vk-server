@@ -197,13 +197,17 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
         final SendMessage loginMessage = Optional.of(context.chat().type())
                 .filter(Chat.Type.Private::equals)
                 .map(type -> {
-                    final String loginText = userRepository.findOneByTgId(context.from().id())
+                    final Optional<User> userOptional = userRepository.findOneByTgId(context.from().id());
+                    final String loginText = userOptional
                             .map(user -> String.join(
                                     "\n\n",
                                     messages.getMessage("tg.command.login.msg.warning"),
                                     messages.getMessage("tg.command.login.msg.instructions")
                             ))
                             .orElse(messages.getMessage("tg.command.login.msg.instructions"));
+                    final Role[] roles = userOptional
+                            .map(user -> user.getRoles().toArray(new Role[0]))
+                            .orElse(new Role[]{Role.USER});
 
                     return new SendMessage(context.chat().id(), loginText)
                             .parseMode(ParseMode.Markdown)
@@ -213,7 +217,7 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
                                     new InlineKeyboardButton(messages.getMessage("tg.command.login.button.send_token.label"))
                                             .url(UriComponentsBuilder
                                             .fromUriString(pathResolver.resolveServerUrl("/api/redirect/client/revoke"))
-                                            .queryParam("token", tokenFactory.generate(context.from().id(), Role.USER))
+                                            .queryParam("token", tokenFactory.generate(context.from().id(), roles))
                                             .toUriString()),
                             }));
                 })

@@ -64,6 +64,7 @@ public class User implements Persistable<Integer> {
     @Enumerated(EnumType.ORDINAL)
     private Set<Role> roles = new HashSet<>();
 
+    @JsonIgnore
     @Column(name = "temp_tg_chat_id")
     private Integer tempTgChatId;
 
