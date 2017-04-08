@@ -1,6 +1,5 @@
 package com.github.alebabai.tg2vk.service.impl;
 
-import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.domain.Role;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.repository.UserRepository;
@@ -15,7 +14,6 @@ import com.pengrad.telegrambot.request.AnswerCallbackQuery;
 import com.pengrad.telegrambot.request.AnswerInlineQuery;
 import com.pengrad.telegrambot.request.SendMessage;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,10 +113,14 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
                 .map(chats -> chats.parallelStream()
                         .map(chat -> new InlineQueryResultArticle(chat.getId().toString(), chat.getTitle(), chat.getTitle())
                                 .thumbUrl(chat.getThumbUrl())
-                                .description(messages.getMessage("tg.inline.chats." + StringUtils.lowerCase(chat.getType().toString()), StringUtils.EMPTY))
+                                .description(messages.getMessage("tg.inline.chats." + StringUtils.lowerCase(chat.getType().toString())))
                                 .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
-                                        new InlineKeyboardButton("Link chat").callbackData(chat.getId().toString())
-                                })))
+                                        new InlineKeyboardButton(messages.getMessage("tg.inline.chats.link.button.label"))
+                                                .callbackData(chat.getId().toString())
+                                                .switchInlineQueryCurrentChat("switch")
+                                }))
+                                .inputMessageContent(new InputTextMessageContent(String.format("*%s*%n%s", chat.getTitle(), messages.getMessage("tg.inline.chats.link.msg.confirm")))
+                                        .parseMode(ParseMode.Markdown)))
                         .collect(Collectors.toList()))
                 .map(queryResults -> new AnswerInlineQuery(query.id(), queryResults.toArray(new InlineQueryResult[0]))
                         .isPersonal(true))
@@ -129,13 +131,18 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
     private void processChatLinkingCallbackQuery(CallbackQuery callbackQuery) {
         final String messageText = userRepository.findOneByTgId(callbackQuery.from().id())
                 .map(user -> {
-                    final Integer tgChatId = NumberUtils.createInteger(callbackQuery.chatInstance());
-                    final Integer vkChatId = NumberUtils.createInteger(callbackQuery.data());
-                    user.getChatsSettings().add(new ChatSettings(tgChatId, vkChatId).setStarted(true));
-                    userRepository.save(user);
-                    return messages.getMessage("tg.callback.chat_link.success", StringUtils.EMPTY);
+//                    final Integer tgChatId = Math.toIntExact(callbackQuery.message().chat().id());
+//                    final Integer vkChatId = NumberUtils.createInteger(callbackQuery.data());
+//                    final boolean alreadyExists = user.getChatsSettings().parallelStream()
+//                            .anyMatch(it -> it.getTgChatId().equals(tgChatId) && it.getVkChatId().equals(vkChatId));
+//                    if (!alreadyExists) {
+//                        user.getChatsSettings().add(new ChatSettings(tgChatId, vkChatId).setStarted(true));
+//                        userRepository.save(user);
+//                        return messages.getMessage("tg.callback.chats.link.msg.success");
+//                    }
+                    return messages.getMessage("tg.callback.chats.link.msg.already_exists");
                 })
-                .orElse(messages.getMessage("tg.callback.chat_link.denied", StringUtils.EMPTY));
+                .orElse(messages.getMessage("tg.callback.chats.link.msg.denied"));
         final AnswerCallbackQuery linkMessage = new AnswerCallbackQuery(callbackQuery.id())
                 .text(messageText)
                 .showAlert(true);
@@ -166,24 +173,24 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
                     final String loginText = userRepository.findOneByTgId(context.from().id())
                             .map(user -> String.join(
                                     "\n\n",
-                                    messages.getMessage("tg.command.login.msg.warning", StringUtils.EMPTY),
-                                    messages.getMessage("tg.command.login.msg.instructions", StringUtils.EMPTY)
+                                    messages.getMessage("tg.command.login.msg.warning"),
+                                    messages.getMessage("tg.command.login.msg.instructions")
                             ))
-                            .orElse(messages.getMessage("tg.command.login.msg.instructions", StringUtils.EMPTY));
+                            .orElse(messages.getMessage("tg.command.login.msg.instructions"));
 
                     return new SendMessage(context.chat().id(), loginText)
                             .parseMode(ParseMode.Markdown)
                             .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
-                                    new InlineKeyboardButton(messages.getMessage("tg.command.login.button.get_token.label", StringUtils.EMPTY))
+                                    new InlineKeyboardButton(messages.getMessage("tg.command.login.button.get_token.label"))
                                             .url(pathResolver.resolveServerUrl("/api/redirect/vk-login")),
-                                    new InlineKeyboardButton(messages.getMessage("tg.command.login.button.send_token.label", StringUtils.EMPTY))
+                                    new InlineKeyboardButton(messages.getMessage("tg.command.login.button.send_token.label"))
                                             .url(UriComponentsBuilder
                                             .fromUriString(pathResolver.resolveServerUrl("/api/redirect/client/revoke"))
                                             .queryParam("token", tokenFactory.generate(context.from().id(), Role.USER))
                                             .toUriString()),
                             }));
                 })
-                .orElse(new SendMessage(context.chat().id(), messages.getMessage("tg.command.login.msg.denied", StringUtils.EMPTY)));
+                .orElse(new SendMessage(context.chat().id(), messages.getMessage("tg.command.login.msg.denied")));
         tgService.send(loginMessage);
     }
 
@@ -213,14 +220,14 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
         final Optional<User> userOptional = userRepository.findOneByTgId(context.from().id());
         final String messageCode = getMessageCodeAction.apply(userOptional);
         userOptional.ifPresent(userSpecificAction);
-        final SendMessage message = new SendMessage(context.chat().id(), messages.getMessage(messageCode, StringUtils.EMPTY))
+        final SendMessage message = new SendMessage(context.chat().id(), messages.getMessage(messageCode))
                 .parseMode(ParseMode.Markdown);
         tgService.send(message);
     }
 
 
     private void processUnknownCommand(Message context) {
-        SendMessage anyMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.unknown.msg", StringUtils.EMPTY));
+        SendMessage anyMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.unknown.msg"));
         tgService.send(anyMessage);
     }
 }

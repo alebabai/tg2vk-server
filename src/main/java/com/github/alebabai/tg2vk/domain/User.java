@@ -72,12 +72,14 @@ public class User implements Persistable<Integer> {
     }
 
     public User setChatsSettings(Set<ChatSettings> chatsSettings) {
-        this.chatsSettings.retainAll(chatsSettings);
+        this.chatsSettings.clear();
+        this.chatsSettings.addAll(chatsSettings);
         return this;
     }
 
     public User setRoles(Set<Role> roles) {
-        this.roles.retainAll(roles);
+        this.roles.clear();
+        this.roles.addAll(roles);
         return this;
     }
 
