@@ -79,7 +79,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest<User, Integer, Us
         final ChatSettings chatSettings = new ChatSettings(tgChatId, vkChatId);
         user.getChatsSettings().add(chatSettings);
         user.getSettings().setStarted(false);
-        user.getRoles().add(Role.BANNED);
+        user.getRoles().clear();
         user = repository.save(user);
 
         final User updatedUser = repository.findOne(user.getId());
