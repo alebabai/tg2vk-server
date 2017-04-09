@@ -13,11 +13,11 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiConsumer;
 
 @Service
@@ -31,7 +31,7 @@ public class VkMessagesProcessorImpl implements VkMessagesProcessor {
     private final UserRepository userRepository;
     private final VkService vkService;
     private final LinkerServiceImpl linkerService;
-    private Map<Integer, CompletableFuture<Integer>> taskPool;
+    private final ConcurrentMap<Integer, CompletableFuture<Integer>> taskPool;
 
     @Autowired
     public VkMessagesProcessorImpl(UserRepository userRepository,
@@ -40,7 +40,7 @@ public class VkMessagesProcessorImpl implements VkMessagesProcessor {
         this.userRepository = userRepository;
         this.vkService = vkService;
         this.linkerService = linkerService;
-        this.taskPool = new HashMap<>();
+        this.taskPool = new ConcurrentHashMap<>();
     }
 
     @PostConstruct
