@@ -50,8 +50,8 @@ public class VkMessagesProcessorImpl implements VkMessagesProcessor {
         }
     }
 
-    @Override
     @Transactional
+    @Override
     public void start(User user) {
         final boolean isStarted = taskPool.keySet()
                 .stream()
@@ -66,8 +66,8 @@ public class VkMessagesProcessorImpl implements VkMessagesProcessor {
         }
     }
 
-    @Override
     @Transactional
+    @Override
     public void stop(User user) {
         Optional.ofNullable(taskPool.get(user.getId()))
                 .ifPresent(task -> {

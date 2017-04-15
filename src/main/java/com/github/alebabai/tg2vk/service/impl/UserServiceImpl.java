@@ -29,11 +29,7 @@ public class UserServiceImpl implements UserService {
         Assert.notNull(tgId, "vkId is required param!");
         Assert.notNull(tgId, "vkToken is required param!");
         return userRepository.findOneByTgId(tgId)
-                .map(user -> {
-                    user.setChatsSettings(Collections.emptySet());
-                    user.setVkId(vkId).setVkToken(vkToken);
-                    return userRepository.save(user);
-                })
+                .map(user -> userRepository.save(user.setVkId(vkId).setVkToken(vkToken)))
                 .orElseGet(() -> userRepository.save(new User(tgId, vkId, vkToken, new UserSettings())
                         .setRoles(Collections.singleton(Role.USER))));
     }

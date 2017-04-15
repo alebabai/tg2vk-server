@@ -32,7 +32,7 @@ public class User implements Persistable<Integer> {
     private Integer id;
 
     @NotNull(message = "tgId is required!")
-    @Column(name = "tg_id", unique = true, nullable = false)
+    @Column(name = "tg_id", unique = true, nullable = false, updatable = false)
     private Integer tgId;
 
     @NotNull(message = "vkId is required!")
@@ -73,6 +73,12 @@ public class User implements Persistable<Integer> {
         this.vkId = vkId;
         this.vkToken = vkToken;
         this.settings = settings;
+    }
+
+    public User setVkId(Integer vkId) {
+        this.vkId = vkId;
+        this.chatsSettings.clear();
+        return this;
     }
 
     public User setChatsSettings(Set<ChatSettings> chatsSettings) {

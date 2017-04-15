@@ -19,8 +19,8 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.github.alebabai.tg2vk.util.TestUtils.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
 
 @Transactional
 abstract public class AbstractRepositoryTest<T extends Persistable<ID>, ID extends Serializable, REPO extends PagingAndSortingRepository<T, ID>> extends AbstractSpringTest {
@@ -127,7 +127,7 @@ abstract public class AbstractRepositoryTest<T extends Persistable<ID>, ID exten
     public void findAllEntitiesTest() {
         final Iterable<? extends T> saved = repository.save(entities);
 
-        assertThat(saved, is(repository.findAll()));
+        assertThat(repository.findAll(), containsInAnyOrder(saved));
     }
 
     @Test
@@ -169,7 +169,7 @@ abstract public class AbstractRepositoryTest<T extends Persistable<ID>, ID exten
     public void saveSequenceOfEntitiesTest() {
         final Iterable<? extends T> saved = repository.save(entities);
 
-        assertThat(repository.findAll(), is(saved));
+        assertThat(repository.findAll(), containsInAnyOrder(saved));
     }
 
     @Test
