@@ -48,15 +48,6 @@ public class VkServiceImpl implements VkService {
 
     @Autowired
     public VkServiceImpl(@Value("${tg2vk.vk.client_id}") Integer clientId,
-                         @Value("${tg2vk.vk.client_secret}") String clientSecret) {
-        this.api = new VkApiClient(new HttpTransportClient());
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
-        this.fetchDelay = 5000;
-    }
-
-    @Autowired
-    public VkServiceImpl(@Value("${tg2vk.vk.client_id}") Integer clientId,
                          @Value("${tg2vk.vk.client_secret}") String clientSecret,
                          @Value("${tg2vk.vk.service.fetch_delay:5000}") Integer fetchDelay) {
         this.api = new VkApiClient(new HttpTransportClient());
