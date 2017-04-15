@@ -1,12 +1,14 @@
 package com.github.alebabai.tg2vk.repository;
 
-import com.github.alebabai.tg2vk.common.AbstractSpringTest;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.*;
 import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.transaction.Transactional;
 import java.io.Serializable;
@@ -21,8 +23,10 @@ import static com.github.alebabai.tg2vk.util.TestUtils.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
+@RunWith(SpringRunner.class)
+@SpringBootTest
 @Transactional
-abstract public class AbstractRepositoryTest<T extends Persistable<ID>, ID extends Serializable, REPO extends PagingAndSortingRepository<T, ID>> extends AbstractSpringTest {
+abstract public class AbstractRepositoryTest<T extends Persistable<ID>, ID extends Serializable, REPO extends PagingAndSortingRepository<T, ID>> {
 
     protected T entity;
     protected List<? extends T> entities;
