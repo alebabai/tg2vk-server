@@ -14,6 +14,9 @@ import com.pengrad.telegrambot.model.request.*;
 import com.pengrad.telegrambot.request.AnswerCallbackQuery;
 import com.pengrad.telegrambot.request.AnswerInlineQuery;
 import com.pengrad.telegrambot.request.SendMessage;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -129,7 +132,7 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
                         .collect(Collectors.toList()))
                 .map(queryResults -> new AnswerInlineQuery(query.id(), queryResults.toArray(new InlineQueryResult[0]))
                         .isPersonal(true))
-                .orElse(new AnswerInlineQuery(query.id()).isPersonal(true));
+                .orElseGet(() -> new AnswerInlineQuery(query.id()).isPersonal(true));
         tgService.send(answerInlineQuery);
     }
 
@@ -169,28 +172,13 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
             case COMMAND_LINK:
                 processLinkCommand(context, args);
                 break;
+            case COMMAND_SETTINGS:
+                processSettingsCommand(context);
+                break;
             default:
                 processUnknownCommand(context);
                 break;
         }
-    }
-
-    private void processLinkCommand(Message context, List<String> args) {
-        final String query = StringUtils.join(args, StringUtils.SPACE);
-        final Long chatId = context.chat().id();
-        final SendMessage linkMessage = userRepository.findOneByTgId(context.from().id())
-                .map(user -> {
-                    user.setTempTgChatId(Math.toIntExact(chatId));
-                    userRepository.save(user);
-                    return new SendMessage(chatId, messages.getMessage("tg.command.link.msg.info"))
-                            .parseMode(ParseMode.Markdown)
-                            .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
-                                    new InlineKeyboardButton(messages.getMessage("tg.command.link.button.label"))
-                                            .switchInlineQueryCurrentChat(query),
-                            }));
-                })
-                .orElse(new SendMessage(chatId, messages.getMessage("tg.command.link.msg.denied")));
-        tgService.send(linkMessage);
     }
 
     private void processLoginCommand(Message context) {
@@ -221,7 +209,7 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
                                             .toUriString()),
                             }));
                 })
-                .orElse(new SendMessage(context.chat().id(), messages.getMessage("tg.command.login.msg.denied")));
+                .orElseGet(() -> new SendMessage(context.chat().id(), messages.getMessage("tg.command.login.msg.denied")));
         tgService.send(loginMessage);
     }
 
@@ -247,18 +235,76 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
                 .orElse(anonymousCode);
     }
 
-    private void processUserInitCommand(Message context, Consumer<User> userSpecificAction, Function<Optional<User>, String> getMessageCodeAction) {
+    private void processUserInitCommand(Message context, Consumer<User> userSpecificAction, Function<Optional<User>, String> messageCodeHandler) {
         final Optional<User> userOptional = userRepository.findOneByTgId(context.from().id());
-        final String messageCode = getMessageCodeAction.apply(userOptional);
+        final String messageCode = messageCodeHandler.apply(userOptional);
         userOptional.ifPresent(userSpecificAction);
         final SendMessage message = new SendMessage(context.chat().id(), messages.getMessage(messageCode))
                 .parseMode(ParseMode.Markdown);
         tgService.send(message);
     }
 
+    private void processLinkCommand(Message context, List<String> args) {
+        final String query = StringUtils.join(args, StringUtils.SPACE);
+        final Long chatId = context.chat().id();
+        final SendMessage linkMessage = userRepository.findOneByTgId(context.from().id())
+                .map(user -> {
+                    user.setTempTgChatId(Math.toIntExact(chatId));
+                    userRepository.save(user);
+                    return new SendMessage(chatId, messages.getMessage("tg.command.link.msg.info"))
+                            .parseMode(ParseMode.Markdown)
+                            .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
+                                    new InlineKeyboardButton(messages.getMessage("tg.command.link.button.label"))
+                                            .switchInlineQueryCurrentChat(query),
+                            }));
+                })
+                .orElseGet(() -> new SendMessage(chatId, messages.getMessage("tg.command.link.msg.denied")));
+        tgService.send(linkMessage);
+    }
+
+    private void processSettingsCommand(Message context) {
+        final SendMessage message = new ClientRedirectSendMessageBuilder()
+                .context(context)
+                .clientRoute("settings")
+                .normalMessageCode("tg.command.settings.msg.info")
+                .anonymousMessageCode("tg.command.settings.msg.denied")
+                .buttonLabelCode("tg.command.settings.button.open.label")
+                .build();
+        tgService.send(message);
+    }
 
     private void processUnknownCommand(Message context) {
         SendMessage anyMessage = new SendMessage(context.chat().id(), messages.getMessage("tg.command.unknown.msg"));
         tgService.send(anyMessage);
+    }
+
+    @Data
+    @NoArgsConstructor
+    @Accessors(fluent = true)
+    public class ClientRedirectSendMessageBuilder {
+        private Message context;
+        private String clientRoute;
+        private String normalMessageCode;
+        private String anonymousMessageCode;
+        private String buttonLabelCode;
+
+        public SendMessage build() {
+            return userRepository.findOneByTgId(context.from().id())
+                    .map(user -> {
+                        final Role[] roles = user.getRoles().toArray(new Role[0]);
+                        final String text = messages.getMessage(normalMessageCode);
+                        return new SendMessage(context.chat().id(), text)
+                                .parseMode(ParseMode.Markdown)
+                                .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
+                                        new InlineKeyboardButton(messages.getMessage(buttonLabelCode))
+                                                .url(UriComponentsBuilder
+                                                .fromUriString(pathResolver.resolveServerUrl("/api/redirect/client"))
+                                                .path(clientRoute)
+                                                .queryParam("token", tokenFactory.generate(context.from().id(), roles))
+                                                .toUriString()),
+                                }));
+                    })
+                    .orElseGet(() -> new SendMessage(context.chat().id(), messages.getMessage(anonymousMessageCode)));
+        }
     }
 }

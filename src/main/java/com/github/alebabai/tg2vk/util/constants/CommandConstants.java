@@ -6,6 +6,7 @@ public final class CommandConstants {
     public static final String COMMAND_LINK = "link";
     public static final String COMMAND_START = "start";
     public static final String COMMAND_STOP = "stop";
+    public static final String COMMAND_SETTINGS = "settings";
 
     private CommandConstants() {
         super();
