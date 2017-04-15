@@ -41,20 +41,28 @@ public class VkServiceImpl implements VkService {
 
     private static final String VK_AUTHORIZE_URL_FORMAT = "${vk_auth_url}?client_id=${client_id}&display=${display}&redirect_uri=${redirect_uri}&scope=${scope}&response_type=${response_type}&v=${vk_api_version}";
 
-    @Value("${tg2vk.vk.client_id}")
-    private Integer clientId;
-
-    @Value("${tg2vk.vk.client_secret}")
-    private String clientSecret;
-
-    @Value("${tg2vk.vk.service.fetch_delay:5000}")
-    private Integer fetchDelay;
-
+    private final Integer clientId;
+    private final String clientSecret;
+    private final Integer fetchDelay;
     private final VkApiClient api;
 
     @Autowired
-    public VkServiceImpl() {
+    public VkServiceImpl(@Value("${tg2vk.vk.client_id}") Integer clientId,
+                         @Value("${tg2vk.vk.client_secret}") String clientSecret) {
         this.api = new VkApiClient(new HttpTransportClient());
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
+        this.fetchDelay = 5000;
+    }
+
+    @Autowired
+    public VkServiceImpl(@Value("${tg2vk.vk.client_id}") Integer clientId,
+                         @Value("${tg2vk.vk.client_secret}") String clientSecret,
+                         @Value("${tg2vk.vk.service.fetch_delay:5000}") Integer fetchDelay) {
+        this.api = new VkApiClient(new HttpTransportClient());
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
+        this.fetchDelay = fetchDelay;
     }
 
     @Override

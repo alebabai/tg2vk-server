@@ -37,14 +37,20 @@ public class TelegramServiceImpl implements TelegramService {
     public TelegramServiceImpl(PathResolver pathResolver, @Value("${tg2vk.telegram.bot.token}") String token) {
         this.bot = TelegramBotAdapter.build(token);
         this.pathResolver = pathResolver;
+        this.maxConnectionsCount = 40;
     }
 
     @Override
-    public void fetchLongPollingUpdates(Consumer<? super Update> callback) {
+    public void startLongPollingUpdates(Consumer<Update> callback) {
         bot.setUpdatesListener(updates -> {
             updates.forEach(callback);
             return UpdatesListener.CONFIRMED_UPDATES_ALL;
         });
+    }
+
+    @Override
+    public void stopLongPollingUpdates() {
+        bot.removeGetUpdatesListener();
     }
 
     @PostConstruct

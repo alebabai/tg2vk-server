@@ -6,7 +6,9 @@ import com.pengrad.telegrambot.request.BaseRequest;
 import java.util.function.Consumer;
 
 public interface TelegramService {
-    void fetchLongPollingUpdates(Consumer<? super Update> callback);
+    void startLongPollingUpdates(Consumer<Update> callback);
+
+    void stopLongPollingUpdates();
 
     void startWebHookUpdates();
 
