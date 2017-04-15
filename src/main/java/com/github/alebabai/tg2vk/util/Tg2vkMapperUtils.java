@@ -33,7 +33,7 @@ public final class Tg2vkMapperUtils {
     }
 
     public static String createValidHashTag(String title) {
-        return StringUtils.replacePattern(title, "[^\\p{L}\\d]+", BASE_NAME_SEPARATOR);
+        return "#" + StringUtils.replacePattern(title, "[^\\p{L}\\d]+", BASE_NAME_SEPARATOR);
     }
 
     public static Integer getVkChatId(Message message) {

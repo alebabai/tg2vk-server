@@ -13,8 +13,8 @@ public final class CommandUtils {
         super();
     }
 
-    public static void parseCommand(String text, BiConsumer<String, List<String>> callback) {
-        final List<String> tokens = Arrays.asList(text.split(StringUtils.SPACE));
+    public static void parseCommand(String input, BiConsumer<String, List<String>> callback) {
+        final List<String> tokens = Arrays.asList(input.split(StringUtils.SPACE));
         if (tokens.size() > 1) {
             callback.accept(tokens.get(0).substring(1), tokens.subList(1, tokens.size()));
         } else {
