@@ -1,7 +1,6 @@
 package com.github.alebabai.tg2vk.repository;
 
 import com.github.alebabai.tg2vk.common.AbstractSpringTest;
-import com.github.alebabai.tg2vk.util.TestUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,7 +48,7 @@ abstract public class AbstractRepositoryTest<T extends Persistable<ID>, ID exten
     }
 
     protected Pageable generatePageable() {
-        return new PageRequest(1, TestUtils.getRandomInteger(TestUtils.MAX_ENTITIES_COUNT));
+        return new PageRequest(1, getRandomInteger(MAX_ENTITIES_COUNT));
     }
 
     protected List<String> getFieldsNames() {
@@ -66,7 +65,7 @@ abstract public class AbstractRepositoryTest<T extends Persistable<ID>, ID exten
     @Before
     public void initialization() {
         this.entity = generateEntity();
-        this.entities = generateEntities(getRandomInteger(TestUtils.MAX_ENTITIES_COUNT));
+        this.entities = generateEntities(getRandomInteger(MAX_ENTITIES_COUNT));
         this.sort = generateSort();
         this.pageable = generatePageable();
         this.columnNames = getFieldsNames();
