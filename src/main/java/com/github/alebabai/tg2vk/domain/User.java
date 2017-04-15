@@ -28,7 +28,6 @@ public class User implements Persistable<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tg2vk_user_id_seq")
     @SequenceGenerator(name = "tg2vk_user_id_seq", sequenceName = "tg2vk_user_id_seq", allocationSize = 1)
-    @Column(name = "id", unique = true, nullable = false)
     private Integer id;
 
     @NotNull(message = "tgId is required!")

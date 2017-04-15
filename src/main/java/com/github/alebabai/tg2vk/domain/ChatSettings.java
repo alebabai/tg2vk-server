@@ -25,7 +25,6 @@ public class ChatSettings implements Persistable<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tg2vk_chat_settings_id_seq")
     @SequenceGenerator(name = "tg2vk_chat_settings_id_seq", sequenceName = "tg2vk_chat_settings_id_seq", allocationSize = 1)
-    @Column(name = "id", unique = true, nullable = false)
     private Integer id;
 
     @NotNull(message = "tgChatId is required!")
