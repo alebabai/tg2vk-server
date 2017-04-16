@@ -1,7 +1,6 @@
 package com.github.alebabai.tg2vk.repository;
 
 import com.github.alebabai.tg2vk.domain.ChatSettings;
-import com.github.alebabai.tg2vk.domain.Role;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.domain.UserSettings;
 import org.junit.Assert;

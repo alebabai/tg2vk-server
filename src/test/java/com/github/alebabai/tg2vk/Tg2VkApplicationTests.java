@@ -1,17 +1,21 @@
 package com.github.alebabai.tg2vk;
 
-import com.github.alebabai.tg2vk.common.AbstractSpringTest;
 import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.repository.UserRestRepository;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 
-public class Tg2VkApplicationTests extends AbstractSpringTest {
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class Tg2VkApplicationTests {
 
     @Autowired
     private ApplicationContext context;
