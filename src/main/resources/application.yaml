@@ -1,0 +1,103 @@
+# ===============================
+# [ TG2VK Properties ]
+# ===============================
+tg2vk:
+  app:
+    name: TG2VK-Server
+  server:
+    scheme: http
+    name: tg2vk.server.com
+    port: 8080
+    lb:
+      scheme: http
+      name: tg2vk.server.com
+      port: 8080
+  client:
+    url: https://tg2vk.client.com
+  db:
+    name: tg2vk_local
+    port: 5432
+    host: localhost
+    user:
+      login: tg2vk_local
+      password: tg2vk_local
+  telegram:
+    bot:
+      token: TOKEN
+      max_connections: 80
+  vk:
+    client:
+      id: 1
+      secret: VK_APP_SECRET_TOKEN
+    service:
+      fetch_delay: 5000
+      processor:
+        auto_init_pool: true
+
+  security:
+    jwt:
+      header_name: X-TG2VK-TOKEN
+      sign_key: tg2vk
+      expiration_time: 30
+      expiration_time_unit: MINUTES
+
+
+# ===============================
+# [ Server Properties ]
+# ===============================
+server:
+  name: ${tg2vk.server.name}
+  port: ${tg2vk.server.port}
+
+
+# ===============================
+# [ Spring Properties ]
+# ===============================
+spring:
+  application:
+    name: ${tg2vk.app.name}
+  data:
+    rest:
+      basePath: /api
+  datasource:
+    url: jdbc:postgresql://${tg2vk.db.host}:${tg2vk.db.port}/${tg2vk.db.name}
+    username: ${tg2vk.db.user.login}
+    password: ${tg2vk.db.user.password}
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+      id:
+        new_generator_mappings: true
+  messages:
+    basename: i18n/messages
+    cache-seconds: -1
+    encoding: UTF-8
+  mustache:
+    suffix:
+
+
+# ===============================
+# [ Flyway Properties ]
+# ===============================
+flyway:
+  enabled: true
+  locations: classpath:db/migration
+
+
+# ===============================
+# [ Logging Properties ]
+# ===============================
+logging:
+  level:
+    com:
+      github:
+        alebabai:
+          tg2vk: DEBUG
+      vk:
+        api:
+          sdk: ERROR
+    org:
+      springframework: INFO
+      hibernate: ERROR
+      flywaydb: INFO

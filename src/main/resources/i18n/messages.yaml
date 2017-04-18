@@ -1,0 +1,60 @@
+tg:
+  command:
+    unknown:
+      msg: Unknown command
+    start:
+      msg:
+        success: VK updates fetching flow _successfully started_.\nEnjoy it!
+        already_started: VK updates fetching has been _already started_.\nEnjoy it!
+        anonymous: To get started, please, follow *Login flow*.\nTo do this, use the /login command and follow the instructions.
+    stop:
+      msg:
+        success: VK updates fetching flow _successfully stopped_.
+        already_stopped: VK updates fetching has been _already stopped_.
+        anonymous: This functionality is only available for _authorized users_.\n\nTo get started, please, follow *Login flow*.\nTo do this, use the /login command and follow the instructions.
+    login:
+      msg:
+        instructions: _Firstly_, click *Get Token* button and provide all the required permissions from vk.com web site.\n_Secondly_, copy the content of browser address bar.\n_Then_, click *Send Token* button in your Telegram window.\nAnd _finally_ paste content of your clipboard into the field in the opened window.
+        warning: To revoke token and reset all your settings, follow the instructions below.
+        denied: /login command is allowed only in private chat!
+      label:
+        button:
+          get_token: Get Token
+          send_token: Send Token
+    link:
+      msg:
+        info: Please, press the button and select the chat,\n that you want to link
+        denied: Feature is available only for logged in users.
+      label:
+        button: Find vk chats
+    settings:
+      msg:
+        info: To manage you settings, please press the button below.
+        denied: Feature is available only for logged in users.
+      label:
+        button:
+          open: Settings panel
+  inline:
+    chats:
+      private_chat: Private chat
+      group_chat: Group chat
+      link:
+        msg:
+          confirm: Click _"Link chat"_ button to confirm
+        label:
+          button: Link chat
+  callback:
+    chats:
+      link:
+        msg:
+          already_exists: Such a link already exists
+          success: Chat has been successfully linked
+          denied: Feature is available only for logged in users.
+vk:
+  messages:
+    attachment:
+      gift: Gift\n
+      sticker: Sticker\n
+      wall: Wall message\n
+      wall_reply: Wall reply\n
+      video: Video\n

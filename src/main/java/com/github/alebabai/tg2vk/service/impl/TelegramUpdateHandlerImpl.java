@@ -123,7 +123,7 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
                                 .thumbUrl(chat.getThumbUrl())
                                 .description(messages.getMessage("tg.inline.chats." + StringUtils.lowerCase(chat.getType().toString())))
                                 .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
-                                        new InlineKeyboardButton(messages.getMessage("tg.inline.chats.link.button.label"))
+                                        new InlineKeyboardButton(messages.getMessage("tg.inline.chats.link.label.button"))
                                                 .callbackData(chat.getId().toString())
                                                 .switchInlineQueryCurrentChat("switch")
                                 }))
@@ -200,9 +200,9 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
                     return new SendMessage(context.chat().id(), loginText)
                             .parseMode(ParseMode.Markdown)
                             .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
-                                    new InlineKeyboardButton(messages.getMessage("tg.command.login.button.get_token.label"))
+                                    new InlineKeyboardButton(messages.getMessage("tg.command.login.label.button.get_token"))
                                             .url(pathResolver.resolveServerUrl("/api/redirect/vk-login")),
-                                    new InlineKeyboardButton(messages.getMessage("tg.command.login.button.send_token.label"))
+                                    new InlineKeyboardButton(messages.getMessage("tg.command.login.label.button.send_token"))
                                             .url(UriComponentsBuilder
                                             .fromUriString(pathResolver.resolveServerUrl("/api/redirect/client/revoke"))
                                             .queryParam("token", tokenFactory.generate(context.from().id(), roles))
@@ -215,17 +215,17 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
 
     private void processStartCommand(Message context) {
         final Function<Optional<User>, String> messageCodeHandler = getMessageCodeHandler(
-                "tg.command.start.user.already_started.msg",
-                "tg.command.start.user.success.msg",
-                "tg.command.start.anonymous.msg");
+                "tg.command.start.msg.already_started",
+                "tg.command.start.msg.success",
+                "tg.command.start.msg.anonymous");
         processUserInitCommand(context, vkMessageProcessor::start, messageCodeHandler);
     }
 
     private void processStopCommand(Message context) {
         final Function<Optional<User>, String> messageCodeHandler = getMessageCodeHandler(
-                "tg.command.stop.user.success.msg",
-                "tg.command.stop.user.already_stopped.msg",
-                "tg.command.stop.anonymous.msg");
+                "tg.command.stop.msg.success",
+                "tg.command.stop.msg.already_stopped",
+                "tg.command.stop.msg.anonymous");
         processUserInitCommand(context, vkMessageProcessor::stop, messageCodeHandler);
     }
 
@@ -254,7 +254,7 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
                     return new SendMessage(chatId, messages.getMessage("tg.command.link.msg.info"))
                             .parseMode(ParseMode.Markdown)
                             .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
-                                    new InlineKeyboardButton(messages.getMessage("tg.command.link.button.label"))
+                                    new InlineKeyboardButton(messages.getMessage("tg.command.link.label.button"))
                                             .switchInlineQueryCurrentChat(query),
                             }));
                 })
@@ -268,7 +268,7 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
                 .clientRoute("settings")
                 .normalMessageCode("tg.command.settings.msg.info")
                 .anonymousMessageCode("tg.command.settings.msg.denied")
-                .buttonLabelCode("tg.command.settings.button.open.label")
+                .buttonLabelCode("tg.command.settings.label.button.open")
                 .build();
         tgService.send(message);
     }
