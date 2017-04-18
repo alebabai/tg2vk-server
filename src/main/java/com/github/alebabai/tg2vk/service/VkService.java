@@ -7,7 +7,6 @@ import com.vk.api.sdk.objects.messages.Message;
 
 import java.util.Collection;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
 public interface VkService {
@@ -17,7 +16,7 @@ public interface VkService {
 
     String getAuthorizeUrl(String redirectUrl, String... scopes);
 
-    CompletableFuture<Integer> fetchMessages(User user, BiConsumer<com.vk.api.sdk.objects.users.User, Message> consumer);
+    int fetchMessages(User user, BiConsumer<com.vk.api.sdk.objects.users.User, Message> consumer);
 
     Collection<Chat> findChats(User user, String query);
 }

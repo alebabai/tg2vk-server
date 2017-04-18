@@ -15,9 +15,7 @@ import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 
 @Service
@@ -31,7 +29,8 @@ public class VkMessagesProcessorImpl implements VkMessagesProcessor {
     private final UserRepository userRepository;
     private final VkService vkService;
     private final LinkerServiceImpl linkerService;
-    private final ConcurrentMap<Integer, CompletableFuture<Integer>> taskPool;
+    private final ExecutorService executorService;
+    private final ConcurrentMap<Integer, Future<Integer>> taskPool;
 
     @Autowired
     public VkMessagesProcessorImpl(UserRepository userRepository,
@@ -40,6 +39,7 @@ public class VkMessagesProcessorImpl implements VkMessagesProcessor {
         this.userRepository = userRepository;
         this.vkService = vkService;
         this.linkerService = linkerService;
+        this.executorService = Executors.newCachedThreadPool();
         this.taskPool = new ConcurrentHashMap<>();
     }
 
@@ -58,7 +58,7 @@ public class VkMessagesProcessorImpl implements VkMessagesProcessor {
                 .anyMatch(id -> Objects.equals(id, user.getId()));
         if (!isStarted) {
             final BiConsumer<com.vk.api.sdk.objects.users.User, Message> messageHandler = linkerService.getVkMessageHandler(user.getId());
-            final CompletableFuture<Integer> task = vkService.fetchMessages(user, messageHandler);
+            final Future<Integer> task = executorService.submit(() -> vkService.fetchMessages(user, messageHandler));
             taskPool.put(user.getId(), task);
             user.getSettings().setStarted(true);
             userRepository.save(user);

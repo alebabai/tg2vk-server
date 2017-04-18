@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -94,11 +93,9 @@ public class VkServiceImpl implements VkService {
     }
 
     @Override
-    public CompletableFuture<Integer> fetchMessages(User user, BiConsumer<com.vk.api.sdk.objects.users.User, Message> consumer) {
+    public int fetchMessages(User user, BiConsumer<com.vk.api.sdk.objects.users.User, Message> consumer) {
         final UserActor actor = new UserActor(user.getVkId(), user.getVkToken());
-        return CompletableFuture
-                .supplyAsync(() -> triggerMessagesFetching(actor, consumer))
-                .whenCompleteAsync((result, error) -> LOGGER.error("Error during vk messages fetching :", error));
+        return triggerMessagesFetching(actor, consumer);
     }
 
     @Override
