@@ -6,8 +6,6 @@ import com.pengrad.telegrambot.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.CompletableFuture;
-
 public abstract class AbstractTelegramUpdateHandler implements TelegramUpdateHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractTelegramUpdateHandler.class);
@@ -15,11 +13,6 @@ public abstract class AbstractTelegramUpdateHandler implements TelegramUpdateHan
     @Override
     public void handle(Update update) {
         mainHandler(update);
-    }
-
-    @Override
-    public void handleAsync(Update update) {
-        CompletableFuture.runAsync(() -> mainHandler(update));
     }
 
     private void mainHandler(Update update) {

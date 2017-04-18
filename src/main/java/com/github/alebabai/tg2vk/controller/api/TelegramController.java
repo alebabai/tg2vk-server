@@ -36,7 +36,7 @@ public class TelegramController {
             final Update update = Optional.ofNullable(BotUtils.parseUpdate(request.getReader()))
                     .filter(it -> Objects.nonNull(it.updateId()))
                     .orElseThrow(() -> new IllegalStateException("Incorrect update object"));
-            updateHandler.handleAsync(update);
+            updateHandler.handle(update);
         } catch (IllegalStateException e) {
             LOGGER.error("Error during webhook update handling: ", e);
             response = ResponseEntity.unprocessableEntity().body(e.getMessage());
