@@ -8,10 +8,6 @@ tg2vk:
     scheme: http
     name: tg2vk.server.com
     port: 8080
-    lb:
-      scheme:
-      name:
-      port:
   client:
     url: https://tg2vk.client.com
   db:
