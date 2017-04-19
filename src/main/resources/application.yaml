@@ -9,15 +9,15 @@ tg2vk:
     name: tg2vk.server.com
     port: 8080
     lb:
-      scheme: http
-      name: tg2vk.server.com
-      port: 8080
+      scheme:
+      name:
+      port:
   client:
     url: https://tg2vk.client.com
   db:
     name: tg2vk_local
-    port: 5432
     host: localhost
+    port: 5432
     user:
       login: tg2vk_local
       password: tg2vk_local
