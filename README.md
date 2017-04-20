@@ -1,4 +1,4 @@
 # TG2VK
-[![Build Status](https://travis-ci.org/alebabai/TG2VK-Server.svg?branch=master)](https://travis-ci.org/alebabai/TG2VK-Server)  
+[![Build Status](https://travis-ci.org/alebabai/tg2vk-server.svg?branch=master)](https://travis-ci.org/alebabai/tg2vk-server)  
 
 Telegram to VK linker server
