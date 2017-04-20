@@ -11,7 +11,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
+@SpringBootTest(properties = {
+        "tg2vk.server.scheme=http",
+        "tg2vk.server.name=tg2vk.server.com",
+        "tg2vk.server.port=8080"
+})
 public class PathResolverImplTest {
 
     @Autowired
