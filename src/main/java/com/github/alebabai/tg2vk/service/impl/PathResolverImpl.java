@@ -14,9 +14,9 @@ public class PathResolverImpl implements PathResolver {
     private final Integer serverPort;
 
     public PathResolverImpl(@Value("${tg2vk.client.url}") String clientBaseUrl,
-                            @Value("${tg2vk.server.lb.scheme:${tg2vk.server.scheme:http}}") String serverScheme,
-                            @Value("${tg2vk.server.lb.name:${tg2vk.server.name:localhost}}") String serverName,
-                            @Value("${tg2vk.server.lb.port:${tg2vk.server.port:80}}") Integer serverPort) {
+                            @Value("${tg2vk.server.scheme}") String serverScheme,
+                            @Value("${tg2vk.server.name}") String serverName,
+                            @Value("${tg2vk.server.port}") Integer serverPort) {
         this.clientBaseUrl = clientBaseUrl;
         this.serverScheme = serverScheme;
         this.serverName = serverName;

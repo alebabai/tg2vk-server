@@ -6,12 +6,8 @@ tg2vk:
     name: TG2VK-Server
   server:
     scheme: http
-    name: tg2vk.server.com
-    port: 8080
-    lb:
-      scheme: ${tg2vk.server.scheme}
-      name: ${tg2vk.server.name}
-      port: ${tg2vk.server.port}
+    name: localhost
+    port: ${server.port}
   client:
     url: https://tg2vk.client.com
   db:
@@ -39,14 +35,6 @@ tg2vk:
       sign_key: tg2vk
       expiration_time: 30
       expiration_time_unit: MINUTES
-
-
-# ===============================
-# [ Server Properties ]
-# ===============================
-server:
-  name: ${tg2vk.server.name}
-  port: ${tg2vk.server.port}
 
 
 # ===============================
