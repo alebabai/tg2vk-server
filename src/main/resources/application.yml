@@ -11,10 +11,8 @@ tg2vk:
   client:
     url: https://tg2vk.client.com
   db:
-    name: tg2vk_local
-    host: localhost
-    port: 5432
-    user: tg2vk_local
+    url: postgresql://localhost:5432/tg2vk_local
+    username: tg2vk_local
     password: tg2vk_local
   telegram:
     bot:
@@ -47,8 +45,8 @@ spring:
     rest:
       basePath: /api
   datasource:
-    url: jdbc:postgresql://${tg2vk.db.host}:${tg2vk.db.port}/${tg2vk.db.name}
-    username: ${tg2vk.db.user}
+    url: jdbc:${tg2vk.db.url}
+    username: ${tg2vk.db.username}
     password: ${tg2vk.db.password}
   jpa:
     show-sql: false
