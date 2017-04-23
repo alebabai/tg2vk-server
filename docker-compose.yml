@@ -1,19 +1,8 @@
 version: "3"
 
 services:
-  app:
-    container_name: tg2vk-server
-    build: .
-    ports:
-     - "8080:8080"
-    networks:
-      - tg2vk-net
-    links:
-     - db
-    environment:
-     - TG2VK_DB_URL=postgresql://db:5432/tg2vk_local
   db:
-    container_name: tg2vk-postgres
+    container_name: tg2vk-server-db
     image: "postgres:latest"
     environment:
      - POSTGRES_USER=tg2vk_local
@@ -23,6 +12,17 @@ services:
      - "5432"
     networks:
       - tg2vk-net
+  app:
+    container_name: tg2vk-server-app
+    build: .
+    ports:
+     - "8080:8080"
+    networks:
+      - tg2vk-net
+    links:
+     - db
+    environment:
+     - TG2VK_DB_URL=postgresql://db:5432/tg2vk_local
 
 networks:
   tg2vk-net:
