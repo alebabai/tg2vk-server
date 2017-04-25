@@ -22,15 +22,13 @@ import java.util.function.BiConsumer;
 public class VkMessagesProcessorImpl implements VkMessagesProcessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VkMessagesProcessorImpl.class);
-
-    @Value("${tg2vk.vk.service.processor.auto_init_pool:false}")
-    private boolean autoInitPool;
-
     private final UserRepository userRepository;
     private final VkService vkService;
     private final LinkerServiceImpl linkerService;
     private final ExecutorService executorService;
     private final ConcurrentMap<Integer, Future<Integer>> taskPool;
+    @Value("${tg2vk.vk.service.processor.auto_init_pool:false}")
+    private boolean autoInitPool;
 
     @Autowired
     public VkMessagesProcessorImpl(UserRepository userRepository,
@@ -69,6 +67,8 @@ public class VkMessagesProcessorImpl implements VkMessagesProcessor {
     @Transactional
     @Override
     public void stop(User user) {
+        user.getSettings().setStarted(false);
+        userRepository.save(user);
         Optional.ofNullable(taskPool.get(user.getId()))
                 .ifPresent(task -> {
                     task.cancel(true);
