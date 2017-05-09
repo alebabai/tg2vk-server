@@ -23,7 +23,6 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.data.util.ReflectionUtils;
@@ -53,9 +52,6 @@ public class LinkerServiceImpl implements LinkerService {
     private final MessageSourceAccessor messages;
     private final OkHttpClient httpClient;
     private final Gson gson;
-
-    @Value("${tg2vk.vk.service.linker.send_delay:100}")
-    private Integer sendDelay = 100;
 
     @Autowired
     public LinkerServiceImpl(UserRepository userRepository,
@@ -98,14 +94,7 @@ public class LinkerServiceImpl implements LinkerService {
                 .map(fwdMessages -> fwdMessages.stream()
                         .map(fwdMessage -> mapFwdMessage(message, fwdMessage)))
                 .orElse(Stream.of(message))
-                .forEach(msg -> {
-                    try {
-                        Thread.sleep(sendDelay);
-                        tgService.send(convertMessage(tgChatId, msg, profile));
-                    } catch (Exception e) {
-                        LOGGER.debug("Something goes wrong during message sending", e);
-                    }
-                });
+                .forEach(msg -> tgService.send(convertMessage(tgChatId, msg, profile)));
     }
 
     private Message mapFwdMessage(Message origin, Message target) {
