@@ -116,18 +116,22 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
         }
     }
 
+    private InlineKeyboardMarkup getInlineKeyboardMarkupForSelectedChat(User user, Integer chatId) {
+        final boolean isLinkFlow = Objects.nonNull(user.getTempTgChatId());
+        final InlineKeyboardButton linkButton = new InlineKeyboardButton(messages.getMessage("tg.inline.chats.link.label.button"))
+                .callbackData(chatId.toString());
+        return isLinkFlow
+                ? new InlineKeyboardMarkup(new InlineKeyboardButton[]{linkButton})
+                : new InlineKeyboardMarkup();
+    }
+
     private void processVkChatsInlineQuery(InlineQuery query) {
         final AnswerInlineQuery answerInlineQuery = userRepository.findOneByTgId(query.from().id())
-                .map(user -> vkService.findChats(user, query.query()))
-                .map(chats -> chats.parallelStream()
+                .map(user -> vkService.findChats(user, query.query()).parallelStream()
                         .map(chat -> new InlineQueryResultArticle(chat.getId().toString(), chat.getTitle(), chat.getTitle())
                                 .thumbUrl(chat.getThumbUrl())
                                 .description(messages.getMessage("tg.inline.chats." + StringUtils.lowerCase(chat.getType().toString())))
-                                .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
-                                        new InlineKeyboardButton(messages.getMessage("tg.inline.chats.link.label.button"))
-                                                .callbackData(chat.getId().toString())
-                                                .switchInlineQueryCurrentChat("switch")
-                                }))
+                                .replyMarkup(getInlineKeyboardMarkupForSelectedChat(user, chat.getId()))
                                 .inputMessageContent(new InputTextMessageContent(String.format("*%s*%n%s", chat.getTitle(), messages.getMessage("tg.inline.chats.link.msg.confirm")))
                                         .parseMode(ParseMode.Markdown)))
                         .collect(Collectors.toList()))
