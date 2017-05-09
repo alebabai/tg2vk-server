@@ -26,6 +26,8 @@ tg2vk:
       fetch_delay: 5000
       processor:
         auto_init_pool: true
+      linker:
+        send_delay: 500
 
   security:
     jwt:

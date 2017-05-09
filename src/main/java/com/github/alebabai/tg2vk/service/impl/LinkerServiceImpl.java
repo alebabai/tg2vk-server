@@ -23,13 +23,17 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -49,6 +53,9 @@ public class LinkerServiceImpl implements LinkerService {
     private final MessageSourceAccessor messages;
     private final OkHttpClient httpClient;
     private final Gson gson;
+
+    @Value("${tg2vk.vk.service.linker.send_delay:100}")
+    private Integer sendDelay = 100;
 
     @Autowired
     public LinkerServiceImpl(UserRepository userRepository,
@@ -88,11 +95,17 @@ public class LinkerServiceImpl implements LinkerService {
 
     private Consumer<Integer> getMainHandler(Message message, com.vk.api.sdk.objects.users.User profile) {
         return tgChatId -> Optional.ofNullable(message.getFwdMessages())
-                .map(Collection::stream)
-                .map(fwdMessages -> fwdMessages
+                .map(fwdMessages -> fwdMessages.stream()
                         .map(fwdMessage -> mapFwdMessage(message, fwdMessage)))
                 .orElse(Stream.of(message))
-                .forEach(msg -> tgService.send(convertMessage(tgChatId, msg, profile)));
+                .forEach(msg -> {
+                    try {
+                        Thread.sleep(sendDelay);
+                        tgService.send(convertMessage(tgChatId, msg, profile));
+                    } catch (Exception e) {
+                        LOGGER.debug("Something goes wrong during message sending", e);
+                    }
+                });
     }
 
     private Message mapFwdMessage(Message origin, Message target) {
