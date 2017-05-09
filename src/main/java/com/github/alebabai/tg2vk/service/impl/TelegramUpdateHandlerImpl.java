@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -138,6 +139,7 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
 
     private void processChatLinkingCallbackQuery(CallbackQuery callbackQuery) {
         final String messageText = userRepository.findOneByTgId(callbackQuery.from().id())
+                .filter(user -> Objects.nonNull(user.getTempTgChatId()))
                 .map(user -> {
                     final Integer tgChatId = user.getTempTgChatId();
                     final Integer vkChatId = NumberUtils.createInteger(callbackQuery.data());
