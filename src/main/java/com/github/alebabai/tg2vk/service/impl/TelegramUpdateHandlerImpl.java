@@ -283,14 +283,14 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
     @Data
     @NoArgsConstructor
     @Accessors(fluent = true)
-    public class ClientRedirectSendMessageBuilder {
+    protected class ClientRedirectSendMessageBuilder {
         private Message context;
         private String clientRoute;
         private String normalMessageCode;
         private String anonymousMessageCode;
         private String buttonLabelCode;
 
-        public SendMessage build() {
+        SendMessage build() {
             return userRepository.findOneByTgId(context.from().id())
                     .map(user -> {
                         final Role[] roles = user.getRoles().toArray(new Role[0]);
