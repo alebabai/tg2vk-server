@@ -72,6 +72,7 @@ public class LinkerServiceImpl implements LinkerService {
                         .map(user -> Optional.of(user.getChatsSettings().stream()
                                 .filter(chatSettings -> Objects.equals(chatSettings.getVkChatId(), vkChatId))
                                 .collect(toList()))
+                                .filter(chatSettings -> !chatSettings.isEmpty())
                                 .orElseGet(() -> Collections.singletonList(new ChatSettings()
                                         .setTgChatId(user.getTgId())
                                         .setVkChatId(vkChatId)
