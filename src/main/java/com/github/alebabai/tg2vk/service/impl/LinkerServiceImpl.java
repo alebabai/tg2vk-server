@@ -29,13 +29,12 @@ import org.springframework.data.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 public class LinkerServiceImpl implements LinkerService {
@@ -70,17 +69,16 @@ public class LinkerServiceImpl implements LinkerService {
             try {
                 final Integer vkChatId = Tg2vkMapperUtils.getVkChatId(message);
                 Optional.ofNullable(userRepository.findOne(userId))
-                        .map(user -> user.getChatsSettings()
-                                .stream()
+                        .map(user -> Optional.of(user.getChatsSettings().stream()
                                 .filter(chatSettings -> Objects.equals(chatSettings.getVkChatId(), vkChatId))
-                                .findAny()
-                                .orElse(new ChatSettings()
+                                .collect(toList()))
+                                .orElseGet(() -> Collections.singletonList(new ChatSettings()
                                         .setTgChatId(user.getTgId())
                                         .setVkChatId(vkChatId)
-                                        .setStarted(true)))
-                        .filter(ChatSettings::isStarted)
-                        .map(ChatSettings::getTgChatId)
-                        .ifPresent(getMainHandler(message, profile));
+                                        .setStarted(true))))
+                        .filter(chatSettings -> chatSettings.stream().allMatch(ChatSettings::isStarted))
+                        .map(chatSettings -> chatSettings.stream().map(ChatSettings::getTgChatId))
+                        .ifPresent(chatSettingsStream -> chatSettingsStream.forEach(getMainHandler(message, profile)));
             } catch (Exception e) {
                 LOGGER.error("Error during vk message handling: ", e);
             }
