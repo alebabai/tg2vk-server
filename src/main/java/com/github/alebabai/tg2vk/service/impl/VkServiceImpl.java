@@ -1,6 +1,7 @@
 package com.github.alebabai.tg2vk.service.impl;
 
 import com.github.alebabai.tg2vk.domain.Chat;
+import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.domain.ChatType;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.service.VkService;
@@ -30,8 +31,16 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+
+import static com.github.alebabai.tg2vk.domain.ChatType.GROUP_CHAT;
+import static com.github.alebabai.tg2vk.domain.ChatType.PRIVATE_CHAT;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.defaultString;
 
 @Service
 public class VkServiceImpl implements VkService {
@@ -89,7 +98,7 @@ public class VkServiceImpl implements VkService {
         } catch (IllegalStateException e) {
             LOGGER.error("Error during authorize url generation :", e);
         }
-        return StringUtils.EMPTY;
+        return EMPTY;
     }
 
     @Override
@@ -103,10 +112,10 @@ public class VkServiceImpl implements VkService {
         try {
             final UserActor actor = new UserActor(user.getVkId(), user.getVkToken());
             final Gson gson = new Gson();
-            return Optional.ofNullable(api.messages()
+            return ofNullable(api.messages()
                     .searchDialogs(actor)
                     .q(query)
-                    .fields(UserField.PHOTO_100, UserField.PHOTO_200)
+                    .fields()
                     .executeAsString())
                     .map(json -> gson.fromJson(json, JsonObject.class))
                     .map(jsonObject -> jsonObject.getAsJsonArray("response"))
@@ -114,34 +123,60 @@ public class VkServiceImpl implements VkService {
                             .map(JsonElement::getAsJsonObject)
                             .map(this::getChatFromJson)
                             .sorted((chat1, chat2) -> chat1.getTitle().compareToIgnoreCase(chat2.getTitle()))
-                            .collect(Collectors.toList()))
-                    .orElse(Collections.emptyList());
+                            .collect(toList()))
+                    .orElse(emptyList());
         } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Error during vk chats querying", e);
         }
-        return Collections.emptyList();
+        return emptyList();
+    }
+
+    @Override
+    public List<Chat> resolveChats(User user) {
+        try {
+            final UserActor actor = new UserActor(user.getVkId(), user.getVkToken());
+            final List<Integer> ids = user.getChatsSettings().parallelStream()
+                    .map(ChatSettings::getVkChatId)
+                    .collect(toList());
+            return api.messages().getChat(actor, ids, asList(UserField.PHOTO_100, UserField.PHOTO_200))
+                    .execute()
+                    .parallelStream()
+                    .map(chat -> {
+                        final String title = defaultString(chat.getTitle());
+                        final ChatType type = Objects.equals(chat.getType(), "chat")
+                                ? GROUP_CHAT
+                                : PRIVATE_CHAT;
+                        return new Chat(chat.getId(), title, type)
+                                .setThumbUrl(defaultString(chat.getPhoto200()))
+                                .setThumbUrl(defaultString(chat.getPhoto100()));
+                    })
+                    .collect(toList());
+        } catch (Exception e) {
+            LOGGER.error("Error during vk chat resolving", e);
+        }
+        return emptyList();
     }
 
     private Chat getChatFromJson(JsonObject json) {
         final int id = json.get("id").getAsInt();
-        final String title = Optional.ofNullable(json.get("title"))
+        final String title = ofNullable(json.get("title"))
                 .map(JsonElement::getAsString)
                 .orElseGet(() -> {
-                    final String firstName = json.get("first_name").getAsString();
-                    final String lastName = json.get("last_name").getAsString();
+                    final String firstName = ofNullable(json.get("first_name")).map(JsonElement::getAsString).orElse(EMPTY);
+                    final String lastName = ofNullable(json.get("last_name")).map(JsonElement::getAsString).orElse(EMPTY);
                     return String.join(StringUtils.SPACE, firstName, lastName);
                 });
         final ChatType type = Optional.of(json.get("type"))
                 .map(JsonElement::getAsString)
                 .filter("chat"::equals)
-                .map(it -> ChatType.GROUP_CHAT)
-                .orElse(ChatType.PRIVATE_CHAT);
-        final String photoUrl = Optional.ofNullable(json.get("photo_200"))
+                .map(it -> GROUP_CHAT)
+                .orElse(PRIVATE_CHAT);
+        final String photoUrl = ofNullable(json.get("photo_200"))
                 .map(JsonElement::getAsString)
-                .orElse(StringUtils.EMPTY);
-        final String thumbUrl = Optional.ofNullable(json.get("photo_100"))
+                .orElse(EMPTY);
+        final String thumbUrl = ofNullable(json.get("photo_100"))
                 .map(JsonElement::getAsString)
-                .orElse(StringUtils.EMPTY);
+                .orElse(EMPTY);
         return new Chat(id, title, type)
                 .setPhotoUrl(photoUrl)
                 .setThumbUrl(thumbUrl);

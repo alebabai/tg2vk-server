@@ -1,8 +1,11 @@
 package com.github.alebabai.tg2vk.service;
 
+import com.github.alebabai.tg2vk.domain.Chat;
+import com.github.alebabai.tg2vk.domain.User;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.BaseRequest;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 public interface TelegramService {
@@ -15,4 +18,6 @@ public interface TelegramService {
     void stopWebHookUpdates();
 
     void send(BaseRequest request);
+
+    List<Chat> resolveChats(User user);
 }
