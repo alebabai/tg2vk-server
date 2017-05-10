@@ -209,10 +209,7 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
                                     new InlineKeyboardButton(messages.getMessage("tg.command.login.label.button.get_token"))
                                             .url(pathResolver.resolveServerUrl("/api/redirect/vk-login")),
                                     new InlineKeyboardButton(messages.getMessage("tg.command.login.label.button.send_token"))
-                                            .url(UriComponentsBuilder
-                                            .fromUriString(pathResolver.resolveServerUrl("/api/redirect/client/revoke"))
-                                            .queryParam("token", tokenFactory.generate(context.from().id(), roles))
-                                            .toUriString()),
+                                            .url(getClientRedirectUrl(tokenFactory.generate(context.from().id(), roles), "revoke-token")),
                             }));
                 })
                 .orElseGet(() -> new SendMessage(context.chat().id(), messages.getMessage("tg.command.login.msg.denied")));
@@ -284,6 +281,14 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
         tgService.send(anyMessage);
     }
 
+    private String getClientRedirectUrl(String token, String clientRoute) {
+        return UriComponentsBuilder
+                .fromUriString(pathResolver.resolveServerUrl("/api/redirect/client"))
+                .pathSegment(clientRoute)
+                .queryParam("token", token)
+                .toUriString();
+    }
+
     @Data
     @NoArgsConstructor
     @Accessors(fluent = true)
@@ -303,11 +308,7 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
                                 .parseMode(ParseMode.Markdown)
                                 .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
                                         new InlineKeyboardButton(messages.getMessage(buttonLabelCode))
-                                                .url(UriComponentsBuilder
-                                                .fromUriString(pathResolver.resolveServerUrl("/api/redirect/client"))
-                                                .path(clientRoute)
-                                                .queryParam("token", tokenFactory.generate(context.from().id(), roles))
-                                                .toUriString()),
+                                                .url(getClientRedirectUrl(tokenFactory.generate(context.from().id(), roles), clientRoute)),
                                 }));
                     })
                     .orElseGet(() -> new SendMessage(context.chat().id(), messages.getMessage(anonymousMessageCode)));

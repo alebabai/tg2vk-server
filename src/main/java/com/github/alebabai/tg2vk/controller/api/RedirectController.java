@@ -37,8 +37,9 @@ public class RedirectController {
     @GetMapping(value = {"/client", "/client/{relativePath}"})
     public void client(@PathVariable(required = false) String relativePath, @RequestParam String token, HttpServletResponse response) throws IOException {
         final String redirectUri = UriComponentsBuilder
-                .fromUriString(pathResolver.resolveClientUrl(relativePath))
+                .fromUriString(pathResolver.resolveClientUrl("sign-in"))
                 .queryParam("token", token)
+                .queryParam("redirect", "/" + relativePath)
                 .toUriString();
         response.sendRedirect(redirectUri);
     }
