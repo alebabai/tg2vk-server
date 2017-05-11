@@ -1,11 +1,11 @@
-package com.github.alebabai.tg2vk.service.tg.core.common.impl;
+package com.github.alebabai.tg2vk.service.telegram.common.impl;
 
 import com.github.alebabai.tg2vk.domain.Chat;
 import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.domain.ChatType;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.service.core.PathResolver;
-import com.github.alebabai.tg2vk.service.tg.core.common.TelegramService;
+import com.github.alebabai.tg2vk.service.telegram.common.TelegramService;
 import com.pengrad.telegrambot.Callback;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.TelegramBotAdapter;

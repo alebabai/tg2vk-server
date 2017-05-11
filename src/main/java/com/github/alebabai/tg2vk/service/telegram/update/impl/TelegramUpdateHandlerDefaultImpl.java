@@ -1,6 +1,6 @@
-package com.github.alebabai.tg2vk.service.tg.core.update.impl;
+package com.github.alebabai.tg2vk.service.telegram.update.impl;
 
-import com.github.alebabai.tg2vk.service.tg.core.update.TelegramUpdateHandler;
+import com.github.alebabai.tg2vk.service.telegram.update.TelegramUpdateHandler;
 import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.ChosenInlineResult;
 import com.pengrad.telegrambot.model.InlineQuery;
@@ -36,7 +36,6 @@ public class TelegramUpdateHandlerDefaultImpl implements TelegramUpdateHandler {
     @Override
     public void onEditedChanelPostReceived(Message post) {
         LOGGER.debug("Edited chanel post received: {}", post);
-
     }
 
     @Override

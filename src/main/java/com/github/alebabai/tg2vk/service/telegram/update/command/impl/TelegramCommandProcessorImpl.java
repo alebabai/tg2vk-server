@@ -1,4 +1,4 @@
-package com.github.alebabai.tg2vk.service.tg.extention.update.impl;
+package com.github.alebabai.tg2vk.service.telegram.update.command.impl;
 
 import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.domain.Role;
@@ -7,22 +7,20 @@ import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.security.service.JwtTokenFactoryService;
 import com.github.alebabai.tg2vk.service.core.MessageFlowManager;
 import com.github.alebabai.tg2vk.service.core.PathResolver;
-import com.github.alebabai.tg2vk.service.tg.core.common.TelegramService;
-import com.github.alebabai.tg2vk.service.tg.core.update.TelegramUpdateHandler;
+import com.github.alebabai.tg2vk.service.telegram.common.TelegramService;
+import com.github.alebabai.tg2vk.service.telegram.update.command.TelegramCommand;
+import com.github.alebabai.tg2vk.service.telegram.update.command.TelegramCommandProcessor;
 import com.github.alebabai.tg2vk.service.vk.VkService;
-import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.Chat;
-import com.pengrad.telegrambot.model.InlineQuery;
 import com.pengrad.telegrambot.model.Message;
-import com.pengrad.telegrambot.model.request.*;
-import com.pengrad.telegrambot.request.AnswerCallbackQuery;
-import com.pengrad.telegrambot.request.AnswerInlineQuery;
+import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
+import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
+import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.MessageSourceAccessor;
@@ -32,20 +30,15 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static com.github.alebabai.tg2vk.util.CommandUtils.parseCommand;
 import static com.github.alebabai.tg2vk.util.constants.CommandConstants.*;
 import static java.util.Optional.of;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 @Service
-public class TelegramUpdateHandlerImpl implements TelegramUpdateHandler {
-
-    private static final String DELIMITER = "|";
+public class TelegramCommandProcessorImpl implements TelegramCommandProcessor {
 
     private final UserRepository userRepository;
     private final TelegramService tgService;
@@ -56,13 +49,13 @@ public class TelegramUpdateHandlerImpl implements TelegramUpdateHandler {
     private final MessageSourceAccessor messages;
 
     @Autowired
-    public TelegramUpdateHandlerImpl(UserRepository userRepository,
-                                     PathResolver pathResolver,
-                                     TelegramService tgService,
-                                     VkService vkService,
-                                     MessageFlowManager vkMessageProcessor,
-                                     JwtTokenFactoryService tokenFactory,
-                                     MessageSource messageSource) {
+    public TelegramCommandProcessorImpl(UserRepository userRepository,
+                                        PathResolver pathResolver,
+                                        TelegramService tgService,
+                                        VkService vkService,
+                                        MessageFlowManager vkMessageProcessor,
+                                        JwtTokenFactoryService tokenFactory,
+                                        MessageSource messageSource) {
         this.userRepository = userRepository;
         this.pathResolver = pathResolver;
         this.tgService = tgService;
@@ -73,131 +66,28 @@ public class TelegramUpdateHandlerImpl implements TelegramUpdateHandler {
     }
 
     @Override
-    public void onInlineQueryReceived(InlineQuery query) {
-        processVkChatsInlineQuery(query);
-    }
-
-    @Override
-    public void onCallbackQueryReceived(CallbackQuery callbackQuery) {
-        processChatsCallbackQuery(callbackQuery);
-    }
-
-    @Override
-    public void onMessageReceived(Message message) {
-        if (message.text().startsWith("/")) {
-            parseCommand(message.text(), (command, args) -> processCommand(command, args, message));
-        }
-    }
-
-    private InlineKeyboardMarkup getInlineKeyboardMarkupForSelectedChat(User user, Integer chatId) {
-        final boolean isLinkFlow = Objects.nonNull(user.getTempTgChatId());
-        final InlineKeyboardButton linkButton = new InlineKeyboardButton(messages.getMessage("tg.inline.chats.link.label.button"))
-                .callbackData("link|" + chatId.toString());
-        return isLinkFlow
-                ? new InlineKeyboardMarkup(new InlineKeyboardButton[]{linkButton})
-                : new InlineKeyboardMarkup();
-    }
-
-    private void processVkChatsInlineQuery(InlineQuery query) {
-        final AnswerInlineQuery answerInlineQuery = userRepository.findOneByTgId(query.from().id())
-                .map(user -> vkService.findChats(user, query.query()).parallelStream()
-                        .map(chat -> new InlineQueryResultArticle(chat.getId().toString(), chat.getTitle(), chat.getTitle())
-                                .thumbUrl(chat.getThumbUrl())
-                                .description(messages.getMessage("tg.inline.chats." + StringUtils.lowerCase(chat.getType().toString())))
-                                .replyMarkup(getInlineKeyboardMarkupForSelectedChat(user, chat.getId()))
-                                .inputMessageContent(new InputTextMessageContent(String.format("*%s*%n%s", chat.getTitle(), messages.getMessage("tg.inline.chats.link.msg.confirm")))
-                                        .parseMode(ParseMode.Markdown)))
-                        .collect(toList()))
-                .map(queryResults -> new AnswerInlineQuery(query.id(), queryResults.toArray(new InlineQueryResult[0]))
-                        .isPersonal(true))
-                .orElseGet(() -> new AnswerInlineQuery(query.id()).isPersonal(true));
-        tgService.send(answerInlineQuery);
-    }
-
-    private void processChatsCallbackQuery(CallbackQuery query) {
-        final String data = query.data();
-        final String[] tokens = StringUtils.split(data, DELIMITER);
-        if (tokens.length >= 2) {
-            final String type = tokens[0];
-            final int vkChatId = NumberUtils.toInt(tokens[1]);
-            switch (type) {
-                case "link":
-                    processChatLinkCallbackQuery(query.from().id(), vkChatId, query.id());
-                    break;
-                case "unlink":
-                    final int tgChatId = NumberUtils.toInt(tokens[2]);
-                    processChatUnlinkCallbackQuery(query.from().id(), tgChatId, vkChatId, query.id());
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
-    private void processChatLinkCallbackQuery(Integer tgUserId, Integer vkChatId, String queryId) {
-        final String messageText = userRepository.findOneByTgId(tgUserId)
-                .filter(user -> Objects.nonNull(user.getTempTgChatId()))
-                .map(user -> {
-                    final Integer tgChatId = user.getTempTgChatId();
-                    final boolean alreadyExists = user.getChatsSettings().parallelStream()
-                            .anyMatch(it -> it.getTgChatId().equals(tgChatId) && it.getVkChatId().equals(vkChatId));
-                    if (!alreadyExists) {
-                        user.setTempTgChatId(null);
-                        user.getChatsSettings().add(new ChatSettings(tgChatId, vkChatId).setStarted(true));
-                        userRepository.save(user);
-                        return messages.getMessage("tg.callback.chats.link.msg.success");
-                    }
-                    return messages.getMessage("tg.callback.chats.link.msg.already_exists");
-                })
-                .orElse(messages.getMessage("tg.callback.chats.link.msg.denied"));
-        final AnswerCallbackQuery message = new AnswerCallbackQuery(queryId)
-                .text(messageText)
-                .showAlert(true);
-        tgService.send(message);
-    }
-
-    private void processChatUnlinkCallbackQuery(Integer tgUserId, Integer tgChatId, Integer vkChatId, String queryId) {
-        final String messageText = userRepository.findOneByTgId(tgUserId)
-                .map(user -> {
-                    final Set<ChatSettings> chatSettings = user.getChatsSettings().parallelStream()
-                            .filter(it -> !(Objects.equals(it.getTgChatId(), tgChatId) && Objects.equals(it.getVkChatId(), vkChatId)))
-                            .collect(toSet());
-                    if (chatSettings.size() < user.getChatsSettings().size()) {
-                        user.setChatsSettings(chatSettings);
-                        userRepository.save(user);
-                        return messages.getMessage("tg.callback.chats.unlink.msg.success");
-                    }
-                    return messages.getMessage("tg.callback.chats.unlink.msg.already_unlinked");
-                })
-                .orElse(messages.getMessage("tg.callback.chats.unlink.msg.denied"));
-        final AnswerCallbackQuery message = new AnswerCallbackQuery(queryId)
-                .text(messageText)
-                .showAlert(true);
-        tgService.send(message);
-    }
-
-    private void processCommand(String command, List<String> args, Message context) {
-        switch (command) {
+    public void process(TelegramCommand command) {
+        switch (command.name()) {
             case COMMAND_LOGIN:
-                processLoginCommand(context);
+                processLoginCommand(command.context());
                 break;
             case COMMAND_START:
-                processStartCommand(context);
+                processStartCommand(command.context());
                 break;
             case COMMAND_STOP:
-                processStopCommand(context);
+                processStopCommand(command.context());
                 break;
             case COMMAND_LINK:
-                processLinkCommand(context, args);
+                processLinkCommand(command.context(), command.args());
                 break;
             case COMMAND_UNLINK:
-                processUnlinkCommand(context);
+                processUnlinkCommand(command.context());
                 break;
             case COMMAND_SETTINGS:
-                processSettingsCommand(context);
+                processSettingsCommand(command.context());
                 break;
             default:
-                processUnknownCommand(context);
+                processUnknownCommand(command.context());
                 break;
         }
     }
@@ -294,7 +184,7 @@ public class TelegramUpdateHandlerImpl implements TelegramUpdateHandler {
                             .map(ids -> vkService.resolveChats(user).parallelStream()
                                     .filter(chat -> ids.contains(chat.getId()))
                                     .map(chat -> {
-                                        final String data = String.join(DELIMITER, "unlink", chat.getId().toString(), tgChatId.toString());
+                                        final String data = String.join("|", "unlink", chat.getId().toString(), tgChatId.toString());
                                         return new InlineKeyboardButton(chat.getTitle()).callbackData(data);
                                     })
                                     .collect(toList())
@@ -358,4 +248,5 @@ public class TelegramUpdateHandlerImpl implements TelegramUpdateHandler {
                     .orElseGet(() -> new SendMessage(context.chat().id(), messages.getMessage(anonymousMessageCode)));
         }
     }
+
 }

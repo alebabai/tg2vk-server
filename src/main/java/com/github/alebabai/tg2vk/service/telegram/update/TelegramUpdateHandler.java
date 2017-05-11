@@ -1,4 +1,4 @@
-package com.github.alebabai.tg2vk.service.tg.core.update;
+package com.github.alebabai.tg2vk.service.telegram.update;
 
 import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.ChosenInlineResult;
@@ -12,11 +12,11 @@ public interface TelegramUpdateHandler {
 
     default void onCallbackQueryReceived(CallbackQuery callbackQuery) {}
 
-    default void onChanelPostReceived(Message post){}
+    default void onChanelPostReceived(Message post) {}
 
-    default void onEditedChanelPostReceived(Message post){}
+    default void onEditedChanelPostReceived(Message post) {}
 
-    default void onEditedMessageReceived(Message message){}
+    default void onEditedMessageReceived(Message message) {}
 
-    default void onMessageReceived(Message message){}
+    default void onMessageReceived(Message message) {}
 }
