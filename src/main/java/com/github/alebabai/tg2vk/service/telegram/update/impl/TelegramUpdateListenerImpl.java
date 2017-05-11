@@ -1,7 +1,7 @@
 package com.github.alebabai.tg2vk.service.telegram.update.impl;
 
 import com.github.alebabai.tg2vk.service.telegram.update.TelegramUpdateHandler;
-import com.github.alebabai.tg2vk.service.telegram.update.TelegramUpdateMiddleware;
+import com.github.alebabai.tg2vk.service.telegram.update.TelegramUpdateListener;
 import com.pengrad.telegrambot.model.Update;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,14 +11,14 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class TelegramUpdateDestructorMiddleware implements TelegramUpdateMiddleware {
+public class TelegramUpdateListenerImpl implements TelegramUpdateListener {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TelegramUpdateDestructorMiddleware.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TelegramUpdateListenerImpl.class);
 
     private final List<TelegramUpdateHandler> handlers;
 
     @Autowired
-    public TelegramUpdateDestructorMiddleware(List<TelegramUpdateHandler> handlers) {
+    public TelegramUpdateListenerImpl(List<TelegramUpdateHandler> handlers) {
         this.handlers = handlers;
     }
 
