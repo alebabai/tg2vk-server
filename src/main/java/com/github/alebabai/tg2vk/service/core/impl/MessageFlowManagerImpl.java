@@ -1,9 +1,9 @@
-package com.github.alebabai.tg2vk.service.impl;
+package com.github.alebabai.tg2vk.service.core.impl;
 
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.repository.UserRepository;
-import com.github.alebabai.tg2vk.service.VkMessagesProcessor;
-import com.github.alebabai.tg2vk.service.VkService;
+import com.github.alebabai.tg2vk.service.core.MessageFlowManager;
+import com.github.alebabai.tg2vk.service.vk.VkService;
 import com.vk.api.sdk.objects.messages.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,9 +19,9 @@ import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 
 @Service
-public class VkMessagesProcessorImpl implements VkMessagesProcessor {
+public class MessageFlowManagerImpl implements MessageFlowManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(VkMessagesProcessorImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageFlowManagerImpl.class);
     private final UserRepository userRepository;
     private final VkService vkService;
     private final LinkerServiceImpl linkerService;
@@ -31,9 +31,9 @@ public class VkMessagesProcessorImpl implements VkMessagesProcessor {
     private boolean autoInitPool;
 
     @Autowired
-    public VkMessagesProcessorImpl(UserRepository userRepository,
-                                   VkService vkService,
-                                   LinkerServiceImpl linkerService) {
+    public MessageFlowManagerImpl(UserRepository userRepository,
+                                  VkService vkService,
+                                  LinkerServiceImpl linkerService) {
         this.userRepository = userRepository;
         this.vkService = vkService;
         this.linkerService = linkerService;

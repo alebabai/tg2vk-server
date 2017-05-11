@@ -1,14 +1,15 @@
-package com.github.alebabai.tg2vk.service.impl;
+package com.github.alebabai.tg2vk.service.tg.update;
 
 import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.domain.Role;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.security.service.JwtTokenFactoryService;
-import com.github.alebabai.tg2vk.service.PathResolver;
-import com.github.alebabai.tg2vk.service.TelegramService;
-import com.github.alebabai.tg2vk.service.VkMessagesProcessor;
-import com.github.alebabai.tg2vk.service.VkService;
+import com.github.alebabai.tg2vk.service.core.PathResolver;
+import com.github.alebabai.tg2vk.service.tg.core.TelegramService;
+import com.github.alebabai.tg2vk.service.core.MessageFlowManager;
+import com.github.alebabai.tg2vk.service.tg.update.impl.AbstractTelegramUpdateHandler;
+import com.github.alebabai.tg2vk.service.vk.VkService;
 import com.pengrad.telegrambot.model.*;
 import com.pengrad.telegrambot.model.request.*;
 import com.pengrad.telegrambot.request.AnswerCallbackQuery;
@@ -49,7 +50,7 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
     private final UserRepository userRepository;
     private final TelegramService tgService;
     private final VkService vkService;
-    private final VkMessagesProcessor vkMessageProcessor;
+    private final MessageFlowManager vkMessageProcessor;
     private final PathResolver pathResolver;
     private final JwtTokenFactoryService tokenFactory;
     private final MessageSourceAccessor messages;
@@ -59,7 +60,7 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
                                      PathResolver pathResolver,
                                      TelegramService tgService,
                                      VkService vkService,
-                                     VkMessagesProcessor vkMessageProcessor,
+                                     MessageFlowManager vkMessageProcessor,
                                      JwtTokenFactoryService tokenFactory,
                                      MessageSource messageSource) {
         this.userRepository = userRepository;

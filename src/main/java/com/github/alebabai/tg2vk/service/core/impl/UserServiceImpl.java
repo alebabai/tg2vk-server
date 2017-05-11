@@ -1,10 +1,10 @@
-package com.github.alebabai.tg2vk.service.impl;
+package com.github.alebabai.tg2vk.service.core.impl;
 
 import com.github.alebabai.tg2vk.domain.Role;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.domain.UserSettings;
 import com.github.alebabai.tg2vk.repository.UserRepository;
-import com.github.alebabai.tg2vk.service.UserService;
+import com.github.alebabai.tg2vk.service.core.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;

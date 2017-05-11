@@ -1,6 +1,6 @@
-package com.github.alebabai.tg2vk.service.impl;
+package com.github.alebabai.tg2vk.service.core.impl;
 
-import com.github.alebabai.tg2vk.service.TemplateRenderer;
+import com.github.alebabai.tg2vk.service.core.TemplateRenderer;
 import com.samskivert.mustache.Mustache;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

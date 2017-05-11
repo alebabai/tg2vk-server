@@ -1,4 +1,4 @@
-package com.github.alebabai.tg2vk.service;
+package com.github.alebabai.tg2vk.service.core;
 
 import com.vk.api.sdk.objects.messages.Message;
 import com.vk.api.sdk.objects.users.User;

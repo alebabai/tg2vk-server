@@ -1,7 +1,7 @@
 package com.github.alebabai.tg2vk.controller.api;
 
-import com.github.alebabai.tg2vk.service.PathResolver;
-import com.github.alebabai.tg2vk.service.VkService;
+import com.github.alebabai.tg2vk.service.core.PathResolver;
+import com.github.alebabai.tg2vk.service.vk.VkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;

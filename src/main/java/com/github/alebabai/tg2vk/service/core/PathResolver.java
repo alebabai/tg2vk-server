@@ -1,4 +1,4 @@
-package com.github.alebabai.tg2vk.service;
+package com.github.alebabai.tg2vk.service.core;
 
 public interface PathResolver {
     String getClientUrl();

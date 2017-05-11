@@ -1,7 +1,7 @@
-package com.github.alebabai.tg2vk.service.impl;
+package com.github.alebabai.tg2vk.service.tg.update.impl;
 
 
-import com.github.alebabai.tg2vk.service.TelegramUpdateHandler;
+import com.github.alebabai.tg2vk.service.tg.update.TelegramUpdateHandler;
 import com.pengrad.telegrambot.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

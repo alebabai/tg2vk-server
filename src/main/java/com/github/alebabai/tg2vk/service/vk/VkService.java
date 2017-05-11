@@ -1,4 +1,4 @@
-package com.github.alebabai.tg2vk.service;
+package com.github.alebabai.tg2vk.service.vk;
 
 import com.github.alebabai.tg2vk.domain.Chat;
 import com.github.alebabai.tg2vk.domain.User;

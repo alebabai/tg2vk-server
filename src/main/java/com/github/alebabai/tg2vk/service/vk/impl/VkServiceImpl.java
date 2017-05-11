@@ -1,10 +1,10 @@
-package com.github.alebabai.tg2vk.service.impl;
+package com.github.alebabai.tg2vk.service.vk.impl;
 
 import com.github.alebabai.tg2vk.domain.Chat;
 import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.domain.ChatType;
 import com.github.alebabai.tg2vk.domain.User;
-import com.github.alebabai.tg2vk.service.VkService;
+import com.github.alebabai.tg2vk.service.vk.VkService;
 import com.github.alebabai.tg2vk.util.constants.VkConstants;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;

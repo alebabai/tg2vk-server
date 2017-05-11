@@ -1,6 +1,6 @@
-package com.github.alebabai.tg2vk.service.impl;
+package com.github.alebabai.tg2vk.service.core.impl;
 
-import com.github.alebabai.tg2vk.service.PathResolver;
+import com.github.alebabai.tg2vk.service.core.PathResolver;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;

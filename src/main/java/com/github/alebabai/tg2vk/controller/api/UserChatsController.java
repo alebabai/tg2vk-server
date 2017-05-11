@@ -2,7 +2,7 @@ package com.github.alebabai.tg2vk.controller.api;
 
 import com.github.alebabai.tg2vk.domain.Chat;
 import com.github.alebabai.tg2vk.repository.UserRestRepository;
-import com.github.alebabai.tg2vk.service.VkService;
+import com.github.alebabai.tg2vk.service.vk.VkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.PersistentEntityResourceAssembler;
 import org.springframework.data.rest.webmvc.RepositoryRestController;
