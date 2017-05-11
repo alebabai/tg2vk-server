@@ -1,6 +1,7 @@
 package com.github.alebabai.tg2vk.controller.api;
 
-import com.github.alebabai.tg2vk.service.tg.update.TelegramUpdateHandler;
+import com.github.alebabai.tg2vk.service.tg.core.update.TelegramUpdateDispatcher;
+import com.github.alebabai.tg2vk.service.tg.core.update.TelegramUpdateHandler;
 import com.pengrad.telegrambot.BotUtils;
 import com.pengrad.telegrambot.model.Update;
 import org.slf4j.Logger;
@@ -22,11 +23,11 @@ public class TelegramController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramController.class);
 
-    private final TelegramUpdateHandler updateHandler;
+    private final TelegramUpdateDispatcher dispatcher;
 
     @Autowired
-    public TelegramController(TelegramUpdateHandler updateHandler) {
-        this.updateHandler = updateHandler;
+    public TelegramController(TelegramUpdateDispatcher dispatcher) {
+        this.dispatcher = dispatcher;
     }
 
     @PostMapping(value = "/updates")
@@ -36,7 +37,7 @@ public class TelegramController {
             final Update update = Optional.ofNullable(BotUtils.parseUpdate(request.getReader()))
                     .filter(it -> Objects.nonNull(it.updateId()))
                     .orElseThrow(() -> new IllegalStateException("Incorrect update object"));
-            updateHandler.handle(update);
+            dispatcher.dispatch(update);
         } catch (IllegalStateException e) {
             LOGGER.error("Error during webhook update handling: ", e);
             response = ResponseEntity.unprocessableEntity().body(e.getMessage());

@@ -1,16 +1,19 @@
-package com.github.alebabai.tg2vk.service.tg.update;
+package com.github.alebabai.tg2vk.service.tg.extention.update.impl;
 
 import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.domain.Role;
 import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.security.service.JwtTokenFactoryService;
-import com.github.alebabai.tg2vk.service.core.PathResolver;
-import com.github.alebabai.tg2vk.service.tg.core.TelegramService;
 import com.github.alebabai.tg2vk.service.core.MessageFlowManager;
-import com.github.alebabai.tg2vk.service.tg.update.impl.AbstractTelegramUpdateHandler;
+import com.github.alebabai.tg2vk.service.core.PathResolver;
+import com.github.alebabai.tg2vk.service.tg.core.common.TelegramService;
+import com.github.alebabai.tg2vk.service.tg.core.update.TelegramUpdateHandler;
 import com.github.alebabai.tg2vk.service.vk.VkService;
-import com.pengrad.telegrambot.model.*;
+import com.pengrad.telegrambot.model.CallbackQuery;
+import com.pengrad.telegrambot.model.Chat;
+import com.pengrad.telegrambot.model.InlineQuery;
+import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.request.*;
 import com.pengrad.telegrambot.request.AnswerCallbackQuery;
 import com.pengrad.telegrambot.request.AnswerInlineQuery;
@@ -20,8 +23,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.MessageSourceAccessor;
@@ -42,9 +43,8 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 @Service
-public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
+public class TelegramUpdateHandlerImpl implements TelegramUpdateHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TelegramUpdateHandlerImpl.class);
     private static final String DELIMITER = "|";
 
     private final UserRepository userRepository;
@@ -73,51 +73,19 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
     }
 
     @Override
-    protected void onInlineQueryReceived(InlineQuery query) {
-        LOGGER.debug("Inline query received: {}", query);
+    public void onInlineQueryReceived(InlineQuery query) {
         processVkChatsInlineQuery(query);
     }
 
     @Override
-    protected void onChosenInlineResultReceived(ChosenInlineResult queryResult) {
-        LOGGER.debug("Chosen inline result received: {}", queryResult);
-    }
-
-    @Override
-    protected void onCallbackQueryReceived(CallbackQuery callbackQuery) {
-        LOGGER.debug("Callback query received: {}", callbackQuery);
+    public void onCallbackQueryReceived(CallbackQuery callbackQuery) {
         processChatsCallbackQuery(callbackQuery);
     }
 
     @Override
-    protected void onChanelPostReceived(Message post) {
-        LOGGER.debug("Chanel post received: {}", post);
-
-    }
-
-    @Override
-    protected void onEditedChanelPostReceived(Message post) {
-        LOGGER.debug("Edited chanel post received: {}", post);
-
-    }
-
-    @Override
-    protected void onEditedMessageReceived(Message message) {
-        LOGGER.debug("Edited message received: {}", message);
-
-    }
-
-    @Override
-    protected void onMessageReceived(Message message) {
-        LOGGER.debug("Message received: {}", message);
+    public void onMessageReceived(Message message) {
         if (message.text().startsWith("/")) {
             parseCommand(message.text(), (command, args) -> processCommand(command, args, message));
-        } else {
-            /**
-             * Disable echo
-             */
-            //SendMessage anyMessage = new SendMessage(message.chat().id(), message.text());
-            //tgService.send(anyMessage);
         }
     }
 
