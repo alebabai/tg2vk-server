@@ -27,6 +27,7 @@ public class MessageFlowManagerImpl implements MessageFlowManager {
     private final LinkerServiceImpl linkerService;
     private final ExecutorService executorService;
     private final ConcurrentMap<Integer, Future<Integer>> taskPool;
+
     @Value("${tg2vk.vk.service.processor.auto_init_pool:false}")
     private boolean autoInitPool;
 
