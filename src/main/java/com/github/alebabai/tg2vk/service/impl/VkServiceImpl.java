@@ -39,8 +39,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.defaultString;
+import static org.apache.commons.lang3.StringUtils.*;
 
 @Service
 public class VkServiceImpl implements VkService {
@@ -115,7 +114,7 @@ public class VkServiceImpl implements VkService {
             return ofNullable(api.messages()
                     .searchDialogs(actor)
                     .q(query)
-                    .fields()
+                    .fields(UserField.PHOTO_100, UserField.PHOTO_200)
                     .executeAsString())
                     .map(json -> gson.fromJson(json, JsonObject.class))
                     .map(jsonObject -> jsonObject.getAsJsonArray("response"))
@@ -137,16 +136,13 @@ public class VkServiceImpl implements VkService {
             final UserActor actor = new UserActor(user.getVkId(), user.getVkToken());
             final List<Integer> ids = user.getChatsSettings().parallelStream()
                     .map(ChatSettings::getVkChatId)
+                    .distinct()
                     .collect(toList());
-            return api.messages().getChat(actor, ids, asList(UserField.PHOTO_100, UserField.PHOTO_200))
-                    .execute()
+            return api.messages().getChat(actor, ids, asList(UserField.PHOTO_100, UserField.PHOTO_200)).execute()
                     .parallelStream()
                     .map(chat -> {
-                        final String title = defaultString(chat.getTitle());
-                        final ChatType type = Objects.equals(chat.getType(), "chat")
-                                ? GROUP_CHAT
-                                : PRIVATE_CHAT;
-                        return new Chat(chat.getId(), title, type)
+                        final ChatType type = chat.getUsers().size() > 2 ? GROUP_CHAT : PRIVATE_CHAT;
+                        return new Chat(chat.getId(), defaultString(chat.getTitle()), type)
                                 .setThumbUrl(defaultString(chat.getPhoto200()))
                                 .setThumbUrl(defaultString(chat.getPhoto100()));
                     })
