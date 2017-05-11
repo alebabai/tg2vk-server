@@ -19,7 +19,7 @@ public interface VkService {
 
     int fetchMessages(User user, BiConsumer<com.vk.api.sdk.objects.users.User, Message> consumer);
 
-    Collection<Chat> findChats(User user, String query);
+    List<Chat> findChats(User user, String query);
 
     List<Chat> resolveChats(User user);
 }

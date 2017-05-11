@@ -39,7 +39,6 @@ import static com.github.alebabai.tg2vk.util.constants.CommandConstants.*;
 import static java.util.Optional.of;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
 @Service
 public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
@@ -199,7 +198,7 @@ public class TelegramUpdateHandlerImpl extends AbstractTelegramUpdateHandler {
                         userRepository.save(user);
                         return messages.getMessage("tg.callback.chats.unlink.msg.success");
                     }
-                    return messages.getMessage("tg.callback.chats.unlink.msg.not_found");
+                    return messages.getMessage("tg.callback.chats.unlink.msg.already_unlinked");
                 })
                 .orElse(messages.getMessage("tg.callback.chats.unlink.msg.denied"));
         final AnswerCallbackQuery message = new AnswerCallbackQuery(queryId)
