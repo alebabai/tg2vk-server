@@ -1,6 +1,7 @@
 package com.github.alebabai.tg2vk.util;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,5 +21,13 @@ public final class CommandUtils {
         } else {
             callback.accept(tokens.get(0).substring(1), Collections.emptyList());
         }
+    }
+
+    public static String getClientRedirectUrl(String token, String fullServerClientRedirectPath, String clientRoute) {
+        return UriComponentsBuilder
+                .fromUriString(fullServerClientRedirectPath)
+                .pathSegment(clientRoute)
+                .queryParam("token", token)
+                .toUriString();
     }
 }

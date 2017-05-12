@@ -2,17 +2,20 @@ package com.github.alebabai.tg2vk.service.telegram.update.command.handler.impl;
 
 import com.github.alebabai.tg2vk.service.telegram.common.TelegramService;
 import com.github.alebabai.tg2vk.service.telegram.update.command.TelegramCommand;
+import com.github.alebabai.tg2vk.service.telegram.update.command.handler.TelegramCommandHandler;
 import com.pengrad.telegrambot.request.SendMessage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.stereotype.Service;
 
 @Service("unknown")
-public class TelegramUnknownCommandHandler extends AbstractTelegramCommandHandler {
+public class TelegramUnknownCommandHandler implements TelegramCommandHandler {
 
-    @Autowired
-    public TelegramUnknownCommandHandler(TelegramService tgService, MessageSource messageSource) {
-        super(tgService, messageSource);
+    private final TelegramService tgService;
+    private final MessageSourceAccessor messages;
+
+    public TelegramUnknownCommandHandler(TelegramService tgService, MessageSourceAccessor messages) {
+        this.tgService = tgService;
+        this.messages = messages;
     }
 
     @Override

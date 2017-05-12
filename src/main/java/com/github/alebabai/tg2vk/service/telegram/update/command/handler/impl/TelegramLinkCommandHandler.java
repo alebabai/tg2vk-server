@@ -3,23 +3,31 @@ package com.github.alebabai.tg2vk.service.telegram.update.command.handler.impl;
 import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.service.telegram.common.TelegramService;
 import com.github.alebabai.tg2vk.service.telegram.update.command.TelegramCommand;
+import com.github.alebabai.tg2vk.service.telegram.update.command.handler.TelegramCommandHandler;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.context.MessageSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.stereotype.Service;
 
 @Service("link")
-public class TelegramLinkCommandHandler extends AbstractTelegramCommandHandler {
+public class TelegramLinkCommandHandler implements TelegramCommandHandler {
 
+    private final TelegramService tgService;
     private final UserRepository userRepository;
+    private final MessageSourceAccessor messages;
 
-    public TelegramLinkCommandHandler(TelegramService tgService, UserRepository userRepository, MessageSource messageSource) {
-        super(tgService, messageSource);
+    @Autowired
+    public TelegramLinkCommandHandler(TelegramService tgService,
+                                      UserRepository userRepository,
+                                      MessageSourceAccessor messages) {
+        this.tgService = tgService;
         this.userRepository = userRepository;
+        this.messages = messages;
     }
 
     @Override

@@ -4,32 +4,40 @@ import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.service.core.MessageFlowManager;
 import com.github.alebabai.tg2vk.service.telegram.common.TelegramService;
-import com.github.alebabai.tg2vk.service.telegram.update.command.TelegramCommand;
-import org.springframework.context.MessageSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 @Service("stop")
-public class TelegramStopCommandHandler extends AbstractTelegramUserInitCommandHandler {
+public class TelegramStopCommandHandler extends AbstractTelegramFlowCommandHandler {
 
-    private final MessageFlowManager flowManager;
-
+    @Autowired
     public TelegramStopCommandHandler(MessageFlowManager flowManager,
-                                      TelegramService tgService,
                                       UserRepository userRepository,
-                                      MessageSource messageSource) {
-        super(tgService, userRepository, messageSource);
-        this.flowManager = flowManager;
+                                      TelegramService tgService,
+                                      MessageSourceAccessor messages) {
+        super(flowManager, userRepository, tgService, messages);
     }
 
     @Override
-    public void handle(TelegramCommand command) {
-        final Function<Optional<User>, String> messageCodeHandler = getMessageCodeHandler(
-                "tg.command.stop.msg.success",
-                "tg.command.stop.msg.already_stopped",
-                "tg.command.stop.msg.anonymous");
-        processUserInitCommand(command.context(), flowManager::stop, messageCodeHandler);
+    protected String getStartedCode() {
+        return "tg.command.stop.msg.already_stopped";
+    }
+
+    @Override
+    protected String getSuccessCode() {
+        return "tg.command.stop.msg.success";
+    }
+
+    @Override
+    protected String getAnonymousCode() {
+        return "tg.command.stop.msg.anonymous";
+    }
+
+    @Override
+    protected Consumer<User> getUserSpecificAction() {
+        return flowManager::stop;
     }
 }

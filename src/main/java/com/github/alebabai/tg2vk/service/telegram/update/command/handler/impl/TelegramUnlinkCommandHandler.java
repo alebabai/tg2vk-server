@@ -5,6 +5,7 @@ import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.service.telegram.common.TelegramService;
 import com.github.alebabai.tg2vk.service.telegram.update.command.TelegramCommand;
+import com.github.alebabai.tg2vk.service.telegram.update.command.handler.TelegramCommandHandler;
 import com.github.alebabai.tg2vk.service.telegram.update.query.callback.TelegramCallbackQueryData;
 import com.github.alebabai.tg2vk.service.vk.VkService;
 import com.google.gson.Gson;
@@ -14,7 +15,7 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
-import org.springframework.context.MessageSource;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,16 +25,19 @@ import static java.util.Optional.of;
 import static java.util.stream.Collectors.toList;
 
 @Service("unlink")
-public class TelegramUnlinkCommandHandler extends AbstractTelegramCommandHandler {
+public class TelegramUnlinkCommandHandler implements TelegramCommandHandler {
 
     private final UserRepository userRepository;
+    private final TelegramService tgService;
     private final VkService vkService;
+    private final MessageSourceAccessor messages;
     private final Gson gson;
 
-    public TelegramUnlinkCommandHandler(TelegramService tgService, VkService vkService, UserRepository userRepository, MessageSource messageSource) {
-        super(tgService, messageSource);
+    public TelegramUnlinkCommandHandler(UserRepository userRepository, TelegramService tgService, VkService vkService, MessageSourceAccessor messages) {
         this.userRepository = userRepository;
+        this.tgService = tgService;
         this.vkService = vkService;
+        this.messages = messages;
         this.gson = new GsonBuilder().create();
     }
 
