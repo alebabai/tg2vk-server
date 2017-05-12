@@ -1,6 +1,6 @@
 package com.github.alebabai.tg2vk.controller.api;
 
-import com.github.alebabai.tg2vk.service.telegram.update.TelegramUpdateDispatcher;
+import com.github.alebabai.tg2vk.service.tg.update.TelegramUpdateDispatcher;
 import com.pengrad.telegrambot.BotUtils;
 import com.pengrad.telegrambot.model.Update;
 import org.slf4j.Logger;

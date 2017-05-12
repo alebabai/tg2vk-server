@@ -3,7 +3,7 @@ package com.github.alebabai.tg2vk.service.core.impl;
 import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.service.core.LinkerService;
-import com.github.alebabai.tg2vk.service.telegram.common.TelegramService;
+import com.github.alebabai.tg2vk.service.tg.common.TelegramService;
 import com.github.alebabai.tg2vk.service.core.TemplateRenderer;
 import com.github.alebabai.tg2vk.util.Tg2vkMapperUtils;
 import com.google.gson.Gson;
