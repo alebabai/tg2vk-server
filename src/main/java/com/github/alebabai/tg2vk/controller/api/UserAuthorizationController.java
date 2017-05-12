@@ -1,8 +1,10 @@
 package com.github.alebabai.tg2vk.controller.api;
 
 import com.github.alebabai.tg2vk.domain.User;
-import com.github.alebabai.tg2vk.service.core.UserService;
+import com.github.alebabai.tg2vk.dto.CodeAuthPayload;
+import com.github.alebabai.tg2vk.dto.ImplicitAuthPayload;
 import com.github.alebabai.tg2vk.service.core.MessageFlowManager;
+import com.github.alebabai.tg2vk.service.core.UserService;
 import com.github.alebabai.tg2vk.service.vk.VkService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,11 +13,12 @@ import org.springframework.data.rest.webmvc.PersistentEntityResource;
 import org.springframework.data.rest.webmvc.PersistentEntityResourceAssembler;
 import org.springframework.data.rest.webmvc.RepositoryRestController;
 import org.springframework.hateoas.Resource;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -39,19 +42,15 @@ public class UserAuthorizationController {
     }
 
     @PostMapping(value = "/code")
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Resource<User>> authorize(@RequestParam String code, Authentication auth, PersistentEntityResourceAssembler asm) {
-        return vkService.authorize(code)
+    public ResponseEntity<Resource<User>> authorize(@RequestBody CodeAuthPayload payload, Authentication auth, PersistentEntityResourceAssembler asm) {
+        return vkService.authorize(payload.code())
                 .map(actor -> processAuthorization((Integer) auth.getPrincipal(), actor.getId(), actor.getAccessToken(), asm))
                 .orElseThrow(() -> new IllegalArgumentException("Wrong vk authorization code!"));
     }
 
     @PostMapping(value = "/implicit")
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Resource<User>> authorize(@RequestParam Integer vkId, @RequestParam String vkToken, Authentication auth, PersistentEntityResourceAssembler asm) {
-        return vkService.authorize(vkId, vkToken)
+    public ResponseEntity<Resource<User>> authorize(@RequestBody ImplicitAuthPayload payload, Authentication auth, PersistentEntityResourceAssembler asm) {
+        return vkService.authorize(payload.vkId(), payload.vkToken())
                 .map(actor -> processAuthorization((Integer) auth.getPrincipal(), actor.getId(), actor.getAccessToken(), asm))
                 .orElseThrow(() -> new IllegalArgumentException("Wrong userId or token!"));
     }
