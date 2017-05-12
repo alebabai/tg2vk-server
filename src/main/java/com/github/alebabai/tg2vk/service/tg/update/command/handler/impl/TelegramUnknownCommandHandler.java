@@ -7,7 +7,7 @@ import com.pengrad.telegrambot.request.SendMessage;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.stereotype.Service;
 
-@Service("unknown")
+@Service("unknownCommandHandler")
 public class TelegramUnknownCommandHandler implements TelegramCommandHandler {
 
     private final TelegramService tgService;

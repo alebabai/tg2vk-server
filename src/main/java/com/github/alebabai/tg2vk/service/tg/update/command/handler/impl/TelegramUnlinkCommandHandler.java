@@ -26,7 +26,7 @@ import static java.util.Optional.of;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.ListUtils.partition;
 
-@Service("unlink")
+@Service("unlinkCommandHandler")
 public class TelegramUnlinkCommandHandler implements TelegramCommandHandler {
 
     private static final int BUTTONS_COLUMNS_COUNT = 3;

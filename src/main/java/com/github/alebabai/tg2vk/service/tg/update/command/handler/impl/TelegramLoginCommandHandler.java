@@ -23,7 +23,7 @@ import java.util.Optional;
 import static com.github.alebabai.tg2vk.util.CommandUtils.getClientRedirectUrl;
 import static java.util.Optional.of;
 
-@Service("login")
+@Service("loginCommandHandler")
 public class TelegramLoginCommandHandler implements TelegramCommandHandler {
 
     private final UserRepository userRepository;

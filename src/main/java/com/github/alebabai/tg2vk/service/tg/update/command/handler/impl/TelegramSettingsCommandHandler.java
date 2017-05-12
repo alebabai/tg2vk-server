@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 
 import static com.github.alebabai.tg2vk.util.CommandUtils.getClientRedirectUrl;
 
-@Service("settings")
+@Service("settingsCommandHandler")
 public class TelegramSettingsCommandHandler implements TelegramCommandHandler {
 
     private final UserRepository userRepository;

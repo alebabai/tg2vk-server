@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.function.Consumer;
 
-@Service("stop")
+@Service("stopCommandHandler")
 public class TelegramStopCommandHandler extends AbstractTelegramFlowCommandHandler {
 
     @Autowired

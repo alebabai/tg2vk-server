@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.stereotype.Service;
 
-@Service("link")
+@Service("linkCommandHandler")
 public class TelegramLinkCommandHandler implements TelegramCommandHandler {
 
     private final TelegramService tgService;
