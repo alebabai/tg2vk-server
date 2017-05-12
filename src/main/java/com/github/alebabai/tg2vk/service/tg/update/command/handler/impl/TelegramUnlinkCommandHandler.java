@@ -2,6 +2,7 @@ package com.github.alebabai.tg2vk.service.tg.update.command.handler.impl;
 
 import com.github.alebabai.tg2vk.domain.Chat;
 import com.github.alebabai.tg2vk.domain.ChatSettings;
+import com.github.alebabai.tg2vk.domain.User;
 import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.service.tg.common.TelegramService;
 import com.github.alebabai.tg2vk.service.tg.update.command.TelegramCommand;
@@ -23,9 +24,12 @@ import java.util.Objects;
 
 import static java.util.Optional.of;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.ListUtils.partition;
 
 @Service("unlink")
 public class TelegramUnlinkCommandHandler implements TelegramCommandHandler {
+
+    private static final int BUTTONS_COLUMNS_COUNT = 3;
 
     private final UserRepository userRepository;
     private final TelegramService tgService;
@@ -47,29 +51,43 @@ public class TelegramUnlinkCommandHandler implements TelegramCommandHandler {
         final Integer tgChatId = Math.toIntExact(context.chat().id());
         final SendMessage message = userRepository.findOneByTgId(context.from().id())
                 .map(user -> {
-                    user.setTempTgChatId(Math.toIntExact(tgChatId));
                     final List<Integer> vkChatIds = user.getChatsSettings().stream()
                             .filter(chatSettings -> Objects.equals(chatSettings.getTgChatId(), tgChatId))
                             .map(ChatSettings::getVkChatId)
                             .collect(toList());
-                    final InlineKeyboardButton[] buttons = of(vkChatIds)
-                            .filter(ids -> !ids.isEmpty())
-                            .map(ids -> vkService.resolveChats(user).stream()
-                                    .filter(chat -> ids.contains(chat.getId()))
-                                    .map(chat -> createInlineKeyboardButton(tgChatId, chat))
-                                    .collect(toList())
-                                    .toArray(new InlineKeyboardButton[0]))
-                            .orElse(new InlineKeyboardButton[0]);
                     final String code = vkChatIds.isEmpty() ? "tg.command.unlink.msg.no_links" : "tg.command.unlink.msg.info";
                     return new SendMessage(tgChatId, messages.getMessage(code))
                             .parseMode(ParseMode.Markdown)
-                            .replyMarkup(new InlineKeyboardMarkup(buttons));
+                            .replyMarkup(createInlineKeyboardMarkup(user, vkChatIds, tgChatId));
                 })
                 .orElseGet(() -> new SendMessage(tgChatId, messages.getMessage("tg.command.unlink.msg.denied")));
         tgService.send(message);
     }
 
-    private InlineKeyboardButton createInlineKeyboardButton(Integer tgChatId, Chat chat) {
+    private InlineKeyboardMarkup createInlineKeyboardMarkup(User user, List<Integer> vkChatIds, Integer tgChatId) {
+        final List<Chat> chats = vkService.resolveChats(user);
+        final InlineKeyboardButton[][] buttons = of(vkChatIds)
+                .filter(ids -> !ids.isEmpty())
+                .map(ids -> createButtonsRows(createButtonsList(chats, tgChatId, ids)))
+                .orElse(new InlineKeyboardButton[0][0]);
+        return new InlineKeyboardMarkup(buttons);
+    }
+
+    private InlineKeyboardButton[][] createButtonsRows(List<InlineKeyboardButton> buttons) {
+        return partition(buttons, BUTTONS_COLUMNS_COUNT).stream()
+                .map(partition -> partition.toArray(new InlineKeyboardButton[0]))
+                .collect(toList())
+                .toArray(new InlineKeyboardButton[0][0]);
+    }
+
+    private List<InlineKeyboardButton> createButtonsList(List<Chat> chats, Integer tgChatId, List<Integer> ids) {
+        return chats.stream()
+                .filter(chat -> ids.contains(chat.getId()))
+                .map(chat -> createButton(tgChatId, chat))
+                .collect(toList());
+    }
+
+    private InlineKeyboardButton createButton(Integer tgChatId, Chat chat) {
         final TelegramCallbackQueryData data = TelegramCallbackQueryData.builder()
                 .type("unlink")
                 .tgChatId(tgChatId)
