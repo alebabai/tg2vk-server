@@ -1,4 +1,4 @@
-package com.github.alebabai.tg2vk.service.telegram.update.query.callback;
+package com.github.alebabai.tg2vk.service.telegram.update.query.callback.handler;
 
 import com.pengrad.telegrambot.model.CallbackQuery;
 import lombok.Data;

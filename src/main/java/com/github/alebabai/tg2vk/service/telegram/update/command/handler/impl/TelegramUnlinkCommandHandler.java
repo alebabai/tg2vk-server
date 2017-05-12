@@ -6,7 +6,7 @@ import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.service.telegram.common.TelegramService;
 import com.github.alebabai.tg2vk.service.telegram.update.command.TelegramCommand;
 import com.github.alebabai.tg2vk.service.telegram.update.command.handler.TelegramCommandHandler;
-import com.github.alebabai.tg2vk.service.telegram.update.query.callback.TelegramCallbackQueryData;
+import com.github.alebabai.tg2vk.service.telegram.update.query.callback.handler.TelegramCallbackQueryData;
 import com.github.alebabai.tg2vk.service.vk.VkService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

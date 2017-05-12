@@ -1,10 +1,10 @@
-package com.github.alebabai.tg2vk.service.telegram.update.query.callback.impl;
+package com.github.alebabai.tg2vk.service.telegram.update.query.callback.handler.impl;
 
 import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.service.telegram.common.TelegramService;
-import com.github.alebabai.tg2vk.service.telegram.update.query.callback.TelegramCallbackQuery;
-import com.github.alebabai.tg2vk.service.telegram.update.query.callback.TelegramCallbackQueryHandler;
+import com.github.alebabai.tg2vk.service.telegram.update.query.callback.handler.TelegramCallbackQuery;
+import com.github.alebabai.tg2vk.service.telegram.update.query.callback.handler.TelegramCallbackQueryHandler;
 import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.request.AnswerCallbackQuery;
 import org.springframework.beans.factory.annotation.Autowired;

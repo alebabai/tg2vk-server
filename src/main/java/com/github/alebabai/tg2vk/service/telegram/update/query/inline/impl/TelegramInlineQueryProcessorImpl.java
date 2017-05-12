@@ -3,7 +3,7 @@ package com.github.alebabai.tg2vk.service.telegram.update.query.inline.impl;
 import com.github.alebabai.tg2vk.domain.Chat;
 import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.service.telegram.common.TelegramService;
-import com.github.alebabai.tg2vk.service.telegram.update.query.callback.TelegramCallbackQueryData;
+import com.github.alebabai.tg2vk.service.telegram.update.query.callback.handler.TelegramCallbackQueryData;
 import com.github.alebabai.tg2vk.service.telegram.update.query.inline.TelegramInlineQueryProcessor;
 import com.github.alebabai.tg2vk.service.vk.VkService;
 import com.google.gson.Gson;

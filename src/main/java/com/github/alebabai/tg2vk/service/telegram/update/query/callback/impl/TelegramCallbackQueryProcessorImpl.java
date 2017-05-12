@@ -1,8 +1,8 @@
 package com.github.alebabai.tg2vk.service.telegram.update.query.callback.impl;
 
-import com.github.alebabai.tg2vk.service.telegram.update.query.callback.TelegramCallbackQuery;
-import com.github.alebabai.tg2vk.service.telegram.update.query.callback.TelegramCallbackQueryData;
-import com.github.alebabai.tg2vk.service.telegram.update.query.callback.TelegramCallbackQueryHandler;
+import com.github.alebabai.tg2vk.service.telegram.update.query.callback.handler.TelegramCallbackQuery;
+import com.github.alebabai.tg2vk.service.telegram.update.query.callback.handler.TelegramCallbackQueryData;
+import com.github.alebabai.tg2vk.service.telegram.update.query.callback.handler.TelegramCallbackQueryHandler;
 import com.github.alebabai.tg2vk.service.telegram.update.query.callback.TelegramCallbackQueryProcessor;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
