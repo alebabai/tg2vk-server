@@ -135,11 +135,11 @@ public class VkServiceImpl implements VkService {
     @Override
     public List<Chat> resolveChats(User user) {
         try {
-            final List<Integer> ids = user.getChatsSettings().parallelStream()
+            final List<Integer> ids = user.getChatsSettings().stream()
                     .map(ChatSettings::getVkChatId)
                     .distinct()
                     .collect(toList());
-            return findChats(user, EMPTY).parallelStream()
+            return findChats(user, EMPTY).stream()
                     .filter(chat -> ids.contains(chat.getId()))
                     .collect(toList());
         } catch (Exception e) {

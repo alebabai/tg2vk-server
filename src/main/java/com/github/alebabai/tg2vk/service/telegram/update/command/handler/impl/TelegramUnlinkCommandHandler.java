@@ -39,13 +39,13 @@ public class TelegramUnlinkCommandHandler extends AbstractTelegramCommandHandler
         final SendMessage message = userRepository.findOneByTgId(context.from().id())
                 .map(user -> {
                     user.setTempTgChatId(Math.toIntExact(tgChatId));
-                    final List<Integer> vkChatIds = user.getChatsSettings().parallelStream()
+                    final List<Integer> vkChatIds = user.getChatsSettings().stream()
                             .filter(chatSettings -> Objects.equals(chatSettings.getTgChatId(), tgChatId))
                             .map(ChatSettings::getVkChatId)
                             .collect(toList());
                     final InlineKeyboardButton[] buttons = of(vkChatIds)
                             .filter(ids -> !ids.isEmpty())
-                            .map(ids -> vkService.resolveChats(user).parallelStream()
+                            .map(ids -> vkService.resolveChats(user).stream()
                                     .filter(chat -> ids.contains(chat.getId()))
                                     .map(chat -> {
                                         final String data = String.join("|", "unlink", chat.getId().toString(), tgChatId.toString());

@@ -24,7 +24,7 @@ public class TelegramUpdateListenerImpl implements TelegramUpdateListener {
 
     @Override
     public void onUpdate(Update update) {
-        handlers.forEach(handler -> destructUpdate(update, handler));
+        handlers.parallelStream().forEach(handler -> destructUpdate(update, handler));
     }
 
     private void destructUpdate(Update update, TelegramUpdateHandler handler) {

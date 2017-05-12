@@ -60,7 +60,7 @@ public class TelegramCallbackQueryProcessorImpl implements TelegramCallbackQuery
                 .filter(user -> Objects.nonNull(user.getTempTgChatId()))
                 .map(user -> {
                     final Integer tgChatId = user.getTempTgChatId();
-                    final boolean alreadyExists = user.getChatsSettings().parallelStream()
+                    final boolean alreadyExists = user.getChatsSettings().stream()
                             .anyMatch(it -> it.getTgChatId().equals(tgChatId) && it.getVkChatId().equals(vkChatId));
                     if (!alreadyExists) {
                         user.setTempTgChatId(null);
@@ -80,7 +80,7 @@ public class TelegramCallbackQueryProcessorImpl implements TelegramCallbackQuery
     private void processChatUnlinkCallbackQuery(Integer tgUserId, Integer tgChatId, Integer vkChatId, String queryId) {
         final String messageText = userRepository.findOneByTgId(tgUserId)
                 .map(user -> {
-                    final Set<ChatSettings> chatSettings = user.getChatsSettings().parallelStream()
+                    final Set<ChatSettings> chatSettings = user.getChatsSettings().stream()
                             .filter(it -> !(Objects.equals(it.getTgChatId(), tgChatId) && Objects.equals(it.getVkChatId(), vkChatId)))
                             .collect(toSet());
                     if (chatSettings.size() < user.getChatsSettings().size()) {

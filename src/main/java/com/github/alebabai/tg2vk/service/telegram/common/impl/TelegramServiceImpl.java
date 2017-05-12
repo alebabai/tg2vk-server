@@ -99,7 +99,7 @@ public class TelegramServiceImpl implements TelegramService {
 
     @Override
     public List<Chat> resolveChats(User user) {
-        return user.getChatsSettings().parallelStream()
+        return user.getChatsSettings().stream()
                 .map(ChatSettings::getTgChatId)
                 .map(id -> ofNullable(bot.execute(new GetChat(id)))
                         .map(GetChatResponse::chat)
