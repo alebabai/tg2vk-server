@@ -1,9 +1,13 @@
 package com.github.alebabai.tg2vk.service.telegram.update.query.inline.impl;
 
+import com.github.alebabai.tg2vk.domain.Chat;
 import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.service.telegram.common.TelegramService;
+import com.github.alebabai.tg2vk.service.telegram.update.query.callback.TelegramCallbackQueryData;
 import com.github.alebabai.tg2vk.service.telegram.update.query.inline.TelegramInlineQueryProcessor;
 import com.github.alebabai.tg2vk.service.vk.VkService;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.pengrad.telegrambot.model.InlineQuery;
 import com.pengrad.telegrambot.model.request.*;
 import com.pengrad.telegrambot.request.AnswerInlineQuery;
@@ -22,6 +26,7 @@ public class TelegramInlineQueryProcessorImpl implements TelegramInlineQueryProc
     private final TelegramService tgService;
     private final VkService vkService;
     private final MessageSourceAccessor messages;
+    private final Gson gson;
 
     @Autowired
     public TelegramInlineQueryProcessorImpl(UserRepository userRepository,
@@ -32,6 +37,7 @@ public class TelegramInlineQueryProcessorImpl implements TelegramInlineQueryProc
         this.tgService = tgService;
         this.vkService = vkService;
         this.messages = new MessageSourceAccessor(messageSource);
+        this.gson = new GsonBuilder().create();
     }
 
     @Override
@@ -47,7 +53,7 @@ public class TelegramInlineQueryProcessorImpl implements TelegramInlineQueryProc
                                 .description(messages.getMessage("tg.inline.chats." + StringUtils.lowerCase(chat.getType().toString())))
                                 .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton[]{
                                         new InlineKeyboardButton(messages.getMessage("tg.inline.chats.link.label.button"))
-                                                .callbackData("link|" + chat.getId().toString())
+                                                .callbackData(createCallbackData(chat))
                                 }))
                                 .inputMessageContent(new InputTextMessageContent(String.format("*%s*%n%s", chat.getTitle(), messages.getMessage("tg.inline.chats.link.msg.confirm")))
                                         .parseMode(ParseMode.Markdown)))
@@ -56,5 +62,10 @@ public class TelegramInlineQueryProcessorImpl implements TelegramInlineQueryProc
                         .isPersonal(true))
                 .orElseGet(() -> new AnswerInlineQuery(query.id()).isPersonal(true));
         tgService.send(answerInlineQuery);
+    }
+
+    private String createCallbackData(Chat chat) {
+        return gson.toJson(TelegramCallbackQueryData.builder().type("link")
+                .vkChatId(chat.getId()).build());
     }
 }

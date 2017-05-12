@@ -1,10 +1,14 @@
 package com.github.alebabai.tg2vk.service.telegram.update.command.handler.impl;
 
+import com.github.alebabai.tg2vk.domain.Chat;
 import com.github.alebabai.tg2vk.domain.ChatSettings;
 import com.github.alebabai.tg2vk.repository.UserRepository;
 import com.github.alebabai.tg2vk.service.telegram.common.TelegramService;
 import com.github.alebabai.tg2vk.service.telegram.update.command.TelegramCommand;
+import com.github.alebabai.tg2vk.service.telegram.update.query.callback.TelegramCallbackQueryData;
 import com.github.alebabai.tg2vk.service.vk.VkService;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
@@ -24,13 +28,14 @@ public class TelegramUnlinkCommandHandler extends AbstractTelegramCommandHandler
 
     private final UserRepository userRepository;
     private final VkService vkService;
+    private final Gson gson;
 
     public TelegramUnlinkCommandHandler(TelegramService tgService, VkService vkService, UserRepository userRepository, MessageSource messageSource) {
         super(tgService, messageSource);
         this.userRepository = userRepository;
         this.vkService = vkService;
+        this.gson = new GsonBuilder().create();
     }
-
 
     @Override
     public void handle(TelegramCommand command) {
@@ -47,10 +52,7 @@ public class TelegramUnlinkCommandHandler extends AbstractTelegramCommandHandler
                             .filter(ids -> !ids.isEmpty())
                             .map(ids -> vkService.resolveChats(user).stream()
                                     .filter(chat -> ids.contains(chat.getId()))
-                                    .map(chat -> {
-                                        final String data = String.join("|", "unlink", chat.getId().toString(), tgChatId.toString());
-                                        return new InlineKeyboardButton(chat.getTitle()).callbackData(data);
-                                    })
+                                    .map(chat -> createInlineKeyboardButton(tgChatId, chat))
                                     .collect(toList())
                                     .toArray(new InlineKeyboardButton[0]))
                             .orElse(new InlineKeyboardButton[0]);
@@ -61,5 +63,15 @@ public class TelegramUnlinkCommandHandler extends AbstractTelegramCommandHandler
                 })
                 .orElseGet(() -> new SendMessage(tgChatId, messages.getMessage("tg.command.unlink.msg.denied")));
         tgService.send(message);
+    }
+
+    private InlineKeyboardButton createInlineKeyboardButton(Integer tgChatId, Chat chat) {
+        final TelegramCallbackQueryData data = TelegramCallbackQueryData.builder()
+                .type("unlink")
+                .tgChatId(tgChatId)
+                .vkChatId(chat.getId())
+                .build();
+        final String json = gson.toJson(data);
+        return new InlineKeyboardButton(chat.getTitle()).callbackData(json);
     }
 }

@@ -3,11 +3,11 @@ package com.github.alebabai.tg2vk;
 import com.github.alebabai.tg2vk.security.config.JwtSettings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.service.ApiKey;
@@ -29,12 +29,17 @@ public class Tg2VkApplication {
     }
 
     @Bean
-    public Docket getApi(@Autowired JwtSettings settings) {
+    public Docket api(@Autowired JwtSettings settings) {
         final ApiKey apiKey = new ApiKey(settings.getHeaderName(), settings.getHeaderName(), "header");
         return new Docket(DocumentationType.SWAGGER_2)
                 .securitySchemes(Collections.singletonList(apiKey))
                 .select()
                 .paths(PathSelectors.ant("/api/users/**"))
                 .build();
+    }
+
+    @Bean
+    public MessageSourceAccessor messages(@Autowired MessageSource messageSource) {
+        return new MessageSourceAccessor(messageSource);
     }
 }
