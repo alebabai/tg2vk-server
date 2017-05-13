@@ -33,26 +33,22 @@ public abstract class AbstractTelegramFlowCommandHandler implements TelegramComm
         this.messages = messages;
     }
 
-    protected abstract String getStartedCode();
-
-    protected abstract String getSuccessCode();
-
-    protected abstract String getAnonymousCode();
+    protected abstract String getCodePrefix();
 
     protected abstract Consumer<User> getUserSpecificAction();
 
     @Override
     public void handle(TelegramCommand command) {
         final Function<Optional<User>, String> messageCodeHandler = getMessageCodeHandler(
-                getStartedCode(),
-                getSuccessCode(),
-                getAnonymousCode());
+                getCodePrefix() + "already",
+                getCodePrefix() + "success",
+                getCodePrefix() + "anonymous");
         processUserInitCommand(command.context(), getUserSpecificAction(), messageCodeHandler);
     }
 
-    private Function<Optional<User>, String> getMessageCodeHandler(String startedCode, String stoppedCode, String anonymousCode) {
+    private Function<Optional<User>, String> getMessageCodeHandler(String alreadyCode, String stoppedCode, String anonymousCode) {
         return userOptional -> userOptional
-                .map(user -> user.getSettings().isStarted() ? startedCode : stoppedCode)
+                .map(user -> user.getSettings().isStarted() ? alreadyCode : stoppedCode)
                 .orElse(anonymousCode);
     }
 

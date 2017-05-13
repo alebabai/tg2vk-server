@@ -12,8 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 
-import static java.util.Objects.requireNonNull;
-
 @Service("linkCallbackQueryHandler")
 public class TelegramCallbackLinkQueryHandler implements TelegramCallbackQueryHandler {
 
@@ -47,7 +45,7 @@ public class TelegramCallbackLinkQueryHandler implements TelegramCallbackQueryHa
                         userRepository.save(user);
                         return messages.getMessage("tg.callback.chats.link.msg.success");
                     }
-                    return messages.getMessage("tg.callback.chats.link.msg.already_exists");
+                    return messages.getMessage("tg.callback.chats.link.msg.already");
                 })
                 .orElse(messages.getMessage("tg.callback.chats.link.msg.denied"));
         final AnswerCallbackQuery message = new AnswerCallbackQuery(queryId)

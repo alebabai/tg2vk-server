@@ -7,30 +7,28 @@ import com.github.alebabai.tg2vk.service.tg.update.query.callback.handler.Telegr
 import com.github.alebabai.tg2vk.service.tg.update.query.callback.handler.TelegramCallbackQueryHandler;
 import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.request.AnswerCallbackQuery;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
-import org.springframework.stereotype.Service;
 
 import java.util.Objects;
-import java.util.Set;
 
-import static java.util.stream.Collectors.toSet;
-
-@Service("unlinkCallbackQueryHandler")
-public class TelegramCallbackUnlinkQueryHandler implements TelegramCallbackQueryHandler {
-
+public abstract class AbstractTelegramCallbackMuteChatQueryHandler implements TelegramCallbackQueryHandler {
     private final UserRepository userRepository;
     private final TelegramService tgService;
     private final MessageSourceAccessor messages;
 
-    @Autowired
-    public TelegramCallbackUnlinkQueryHandler(UserRepository userRepository,
-                                              TelegramService tgService,
-                                              MessageSourceAccessor messages) {
+    public AbstractTelegramCallbackMuteChatQueryHandler(UserRepository userRepository,
+                                                        TelegramService tgService,
+                                                        MessageSourceAccessor messages) {
         this.userRepository = userRepository;
         this.tgService = tgService;
         this.messages = messages;
     }
+
+    protected abstract String getCodePrefix();
+
+    protected abstract boolean getState();
+
+    protected abstract boolean isProcessable(ChatSettings chatSettings);
 
     @Override
     public void handle(TelegramCallbackQuery query) {
@@ -40,21 +38,22 @@ public class TelegramCallbackUnlinkQueryHandler implements TelegramCallbackQuery
         final Integer vkChatId = query.data().vkChatId();
         final String queryId = context.id();
         final String messageText = userRepository.findOneByTgId(tgUserId)
-                .map(user -> {
-                    final Set<ChatSettings> chatSettings = user.getChatsSettings().stream()
-                            .filter(it -> !(Objects.equals(it.getTgChatId(), tgChatId) && Objects.equals(it.getVkChatId(), vkChatId)))
-                            .collect(toSet());
-                    if (chatSettings.size() < user.getChatsSettings().size()) {
-                        user.setChatsSettings(chatSettings);
-                        userRepository.save(user);
-                        return messages.getMessage("tg.callback.chats.unlink.msg.success");
-                    }
-                    return messages.getMessage("tg.callback.chats.unlink.msg.already");
-                })
-                .orElse(messages.getMessage("tg.callback.chats.unlink.msg.denied"));
+                .map(user -> user.getChatsSettings().stream()
+                        .filter(it -> Objects.equals(it.getTgChatId(), tgChatId) && Objects.equals(it.getVkChatId(), vkChatId))
+                        .findAny()
+                        .filter(this::isProcessable)
+                        .map(it -> {
+                            it.setStarted(getState());
+                            userRepository.save(user);
+                            return messages.getMessage(getCodePrefix() + "success");
+                        })
+                        .orElseGet(() -> messages.getMessage(getCodePrefix() + "already"))
+                )
+                .orElse(messages.getMessage(getCodePrefix() + "denied"));
         final AnswerCallbackQuery message = new AnswerCallbackQuery(queryId)
                 .text(messageText)
                 .showAlert(true);
         tgService.send(message);
     }
+
 }

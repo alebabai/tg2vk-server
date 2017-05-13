@@ -9,26 +9,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.stereotype.Service;
 
-@Service("unlinkCommandHandler")
-public class TelegramUnlinkCommandHandler extends AbstractTelegramChatsCommandHandler {
+@Service("unmuteCommandHandler")
+public class TelegramUnmuteChatsCommandHandler extends AbstractTelegramChatsCommandHandler {
 
     @Autowired
-    public TelegramUnlinkCommandHandler(UserRepository userRepository,
-                                        TelegramService tgService,
-                                        VkService vkService,
-                                        MessageSourceAccessor messages) {
+    public TelegramUnmuteChatsCommandHandler(UserRepository userRepository,
+                                             TelegramService tgService,
+                                             VkService vkService,
+                                             MessageSourceAccessor messages) {
         super(userRepository, tgService, vkService, messages);
     }
 
     @Override
     protected String getCodePrefix() {
-        return "tg.command.unlink.msg.";
+        return "tg.command.unmute.msg.";
     }
 
     @Override
     protected TelegramCallbackQueryData getCallbackData(Integer tgChatId, Chat chat) {
         return TelegramCallbackQueryData.builder()
-                .type("unlink")
+                .type("unmute")
                 .tgChatId(tgChatId)
                 .vkChatId(chat.getId())
                 .build();

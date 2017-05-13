@@ -22,18 +22,8 @@ public class TelegramStopCommandHandler extends AbstractTelegramFlowCommandHandl
     }
 
     @Override
-    protected String getStartedCode() {
-        return "tg.command.stop.msg.already_stopped";
-    }
-
-    @Override
-    protected String getSuccessCode() {
-        return "tg.command.stop.msg.success";
-    }
-
-    @Override
-    protected String getAnonymousCode() {
-        return "tg.command.stop.msg.anonymous";
+    protected String getCodePrefix() {
+        return "tg.command.stop.msg.";
     }
 
     @Override

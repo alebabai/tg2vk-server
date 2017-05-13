@@ -22,18 +22,8 @@ public class TelegramStartCommandHandler extends AbstractTelegramFlowCommandHand
     }
 
     @Override
-    protected String getStartedCode() {
-        return "tg.command.start.msg.already_started";
-    }
-
-    @Override
-    protected String getSuccessCode() {
-        return "tg.command.start.msg.success";
-    }
-
-    @Override
-    protected String getAnonymousCode() {
-        return "tg.command.start.msg.anonymous";
+    protected String getCodePrefix() {
+        return "tg.command.start.msg.";
     }
 
     @Override
