@@ -37,6 +37,8 @@ public abstract class AbstractTelegramFlowCommandHandler implements TelegramComm
 
     protected abstract Consumer<User> getUserSpecificAction();
 
+    protected abstract boolean isProcessable(User user);
+
     @Override
     public void handle(TelegramCommand command) {
         final Function<Optional<User>, String> messageCodeHandler = getMessageCodeHandler(
@@ -55,7 +57,7 @@ public abstract class AbstractTelegramFlowCommandHandler implements TelegramComm
     private void processUserInitCommand(Message context, Consumer<User> userSpecificAction, Function<Optional<User>, String> messageCodeHandler) {
         final Optional<User> userOptional = userRepository.findOneByTgId(context.from().id());
         final String messageCode = messageCodeHandler.apply(userOptional);
-        userOptional.ifPresent(userSpecificAction);
+        userOptional.filter(this::isProcessable).ifPresent(userSpecificAction);
         final SendMessage message = new SendMessage(context.chat().id(), messages.getMessage(messageCode))
                 .parseMode(ParseMode.Markdown);
         tgService.send(message);

@@ -30,4 +30,9 @@ public class TelegramStartCommandHandler extends AbstractTelegramFlowCommandHand
     protected Consumer<User> getUserSpecificAction() {
         return flowManager::start;
     }
+
+    @Override
+    protected boolean isProcessable(User user) {
+        return !user.getSettings().isStarted();
+    }
 }
