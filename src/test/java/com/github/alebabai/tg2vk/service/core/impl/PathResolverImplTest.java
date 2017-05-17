@@ -14,7 +14,8 @@ import static org.hamcrest.Matchers.is;
 @SpringBootTest(properties = {
         "tg2vk.server.scheme=http",
         "tg2vk.server.name=tg2vk.server.com",
-        "tg2vk.server.port=8080"
+        "tg2vk.server.port=8080",
+        "tg2vk.client.url=https://tg2vk.client.com"
 })
 public class PathResolverImplTest {
 
