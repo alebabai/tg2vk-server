@@ -9,7 +9,7 @@ tg2vk:
     name: localhost
     port: ${server.port}
   client:
-    url: https://tg2vk.client.com
+    url: http://localhost:3000
   db:
     url: postgresql://localhost:5432/tg2vk_local
     username: tg2vk_local
