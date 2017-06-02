@@ -8,8 +8,8 @@ services:
      - POSTGRES_USER=tg2vk_local
      - POSTGRES_PASSWORD=tg2vk_local
      - POSTGRES_DB=tg2vk_local
-    expose:
-     - "5432"
+    ports:
+     - "5432:5432"
     networks:
       - tg2vk-net
   app:

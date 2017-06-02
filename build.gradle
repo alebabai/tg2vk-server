@@ -3,7 +3,7 @@ version = '0.0.1-SNAPSHOT'
 
 buildscript {
     ext {
-        springBootVersion = '1.5.2.RELEASE'
+        springBootVersion = '1.5.3.RELEASE'
     }
     repositories {
         mavenCentral()
@@ -31,7 +31,7 @@ bootRun {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '3.4.1'
+    gradleVersion = '3.5'
     distributionType = Wrapper.DistributionType.ALL
 }
 
@@ -40,7 +40,7 @@ repositories {
 }
 
 ext {
-    springFoxVersion = '2.6.1'
+    springFoxVersion = '2.7.0'
 }
 
 dependencies {
@@ -63,12 +63,12 @@ dependencies {
  *  Other dependencies
  */
     compileOnly 'org.projectlombok:lombok:1.16.16'
-    compile 'com.vk.api:sdk:0.4.3'
-    compile 'com.github.pengrad:java-telegram-bot-api:2.3.1'
-    compile 'org.apache.commons:commons-lang3:3.4'
+    compile 'com.vk.api:sdk:0.5.2'
+    compile 'com.github.pengrad:java-telegram-bot-api:3.0.0'
+    compile 'org.apache.commons:commons-lang3:3.5'
     compile 'io.jsonwebtoken:jjwt:0.7.0'
-    compile 'org.flywaydb:flyway-core:4.1.1'
-    runtime 'org.postgresql:postgresql:42.0.0'
+    compile 'org.flywaydb:flyway-core:4.2.0'
+    runtime 'org.postgresql:postgresql:42.1.1'
 
 /**
  *  Test dependencies

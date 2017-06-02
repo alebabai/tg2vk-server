@@ -6,7 +6,7 @@ public final class VkConstants {
     public static final String VK_URL_AUTHORIZE = VK_URL_OAUTH_BASE + "/authorize";
     public static final String VK_URL_REDIRECT = VK_URL_OAUTH_BASE + "/blank.html";
 
-    public static final String VK_API_VERSION = "5.59";
+    public static final String VK_API_VERSION = "5.63";
     public static final String VK_RESPONSE_TYPE_CODE = "code";
     public static final String VK_RESPONSE_TYPE_TOKEN = "token";
 

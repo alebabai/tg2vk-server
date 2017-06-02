@@ -173,7 +173,7 @@ public class VkServiceImpl implements VkService {
                 .setThumbUrl(thumbUrl);
     }
 
-    private int triggerMessagesFetching(Actor actor, BiConsumer<com.vk.api.sdk.objects.users.User, Message> consumer) {
+    private int triggerMessagesFetching(UserActor actor, BiConsumer<com.vk.api.sdk.objects.users.User, Message> consumer) {
         try {
             final MessagesGetLongPollServerQuery query = api.messages().getLongPollServer(actor).useSsl(true).needPts(true);
             return getMessages(actor, query, consumer);
@@ -185,7 +185,7 @@ public class VkServiceImpl implements VkService {
 
     }
 
-    private int getMessages(Actor actor, MessagesGetLongPollServerQuery query, BiConsumer<com.vk.api.sdk.objects.users.User, Message> consumer) throws ClientException, ApiException, InterruptedException {
+    private int getMessages(UserActor actor, MessagesGetLongPollServerQuery query, BiConsumer<com.vk.api.sdk.objects.users.User, Message> consumer) throws ClientException, ApiException, InterruptedException {
         int newTs = query.execute().getTs();
         while (!Thread.interrupted()) {
             final GetLongPollHistoryResponse response = api.messages().getLongPollHistory(actor).ts(newTs).execute();
