@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.springframework.data.domain.Persistable;
+import org.springframework.hateoas.Identifiable;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -23,7 +24,7 @@ import java.util.Set;
         name = "tg2vk_user",
         uniqueConstraints = @UniqueConstraint(name = "uk_tg2vk_user_user_settings_id", columnNames = {"user_settings_id"})
 )
-public class User implements Persistable<Integer> {
+public class User implements Persistable<Integer>, Identifiable<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tg2vk_user_id_seq")

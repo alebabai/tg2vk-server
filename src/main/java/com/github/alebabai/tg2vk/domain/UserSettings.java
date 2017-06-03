@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.data.domain.Persistable;
+import org.springframework.hateoas.Identifiable;
 
 import javax.persistence.*;
 
@@ -11,7 +12,7 @@ import javax.persistence.*;
 @Accessors(chain = true)
 @Entity
 @Table(name = "tg2vk_user_settings")
-public class UserSettings implements Persistable<Integer> {
+public class UserSettings implements Persistable<Integer>, Identifiable<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tg2vk_user_settings_id_seq")
