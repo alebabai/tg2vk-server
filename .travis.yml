@@ -9,6 +9,10 @@ env:
   - TG2VK_DB_URL=postgresql://localhost:5432/tg2vk_test TG2VK_DB_USERNAME=postgres
 before_script:
   - psql -c 'create database tg2vk_test;' -U postgres
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
 cache:
   directories:
-  - $HOME/.m2
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
