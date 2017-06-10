@@ -9,3 +9,6 @@ env:
   - TG2VK_DB_URL=postgresql://localhost:5432/tg2vk_test TG2VK_DB_USERNAME=postgres
 before_script:
   - psql -c 'create database tg2vk_test;' -U postgres
+cache:
+  directories:
+  - $HOME/.m2
